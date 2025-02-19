@@ -1,0 +1,16 @@
+name: cfdna_r
+channels:
+  - anaconda
+  - bioconda
+  - conda-forge
+  - r
+  - defaults
+dependencies:
+  - r-argparse=2.2.2
+  - r-base=4.3.3
+  - r-doparallel=1.0.17
+  - r-dplyr=1.1.4
+  - r-foreach=1.5.2
+  - r-readr=2.1.5
+  - bioconductor-s4vectors=0.40.2
+  - r-stringr=1.5.1

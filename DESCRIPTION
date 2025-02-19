@@ -1,0 +1,26 @@
+Package: fRagmentomics
+Title: Compute Fragments Statistics Of Sequencing Experiments
+Version: 0.0.3
+Authors@R: c(
+    person("Juliette", "Samaniego", email = "juliette.samaniego@gustaveroussy.fr",
+	   role = "aut"),
+    person("Yoann", "Pradat", email = "yoann.pradat@gustaveroussy.fr",
+	   role = c("aut", "cre"), comment = c(ORCID = "0000-0002-4647-5779")),
+    person("Elsa", "Bernard", email = "elsa.bernard@gustaveroussy.fr",
+	   role = "aut", comment = c(ORCID = "0000-0002-2057-7187"))
+  )
+Description: What the package does (one paragraph).
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Imports:
+    doParallel,
+    foreach,
+    parallel,
+    readr,
+    S4Vectors,
+    stringr

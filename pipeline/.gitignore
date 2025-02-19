@@ -1,0 +1,59 @@
+# Project-specific
+devel*
+results*
+workflow/logs*
+workflow/benchmark*
+config*/*.tsv
+resources
+external
+.snakemake
+
+# Logs
+*.log
+logs/
+benchmark
+
+# Tags
+*tags
+
+# Mac specific
+.DS_Store
+.DS_Store?
+*.DS_Store
+
+# Python
+__pycache__/
+.ipynb_checkpoints/
+*.egg-info/
+.tool-versions
+*.pyc
+
+# Python test
+*.pytest_cache
+*.coverage
+*.coverage*
+
+# R
+*.Rproj.user
+*.Rproj
+renv.lock
+activate.R
+renv/
+.Rprofile
+.Renviron
+.Rhistory
+.Rproj.user
+
+# Open cached files
+*.m~
+*.*swp
+*.*swo
+~$*.*pptx
+
+# Compiled sources
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
