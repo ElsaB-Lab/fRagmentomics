@@ -1,5 +1,6 @@
-#' Get inner distance between two reads from the same fragment.
-#'
+#' @title Compute fragment inner distance
+#' @description Calculates the inner distance between two paired-end sequencing reads.
+#' 
 #' @param r_pos1 numeric value representing the read 1 mapping position
 #' @param r_pos2 numeric value representing the read 2 mapping position
 #' @param r_cigar1 character vector representing the read 1 CIGAR
