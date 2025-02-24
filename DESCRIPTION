@@ -25,4 +25,7 @@ Imports:
     parallel,
     readr,
     S4Vectors,
-    stringr
+    stringr,
+    Rsamtools,
+    GenomicRanges,
+    Biostrings

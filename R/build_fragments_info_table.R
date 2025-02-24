@@ -76,7 +76,10 @@ build_fragments_info_table <- function(
   mutation_status <- define_mutation_status(ref, alt)
 
   # Normalize the REF and ALT format for the indel. We have the mutation status 
-  c(ref, alt) <- normalize_ref_alt(ref, alt)
+  c(ref, alt) <- normalize_ref_alt(chr, pos, ref, alt, mutation_status, fasta)
+
+  # Apply the normalization from bcftools
+  
 
   # Process fragmentomics on truncated bam and the mutation 
   process_fragmentomics <- function(
