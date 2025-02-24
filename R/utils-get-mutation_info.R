@@ -1,3 +1,5 @@
+# Project : ElsaBLab_fRagmentomics
+
 #' @title Retrieve mutation-specific information
 #' @description Extracts base, quality, and indel information based on the mutation type.
 #'

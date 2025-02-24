@@ -2,22 +2,32 @@
 % Please edit documentation in R/build_fragments_info_table.R
 \name{build_fragments_info_table}
 \alias{build_fragments_info_table}
-\title{Create a table with statistics about fragments covering a position of interest (e.g the position of a mutation).}
+\title{Build fragment information table}
 \usage{
-build_fragments_info_table(df_sam, chr, pos, n_cores = 1)
+build_fragments_info_table(n_cores = 1)
 }
 \arguments{
-\item{df_sam}{dataframe containing reads from SAM format}
+\item{n_cores}{Number of cores for parallel computation.}
 
-\item{chr}{chromosome for position of interest}
+\item{df_sam}{A dataframe containing sequencing reads.}
 
-\item{pos}{chromosome for position of interest}
+\item{sample_id}{Sample identifier.}
 
-\item{n_cores}{the number of cores available}
+\item{chr}{Chromosome of interest.}
+
+\item{pos}{Genomic position of interest.}
+
+\item{ref}{Reference base.}
+
+\item{alt}{Alternative base (for SNV) or sequence (for insertion).}
+
+\item{del_info}{Deletion-specific information (if applicable).}
+
+\item{mutation_type}{Type of mutation: "mutation", "deletion", or "insertion".}
 }
 \value{
-a dataframe
+A dataframe containing extracted fragment-level information.
 }
 \description{
-Create a table with statistics about fragments covering a position of interest (e.g the position of a mutation).
+Processes fragment-level sequencing data in parallel and extracts relevant statistics.
 }

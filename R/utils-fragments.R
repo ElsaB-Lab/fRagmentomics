@@ -1,3 +1,5 @@
+# Project : ElsaBLab_fRagmentomics
+
 #' @title Extract read-level statistics
 #' @description Retrieves key attributes from a single sequencing read.
 #'
@@ -22,7 +24,6 @@ get_read_stats <- function(df_read) {
 #'
 #' @param df_fragment_reads A dataframe with two rows, each representing a sequencing read.
 #' @return A named list containing two elements: `read1` (first mate) and `read2` (second mate).
-#' @importFrom methods stop
 #' 
 #' @noRd
 identify_reads <- function(df_fragment_reads) {

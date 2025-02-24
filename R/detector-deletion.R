@@ -11,8 +11,6 @@
 #' @param r_cigar character vector representing the read CIGAR
 #' @return a named list with names `base`,`qual` and `indel`.
 #'
-#' @importFrom stringr str_extract utils
-#'
 #' @noRd
 get_deletion <- function(chr, pos, ref, del_info, r_pos, r_cigar) {
   # Split the del_info parameter into final_pos and del_rep

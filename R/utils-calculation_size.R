@@ -1,3 +1,5 @@
+# Project : ElsaBLab_fRagmentomics
+
 #' @title Compute fragment inner distance
 #' @description Calculates the inner distance between two paired-end sequencing reads.
 #' 

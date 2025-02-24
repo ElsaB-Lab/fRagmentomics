@@ -1,4 +1,7 @@
-#' Get bit values from bit names of BAM flag.
+# Project : ElsaBLab_fRagmentomics
+
+#' @title bitvalues_from_bam_flag
+#' @description Get bit values from bit names of BAM flag.
 #'
 #' @param flag an integer value
 #' @param bitnames an integer vector
@@ -34,10 +37,8 @@ bitvalues_from_bam_flag <- function(flag, bitnames) {
   ans
 }
 
-#--------------------------
-# Tools function for indel
-#--------------------------
-#' Function to parse the CIGAR string
+#' @title parse_cigar
+#' @description Function to parse the CIGAR string
 #'
 #' @param cigar a character vector
 #' @return a df with length and type of the CIGAR string
@@ -55,8 +56,9 @@ parse_cigar <- function(cigar) {
 }
 
 
-#' Function to see verify if it's the indel that we're looking for
-#'
+#' @title Check sequence repetition
+#' @description Check if the indel is in a repeted sequence
+#' 
 #' @param indel_rep an integer value
 #' @param is_length_ok an booleen value
 #' @param diff_mutation_bam an integer value
@@ -79,7 +81,8 @@ check_seq_rep <- function(indel_rep, is_length_ok, diff_mutation_bam, deletion_l
 }
 
 
-#' Define ins_rep
+#' @title Define the number of times the insertion is repeted
+#' @description Return an integer value which represents the number of the sequence insertion that is repeted in the sequence 
 #'
 #' @param alt_len an integer value representing the length of the insertion 
 #' @param current_pos an integer value
@@ -143,7 +146,8 @@ define_ins_rep <- function(alt_len, current_pos, r_pos, cigar, r_query) {
 }
 
 
-#' Define ins_rep
+#' @title Find quality of the base
+#' @description Find quality of the base
 #'
 #' @param alt_len an integer value representing the length of the insertion 
 #' @param current_pos an integer value representing the current position of the insertion before the cigar operations

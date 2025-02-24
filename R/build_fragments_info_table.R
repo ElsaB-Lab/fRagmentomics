@@ -33,16 +33,66 @@ setup_parallel_computations <- function(n_cores){
 #' @importFrom parallel stopCluster
 #' 
 #' @export
-build_fragments_info_table <- function(df_sam,
-                                       sample_id,
-                                       chr,
-                                       pos,
-                                       ref,
-                                       alt,
-                                       del_info,
-                                       mutation_type,
-                                       n_cores = 1) {
+build_fragments_info_table <- function(
+    bam,
+    mut,
+    fasta,
+    sample = NA,
+    neg_offset_mate_search = -1000,
+    pos_offset_mate_search = 1000,
+    flag_keep = 0x03,
+    flag_remove = 0x900, 
+    report_5p_bases = 0,
+    report_3p_bases = 0,
+    report_tlen = FALSE,
+    report_softclip = FALSE, 
+    n_cores = 1
+  ) {
   
+  # Read a vcf ou .tsv file 
+  # Return a df with all the mutation we want to study 
+  # Look at the format of mut to know if it is a VCF, mut_file, chr:pos:ref:alt
+  mut_info <- read_mut(mut)
+
+  # Loop on each row of the mut_info
+  for (i in 1:nrow(mut_info)) {
+    chr <- mut_info[i, 1]
+    pos <- mut_info[i, 2]
+    ref <- mut_info[i, 3]
+    alt <- mut_info[i, 4]
+
+  # Read and extract bam around the mutation position --> Boucle  
+  # Return a troncated sam 
+  sam <- preprocess_bam(
+    bam,
+    chr,
+    pos,
+    neg_offset_mate_search,
+    pos_offset_mate_search,
+    flag_keep,
+    flag_remove)
+
+  # Find mutation_status "insertion", "deletion", "SNV", "MNP"
+  mutation_status <- define_mutation_status(ref, alt)
+
+  # Normalize the REF and ALT format for the indel. We have the mutation status 
+  c(ref, alt) <- normalize_ref_alt(ref, alt)
+
+  # Process fragmentomics on truncated bam and the mutation 
+  process_fragmentomics <- function(
+    sam,
+    sample_id,
+    chr,
+    pos,
+    ref,
+    alt,
+    out,
+    n_cores = 1
+  ) {
+
+
+
+
   # Extract unique fragment names
   fragments_names <- unique(df_sam[, 1, drop = TRUE])
   n_fragments <- length(fragments_names)
@@ -75,5 +125,7 @@ build_fragments_info_table <- function(df_sam,
   parallel::stopCluster(cl)
   
   return(df_fragments_info)
+  }
+  } 
 }
 

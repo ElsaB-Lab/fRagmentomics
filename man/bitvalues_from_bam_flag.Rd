@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{bitvalues_from_bam_flag}
 \alias{bitvalues_from_bam_flag}
-\title{Get bit values from bit names of BAM flag.}
+\title{bitvalues_from_bam_flag}
 \usage{
 bitvalues_from_bam_flag(flag, bitnames)
 }

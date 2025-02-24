@@ -11,8 +11,6 @@
 #' @param r_qual character vector representing the read sequencing qualities
 #' @return a named list with names `base`,`qual` and `indel`.
 #'
-#' @importFrom stringr str_extract utils
-#'
 #' @noRd
 get_insertion <- function(pos, alt, r_pos, r_cigar, r_query, r_qual) {
   c_base <- NA
