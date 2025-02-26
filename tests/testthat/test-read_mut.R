@@ -1,6 +1,5 @@
 test_that("read mut", {
     
-
     #---------------------------------------
     # chr:pos:ref:alt cases
     #---------------------------------------
@@ -82,7 +81,7 @@ test_that("read mut", {
     writeLines(vcf_content, vcf_file)
     
     # Read vcf
-    df_vcf <- read_vcf_input(vcf_file)
+    df_vcf <- read_mut(vcf_file)
     
     # Check inside
     expected_df <- data.frame(
@@ -102,7 +101,7 @@ test_that("read mut", {
     writeLines(vcf_content, vcf_file)
 
     expect_error(
-        read_vcf_input(vcf_file),
+        read_mut(vcf_file),
         "The VCF file does not contain the expected columns"
     
     )
@@ -115,7 +114,7 @@ test_that("read mut", {
     writeLines(vcf_content, vcf_file)
 
     expect_error(
-        read_vcf_input(vcf_file),
+        read_mut(vcf_file),
         "Error: The VCF file does not contain any mutation data."
     )
 
@@ -126,7 +125,7 @@ test_that("read mut", {
     vcf_file <- tempfile(fileext = ".vcf")
     writeLines(vcf_content, vcf_file)
     
-    df_vcf <- read_vcf_input(vcf_file)
+    df_vcf <- read_mut(vcf_file)
     
     expected_df <- data.frame(
         CHROM = c("X", "Y"),
@@ -145,7 +144,7 @@ test_that("read mut", {
     writeLines(vcf_content, vcf_file)
 
     expect_error(
-        read_vcf_input(vcf_file),
+        read_mut(vcf_file),
         "Error: The VCF file does not contain the expected columns"
     )
 
@@ -156,7 +155,7 @@ test_that("read mut", {
     vcf_file <- tempfile(fileext = ".vcf")
     writeLines(vcf_content, vcf_file)
 
-    df_vcf <- read_vcf_input(vcf_file)
+    df_vcf <- read_mut(vcf_file)
 
     expected_df <- data.frame(
         CHROM = rep("8", 3),
@@ -175,7 +174,7 @@ test_that("read mut", {
     vcf_file <- tempfile(fileext = ".vcf")
     writeLines(vcf_content, vcf_file)
 
-    df_vcf <- read_vcf_input(vcf_file)
+    df_vcf <- read_mut(vcf_file)
 
     expect_equal(nrow(df_vcf), 2)
 
@@ -199,7 +198,7 @@ test_that("read mut", {
     tsv_file <- tempfile(fileext = ".tsv")
     writeLines(tsv_content, tsv_file)
     
-    df_tsv <- read_tsv_input(tsv_file)
+    df_tsv <- read_mut(tsv_file)
     
     expected_df <- data.frame(
         CHROM = c("1", "2"),
@@ -218,7 +217,7 @@ test_that("read mut", {
     writeLines(tsv_content, tsv_file)
 
     expect_error(
-        read_tsv_input(tsv_file),
+        read_mut(tsv_file),
         "Error: The TSV file does not contain the expected columns"
     )
     
@@ -230,7 +229,7 @@ test_that("read mut", {
     writeLines(tsv_content, tsv_file)
 
     expect_error(
-        read_tsv_input(tsv_file),
+        read_mut(tsv_file),
         "Error: The TSV file is empty or incorrectly formatted."
     )
 
@@ -242,7 +241,7 @@ test_that("read mut", {
     writeLines(tsv_content, tsv_file)
 
     expect_error(
-        read_tsv_input(tsv_file),
+        read_mut(tsv_file),
         "Error: The TSV file does not contain the expected columns"
     )
 
@@ -253,7 +252,7 @@ test_that("read mut", {
     tsv_file <- tempfile(fileext = ".tsv")
     writeLines(tsv_content, tsv_file)
     
-    df_tsv <- read_tsv_input(tsv_file)
+    df_tsv <- read_mut(tsv_file)
 
     expect_equal(nrow(df_tsv), 2)
 
@@ -274,7 +273,7 @@ test_that("read mut", {
     tsv_file <- tempfile(fileext = ".tsv")
     writeLines(tsv_content, tsv_file)
 
-    df_tsv <- read_tsv_input(tsv_file)
+    df_tsv <- read_mut(tsv_file)
 
     expected_df <- data.frame(
         CHROM = c("8", "8", "8", "9", "9"),
@@ -293,7 +292,7 @@ test_that("read mut", {
     tsv_file <- tempfile(fileext = ".tsv")
     writeLines(tsv_content, tsv_file)
 
-    df_tsv <- read_tsv_input(tsv_file)
+    df_tsv <- read_mut(tsv_file)
 
     expected_df <- data.frame(
         CHROM = c("8", "9"),

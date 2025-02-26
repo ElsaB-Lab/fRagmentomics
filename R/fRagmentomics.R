@@ -52,7 +52,24 @@ fRagmentomics <- function(
     # Read a vcf ou .tsv file 
     # Return a df with all the mutation we want to study 
     # Look at the format of mut to know if it is a VCF, mut_file, chr:pos:ref:alt
-    mut_info <- read_mut(mut)
+    if (length(mut) == 1) {
+      mut_info <- read_mut(mut)
+    } else {
+      stop("Error: The parameter 'mut' should be a single value, not multiple elements.")
+    }
+
+    for (i in 1:nrow(mut_info)) {
+      chr <- mut_info[i, 1]
+      pos <- mut_info[i, 2]
+      ref <- mut_info[i, 3]
+      alt <- mut_info[i, 4]
+
+      # Normalization user-provided representation into vcf representation 
+      normalize_user_rep_to_vcf_rep(chr, pos, ref, alt, fasta)
+
+      # Normalization vcf representation with bcftools norm 
+
+    }
 
     # Loop on each row of the mut_info
     for (i in 1:nrow(mut_info)) {

@@ -30,7 +30,6 @@ expand_multiallelics <- function(df) {
 
   # Recreate the df with one line for each alt 
   expanded_df <- do.call(rbind, expanded_rows)
-  
   return(expanded_df)
 }
 
@@ -72,10 +71,10 @@ read_tsv_input <- function(tsv_file) {
 #' @noRd
 read_mut <- function(mut) {
   # Define the REGEX that will be used to capture chr:pos:ref:alt
-  chromosome_pattern <- "([0-9XY]+|chr[0-9XY]*)" # Mandatory: chr1 or 1
-  position_pattern <- ":[0-9]+" # Mandatory: A number
-  ref_pattern <- "([ACGT._-]+|NA)" # REF can be ACGT, ".", "_" o "-"
-  alt_pattern <- "([ACGT._-]+(,[ACGT._-]*)*|NA)"
+  chromosome_pattern <- "([0-9XY]+|chr[0-9XY]*)"             # Mandatory: chr1 or 1
+  position_pattern <- ":[0-9]+"                              # Mandatory: A number
+  ref_pattern <- "([ACGT._-]+|NA)"                           # REF can be ACGT, ".", "_" o "-"
+  alt_pattern <- "([ACGT._-]+(,[ACGT._-]*)*|NA)"             # ALT can be ACGT, ".", "_" o "-"
 
   # Different possible cases
   ref_alt_pattern <- paste0(ref_pattern, ":", alt_pattern)   # Normal case (REF:ALT)
