@@ -2,7 +2,7 @@
 
 #' Get the informations about the presence of a deletion in the read.
 #'
-#' @inheritParams build_fragments_info_table*
+#' @inheritParams fRagmentomics
 #' @param chr numeric value representing the chromosome
 #' @param pos numeric value representing the position of interest
 #' @param ref character vector representing the deletion sequence

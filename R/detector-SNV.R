@@ -2,7 +2,7 @@
 
 #' Get base identity and sequencing quality from read and position of interest.
 #'
-#' @inheritParams build_fragments_info_table
+#' @inheritParams fRagmentomics
 #' @param r_pos numeric value representing the read mapping position
 #' @param r_cigar character vector representing the read CIGAR
 #' @param r_query character vector representing the read base sequence

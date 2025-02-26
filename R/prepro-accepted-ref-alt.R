@@ -72,7 +72,6 @@ trim_left_prefix <- function(a, b) {
 #' and ALT should have length at least of 2
 #' For a deletion, the final ALT should have a length of 1 (the anchor base),
 #' and REF should have length at least of 2
-#' }
 #'
 #' If ref or alt is empty (depending on whether it is an insertion or deletion),
 #' the function will fetch the anchoring base from the fasta at position pos,
@@ -89,13 +88,12 @@ trim_left_prefix <- function(a, b) {
 #' @param fasta An object or path to a FASTA file. You may need to adapt the code inside
 #'   to properly retrieve the reference base (using {Biostrings::getSeq} or another method).
 #'
-#' @return A character vector of length 2, c(new_ref, new_alt), containing the
-#'   normalized reference and alternate alleles.
+#' @return A character vector of length 2, c(new_ref, new_alt), containing the normalized reference and alternate alleles.
 #'
-#' @examples
-#' # Example: normalizing an insertion where ref is empty and alt is "TC"
-#' # Position 3 is assumed to be the base before the actual insertion.
-#' # Suppose the anchor base in FASTA at position 3 is "C".
+#' @examples 
+#' Example: normalizing an insertion where ref is empty and alt is "TC"
+#' Position 3 is assumed to be the base before the actual insertion.
+#' Suppose the anchor base in FASTA at position 3 is "C".
 #' 
 #' c(new_ref, new_alt) <- normalize_ref_alt(
 #'   pos = 3,
@@ -104,8 +102,7 @@ trim_left_prefix <- function(a, b) {
 #'   mutation_type = "insertion",
 #'   fasta = "path/to/genome.fasta"
 #' )
-#' # Result might be new_ref = "C", new_alt = "CTC" (depending on trimming).
-#' }
+#' Result might be new_ref = "C", new_alt = "CTC" (depending on trimming).
 #'
 
 normalize_ref_alt <- function(chr, pos, ref, alt, mutation_type, fasta) {
@@ -131,7 +128,7 @@ normalize_ref_alt <- function(chr, pos, ref, alt, mutation_type, fasta) {
   } else if (mutation_type == "deletion") {
     # If ALT is empty for a deletion, fetch the anchor base and prepend it.
     if (nchar(alt) == 0) {
-      anchor_base <- retrieve_anchor_base(pos, fasta)
+      anchor_base <- retrieve_anchor_base(chr, pos, fasta)
       ref <- paste0(anchor_base, ref)
       alt <- paste0(anchor_base, alt)
     }

@@ -2,7 +2,7 @@
 
 #' Get the informations about the presence of a insertion in the read.
 #'
-#' @inheritParams build_fragments_info_table*
+#' @inheritParams fRagmentomics
 #' @param pos numeric value representing the position of interest
 #' @param alt character vector representing the insertion sequence
 #' @param r_pos numeric value representing the read mapping position
