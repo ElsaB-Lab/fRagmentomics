@@ -11,6 +11,7 @@ fRagmentomics(
   sample = NA,
   neg_offset_mate_search = -1000,
   pos_offset_mate_search = 1000,
+  one_based = TRUE,
   flag_keep = 3,
   flag_remove = 2304,
   report_5p_bases = 0,

@@ -40,6 +40,7 @@ fRagmentomics <- function(
     sample = NA,
     neg_offset_mate_search = -1000,
     pos_offset_mate_search = 1000,
+    one_based = TRUE, 
     flag_keep = 0x03,
     flag_remove = 0x900, 
     report_5p_bases = 0,
@@ -57,7 +58,7 @@ fRagmentomics <- function(
     } else {
       stop("Error: The parameter 'mut' should be a single value, not multiple elements.")
     }
-
+  
     for (i in 1:nrow(mut_info)) {
       chr <- mut_info[i, 1]
       pos <- mut_info[i, 2]
@@ -65,9 +66,22 @@ fRagmentomics <- function(
       alt <- mut_info[i, 4]
 
       # Normalization user-provided representation into vcf representation 
-      normalize_user_rep_to_vcf_rep(chr, pos, ref, alt, fasta)
+      normalize_user_input <- normalize_user_rep_to_vcf_rep(chr, pos, ref, alt, fasta, one_based)
+      
+      # Sanity check to see if ref != fasta
+      if (is.null(normalize_user_input)) {
+        next
+      }
+      
+      chr_norm <- normalize_user_input["chr"]
+      pos_norm <- normalize_user_input["pos"]
+      ref_norm <- normalize_user_input["ref"]
+      alt_norm <- normalize_user_input["alt"]
 
       # Normalization vcf representation with bcftools norm 
+      normalize_vcf <- normalize_vcf_rep(chr_norm, pos_norm, ref_norm, alt_norm)
+
+      # Append to the final dataframe
 
     }
 

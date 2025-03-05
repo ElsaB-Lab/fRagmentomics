@@ -1,5 +1,9 @@
 # Project : ElsaBLab_fRagmentomics
 
+#TO DO: 
+#Case of chr 1 or CHR = 1
+
+
 #' Expand Multiallelic Variants
 #'
 #' This function expands multiallelic variants by splitting the ALT column at commas,
@@ -62,44 +66,15 @@ read_tsv_input <- function(tsv_file) {
     return(tsv_subset_without_multiallelic)
 }
 
-#' Get the informations about mutations
+#' Read mut informations
 #'
-#' @inheritParams fRagmentomics
-#' @param mut could be a .vcf, .tsv or chr:pos:ref:alt
-#' @return a df without multiallelic ALT
+#' This function reads a chr:pos:ref:alt format
 #'
+#' @param mut Infos chr:pos:ref:alt
+#' @return A processed data frame with normalized variants.
+#' 
 #' @noRd
-read_mut <- function(mut) {
-  # Define the REGEX that will be used to capture chr:pos:ref:alt
-  chromosome_pattern <- "([0-9XY]+|chr[0-9XY]*)"             # Mandatory: chr1 or 1
-  position_pattern <- ":[0-9]+"                              # Mandatory: A number
-  ref_pattern <- "([ACGT._-]+|NA)"                           # REF can be ACGT, ".", "_" o "-"
-  alt_pattern <- "([ACGT._-]+(,[ACGT._-]*)*|NA)"             # ALT can be ACGT, ".", "_" o "-"
-
-  # Different possible cases
-  ref_alt_pattern <- paste0(ref_pattern, ":", alt_pattern)   # Normal case (REF:ALT)
-  ref_missing_pattern <- paste0(ref_pattern, ":")            # REF but no ALT (REF:)
-  alt_missing_pattern <- paste0(":", alt_pattern)            # ALT but no REF (:ALT)
-
-  # Combine all patterns into one full regex
-  full_pattern <- paste0("^", chromosome_pattern, position_pattern, 
-                        ":(?:", ref_alt_pattern, "|", ref_missing_pattern, "|", alt_missing_pattern, ")$")
-
-  if (grepl("\\.tsv$", mut)) {
-
-    # Return a datafram without header, with all the mutations from the vcf
-    # Columns : chr pos ref alt
-    mut_df <- read_tsv_input(mut)
-    return(mut_df)
-
-  } else if (grepl("\\.vcf$", mut)) {
-    
-    # Return a datafram without header, with all the mutations from the vcf
-    # Columns : chr pos ref alt
-    mut_df <- read_vcf_input(mut)
-    return(mut_df)
-
-  } else if (grepl(full_pattern, mut)) {
+read_mut_input <- function(mut) {
     # If mut is finished by ":", the programm will add - at the end to use strsplit
     if (grepl(":$", mut)) {
       mut <- paste0(mut, "-")
@@ -124,10 +99,52 @@ read_mut <- function(mut) {
     # We take into account multiallelic in ALT column 
     mut_df_without_multiallelic <- expand_multiallelics(mut_df)
     return(mut_df_without_multiallelic)
+}
+
+
+#' Get the informations about mutations
+#'
+#' @inheritParams fRagmentomics
+#' @param mut could be a .vcf, .tsv or chr:pos:ref:alt
+#' @return a df without multiallelic ALT
+#'
+#' @noRd
+read_mut <- function(mut) {
+  # Define the REGEX that will be used to capture chr:pos:ref:alt
+  chromosome_pattern <- "([0-9XY]+|chr[0-9XY]*)"             # Mandatory: chr1 or 1
+  position_pattern <- ":[0-9]+"                              # Mandatory: A number
+  ref_pattern <- "([ACGT._-]+|NA)"                           # REF can be ACGT, ".", "_" o "-"
+  alt_pattern <- "([ACGT._-]+(,[ACGT._-]*)*|NA)"             # ALT can be ACGT, ".", "_" o "-"
+
+  # Different possible cases
+  ref_alt_pattern <- paste0(ref_pattern, ":", alt_pattern)   # Normal case (REF:ALT)
+  ref_missing_pattern <- paste0(ref_pattern, ":")            # REF but no ALT (REF:)
+  alt_missing_pattern <- paste0(":", alt_pattern)            # ALT but no REF (:ALT)
+
+  # Combine all patterns into one full regex
+  full_pattern <- paste0("^", chromosome_pattern, position_pattern, 
+                        ":(?:", ref_alt_pattern, "|", ref_missing_pattern, "|", alt_missing_pattern, ")$")
+
+  # Return a datafram without header, with all the mutations from the vcf
+  # Columns : chr pos ref alt
+
+  if (grepl("\\.tsv$", mut)) {
+
+    mut_df <- read_tsv_input(mut)
+
+  } else if (grepl("\\.vcf$", mut)) {
+    
+    mut_df <- read_vcf_input(mut)
+
+  } else if (grepl(full_pattern, mut)) {
+    
+    mut_df <- read_mut_input(mut)
 
   } else {
     stop(paste0("Error: The parameter 'mut' (", mut, ") is not in the expected format (.tsv, .vcf, chr:pos:ref:alt)."))
-    }
+  }
+  
+  return(mut_df)
 }
 
 
