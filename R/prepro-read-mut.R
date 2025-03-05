@@ -1,42 +1,5 @@
 # Project : ElsaBLab_fRagmentomics
 
-#TO DO: 
-#Case of chr 1 or CHR = 1
-
-
-#' Expand Multiallelic Variants
-#'
-#' This function expands multiallelic variants by splitting the ALT column at commas,
-#' creating a new row for each allele while preserving CHROM (in string), POS, and REF values.
-#'
-#' @param df A data frame containing variant data with columns CHROM, POS, REF, and ALT.
-#' @return A data frame where each row contains only a single alternative allele.
-#' 
-#' @noRd
-expand_multiallelics <- function(df) {
-  expanded_rows <- list()
-
-  for (i in seq_len(nrow(df))) {
-    # Before doing the strsplit, we have to be sure ALT doesn't finish by ","
-    if (grepl(",$", df$ALT[i])) {
-        df$ALT[i] <- paste0(df$ALT[i], "-")
-    }
-    
-    # Devide all the alternatives alleles
-    alts <- unlist(strsplit(df$ALT[i], ","))  
-
-    for (alt in alts) {
-      expanded_rows <- append(expanded_rows, list(
-        data.frame(CHROM = df$CHROM[i], POS = df$POS[i], REF = df$REF[i], ALT = alt, stringsAsFactors = FALSE)
-      ))
-    }
-  }
-
-  # Recreate the df with one line for each alt 
-  expanded_df <- do.call(rbind, expanded_rows)
-  return(expanded_df)
-}
-
 #' Read VCF File
 #'
 #' This function reads a VCF file, applies sanity checks, and expands multiallelic variants.

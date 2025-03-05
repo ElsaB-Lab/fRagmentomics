@@ -49,7 +49,14 @@ fRagmentomics <- function(
     report_softclip = FALSE, 
     n_cores = 1
   ) {
-  
+    
+    # -------------------------------
+    # Check the inputs and load files
+    # -------------------------------
+    # Check if bam and fasta exist
+    # Check if fasta is indexed
+    check_input(bam, fasta)
+
     # Read a vcf ou .tsv file 
     # Return a df with all the mutation we want to study 
     # Look at the format of mut to know if it is a VCF, mut_file, chr:pos:ref:alt
@@ -58,7 +65,15 @@ fRagmentomics <- function(
     } else {
       stop("Error: The parameter 'mut' should be a single value, not multiple elements.")
     }
-  
+
+    # Load fasta as FaFile
+    fasta_loaded <- FaFile(fasta)
+    open(fasta_loaded)
+
+
+    # -------------------------------
+    # Normalisation of Ref, Alt and Pos
+    # -------------------------------
     for (i in 1:nrow(mut_info)) {
       chr <- mut_info[i, 1]
       pos <- mut_info[i, 2]
@@ -66,25 +81,30 @@ fRagmentomics <- function(
       alt <- mut_info[i, 4]
 
       # Normalization user-provided representation into vcf representation 
-      normalize_user_input <- normalize_user_rep_to_vcf_rep(chr, pos, ref, alt, fasta, one_based)
+      normalize_user_input <- normalize_user_rep_to_vcf_rep(chr, pos, ref, alt, fasta_loaded, one_based)
       
       # Sanity check to see if ref != fasta
       if (is.null(normalize_user_input)) {
         next
       }
       
-      chr_norm <- normalize_user_input["chr"]
-      pos_norm <- normalize_user_input["pos"]
-      ref_norm <- normalize_user_input["ref"]
-      alt_norm <- normalize_user_input["alt"]
+      with(normalize_user_input, {
+        chr_norm <- chr
+        pos_norm <- pos
+        ref_norm <- ref
+        alt_norm <- alt
+      })
 
       # Normalization vcf representation with bcftools norm 
-      normalize_vcf <- normalize_vcf_rep(chr_norm, pos_norm, ref_norm, alt_norm)
+      normalize_vcf <- normalize_vcf_rep(chr_norm, pos_norm, ref_norm, alt_norm, fasta_loaded)
 
       # Append to the final dataframe
 
     }
 
+    # -------------------------------
+    # Perform fragment analysis 
+    # -------------------------------
     # Loop on each row of the mut_info
     for (i in 1:nrow(mut_info)) {
       chr <- mut_info[i, 1]

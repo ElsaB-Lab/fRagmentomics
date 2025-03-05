@@ -18,7 +18,6 @@ normalize_variants <- function(chr, ref, alt) {
   
   # Conversion into string and add chr if necessary 
   chr <- as.character(chr)
-  chr[!grepl("^chr", chr)] <- paste0("chr", chr[!grepl("^chr", chr)])
   
   # Return variables
   return(list(chr = chr, ref = ref, alt = alt))
@@ -56,38 +55,35 @@ retrieve_anchor_base <- function(chr, position, fasta) {
   return(as.character(anchor_base_char))
 }
 
-#' Detect chromosome naming convention in a FASTA reference
+#' Harmonize Chromosome Notation with FASTA Reference
 #'
-#' This function checks the naming convention of chromosomes in a multi-chromosome
-#' FASTA reference file. It determines whether chromosome names are prefixed with "chr"
-#' (e.g., "chr1") or simply numeric (e.g., "1").
+#' This function ensures that a given chromosome notation (e.g., `"1"` or `"chr1"`) 
+#' matches the convention used in the provided FASTA reference file.
 #'
-#' @param fasta A character string specifying the path to a FASTA reference file.
+#' @param chr A character string representing a chromosome (e.g., `"1"`, `"chr1"`).
+#' @param fasta A character string specifying the path to the FASTA reference file.
 #'
-#' @return A logical value:
-#'   - `TRUE` if the FASTA uses "chr"-style naming (e.g., "chr1").
-#'   - `FALSE` if the FASTA uses numeric naming (e.g., "1").
-#'   - `NA` if the function cannot determine the naming convention.
+#' @importFrom Rsamtools scanFaIndex
 #' 
-#' @noRd
-detect_fasta_chr_style <- function(fasta) {
-  
-  # Fetch the names (i.e., FASTA headers) for each sequence
-  idx <- scanFaIndex(fasta)
-  seq_names <- as.character(seqnames(idx))
+#' @return A character string with the chromosome notation harmonized to match the FASTA reference.
+#' 
+#' @noRd 
+harmonized_chr <- function(chr, fasta) {
+  # Extract chromosome names from the FASTA index
+  fasta_index <- scanFaIndex(fasta)  # Get the indexed FASTA sequence info
+  fasta_chromosomes <- seqnames(fasta_index)  # Extract chromosome names
 
-  # Return TRUE if "chr1" is found
-  if ("chr1" %in% seq_names) {
-    return(TRUE)
-    
-  # Return FALSE if "1" is found
-  } else if ("1" %in% seq_names) {
-    return(FALSE)
-    
-  # Otherwise return NA, with a warning
-  } else {
-    return(NA)
+  # Determine whether FASTA uses "chr1" or "1"
+  fasta_format <- ifelse(any(grepl("^chr", fasta_chromosomes)), "chr", "no_chr")
+  
+  # Harmonize chromosome notation
+  if (fasta_format == "chr" && !grepl("^chr", chr)) {
+    chr <- paste0("chr", chr)  # Add "chr" if missing
+  } else if (fasta_format == "no_chr" && grepl("^chr", chr)) {
+    chr <- sub("^chr", "", chr)  # Remove "chr" if present
   }
+  
+  return(chr)
 }
 
 #' Normalize user-provided representation into VCF representation 
@@ -121,25 +117,8 @@ normalize_user_rep_to_vcf_rep <- function(chr, pos, ref, alt, fasta, one_based) 
   ref_norm <- result$ref
   alt_norm <- result$alt
 
-  # Check if chr_norm is in chr... format
-  if (!grepl("^chr", chr_norm)) {
-    chr_norm <- paste0("chr", chr_norm)  # Convert "1" → "chr1"
-  }
-
-  # Load fasta
-  fasta_loaded <- FaFile(fasta)
-  open(fasta_loaded)
-
-  # Adapt the chr convention to search the fasta
-  if (isTRUE(detect_fasta_chr_style(fasta_loaded))) {
-    chr_norm_fasta <- chr_norm
-  } else if (isFALSE(detect_fasta_chr_style(fasta_loaded))) {
-    # FASTA uses numeric format → Ensure chr_norm also follows this format
-    chr_norm_fasta <- sub("^chr", "", chr_norm) 
-  } else {
-    warning(paste0("Unable to determine naming convention (chr vs. numeric) in the fasta."))
-    return(NULL)
-  }
+  # Normalize the chr convention from user with the one from the fasta
+  chr_norm_fasta <- harmonized_chr(chr_norm, fasta)
 
   # Adapt ref and alt for the vcf convention in function of the mutation type 
   if (nchar(ref_norm) == nchar(alt_norm)) {
@@ -154,7 +133,7 @@ normalize_user_rep_to_vcf_rep <- function(chr, pos, ref, alt, fasta, one_based) 
       anchor_base <- retrieve_anchor_base(
         chr      = chr_norm_fasta,
         position = pos - 1, # shift one base to the left to find the anchor
-        fasta    = fasta_loaded
+        fasta    = fasta
       )
 
       # Add this base before the sequence of ref and alt 
@@ -170,7 +149,7 @@ normalize_user_rep_to_vcf_rep <- function(chr, pos, ref, alt, fasta, one_based) 
         anchor_base <- retrieve_anchor_base(
         chr      = chr_norm_fasta,
         position = pos,
-        fasta    = fasta_loaded
+        fasta    = fasta
       )
 
       # Add this base before the sequence of ref and alt 
@@ -180,11 +159,11 @@ normalize_user_rep_to_vcf_rep <- function(chr, pos, ref, alt, fasta, one_based) 
   }
 
   # Sanity check: Seq ref = fasta at the position 
-  check_result <- sanity_check_prepro_user_to_vcf_repr(chr_norm_fasta, pos, ref_norm, fasta_loaded)
+  check_result <- sanity_check_prepro_user_to_vcf_repr(chr_norm_fasta, pos, ref_norm, fasta)
   if (check_result) {
     message("Reference allele matches FASTA")
     # Return the final normalized values
-    return(list(chr = chr_norm, pos = pos, ref = ref_norm, alt = alt_norm))
+    return(list(chr = chr_norm_fasta, pos = pos, ref = ref_norm, alt = alt_norm))
   } else {
     warning(paste0("Mismatch found between ref and fasta for (", chr, " ", pos, " ", ref, ")."))
     return(NULL)

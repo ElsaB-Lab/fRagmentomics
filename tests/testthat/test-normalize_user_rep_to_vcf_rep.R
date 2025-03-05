@@ -2,6 +2,14 @@ test_that("normalize_user_rep_to_vcf_rep", {
   fasta_19 <- "/mnt/beegfs02/database/bioinfo/Index_DB/BWA/0.7.17/UCSC/hg19.fa"
   fasta_38 <- "/mnt/beegfs02/database/bioinfo/Index_DB/BWA/0.7.17/UCSC/hg38/hg38.fa"
 
+  # Both fastas are in "chrX" format  
+  # Load fasta as FaFile
+  fasta_loaded_19 <- FaFile(fasta_19)
+  open(fasta_loaded_19)
+
+  fasta_loaded_38 <- FaFile(fasta_38)
+  open(fasta_loaded_38)
+
   # --------------------------------------------------------------------------
   # Case 1: SNP (one-based)
   # --------------------------------------------------------------------------
@@ -10,7 +18,7 @@ test_that("normalize_user_rep_to_vcf_rep", {
     pos      = 230710048,
     ref      = "G",
     alt      = "A",
-    fasta    = fasta_19,
+    fasta    = fasta_loaded_19,
     one_based = TRUE
   )
   expect_equal(out1$chr, "chr1")
@@ -26,7 +34,7 @@ test_that("normalize_user_rep_to_vcf_rep", {
     pos      = 230710048,
     ref      = "GTT",
     alt      = "-",
-    fasta    = fasta_19,
+    fasta    = fasta_loaded_19,
     one_based = TRUE
   )
   # For a deletion, we expect an anchor base prepended to both REF and ALT,
@@ -44,7 +52,7 @@ test_that("normalize_user_rep_to_vcf_rep", {
     pos      = 230710046,
     ref      = "",
     alt      = "AT",
-    fasta    = fasta_19,
+    fasta    = fasta_loaded_19,
     one_based = TRUE
   )
   expect_equal(out3$chr, "chr1")
@@ -61,7 +69,7 @@ test_that("normalize_user_rep_to_vcf_rep", {
     pos      = 230710047,
     ref      = "GGTT",
     alt      = "G---",
-    fasta    = fasta_19,
+    fasta    = fasta_loaded_19,
     one_based = TRUE
   )
   expect_equal(out4$chr, "chr1")
@@ -77,7 +85,7 @@ test_that("normalize_user_rep_to_vcf_rep", {
     pos      = 230710047,
     ref      = "GGTT",
     alt      = "A",
-    fasta    = fasta_19,
+    fasta    = fasta_loaded_19,
     one_based = TRUE
   )
   expect_equal(out5$chr, "chr1")
@@ -93,7 +101,7 @@ test_that("normalize_user_rep_to_vcf_rep", {
     pos      = 230710046,
     ref      = "A",
     alt      = "GAT",
-    fasta    = fasta_19,
+    fasta    = fasta_loaded_19,
     one_based = TRUE
   )
   expect_equal(out6$chr, "chr1")
@@ -109,7 +117,7 @@ test_that("normalize_user_rep_to_vcf_rep", {
     pos      = 230710047,  # 0-based
     ref      = "GT",
     alt      = "AC",
-    fasta    = fasta_19,
+    fasta    = fasta_loaded_19,
     one_based = FALSE
   )
   expect_equal(out7$chr, "chr1")
@@ -125,7 +133,7 @@ test_that("normalize_user_rep_to_vcf_rep", {
     pos      = 230710048, 
     ref      = "A",
     alt      = "T",
-    fasta    = fasta_38,
+    fasta    = fasta_loaded_38,
     one_based = TRUE
   )
   expect_equal(out8$chr, "chr1")
@@ -141,7 +149,7 @@ test_that("normalize_user_rep_to_vcf_rep", {
     pos      = 230710048,
     ref      = "G",
     alt      = "A",
-    fasta    = fasta_19,
+    fasta    = fasta_loaded_19,
     one_based = TRUE
   )
   expect_equal(out8$chr, "chr1")
@@ -152,14 +160,17 @@ test_that("normalize_user_rep_to_vcf_rep", {
   # --------------------------------------------------------------------------
   # Case 10: Check if seq ref != fasta 
   # --------------------------------------------------------------------------
-  out9 <- normalize_user_rep_to_vcf_rep(
-    chr      = "chr1",  # Ensure this matches the FASTA convention
-    pos      = 230710048,
-    ref      = "T",  # Incorrect reference allele
-    alt      = "A",
-    fasta    = fasta_19,
-    one_based = TRUE
-    )
-    expect_null(out9)
+  expect_warning(
+      out9 <- normalize_user_rep_to_vcf_rep(
+          chr      = "chr1",  # Ensure this matches the FASTA convention
+          pos      = 230710048,
+          ref      = "T",  # Incorrect reference allele
+          alt      = "A",
+          fasta    = fasta_loaded_19,
+          one_based = TRUE
+      ), 
+      "Mismatch found"
+  )
+  expect_null(out9)
   }
 )
