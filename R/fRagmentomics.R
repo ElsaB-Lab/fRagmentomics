@@ -15,7 +15,7 @@ setup_parallel_computations <- function(n_cores){
   return(cl)
 }
 
-#' @title Build fragment information table
+#' @title fRagmentomics
 #' @description Processes fragment-level sequencing data in parallel and extracts relevant statistics.
 #'
 #' @param df_sam A dataframe containing sequencing reads.
@@ -55,7 +55,7 @@ fRagmentomics <- function(
     # -------------------------------
     # Check if bam and fasta exist
     # Check if fasta is indexed
-    check_input(bam, fasta)
+    check_input(mut, bam, fasta)
 
     # Read a vcf ou .tsv file 
     # Return a df with all the mutation we want to study 
@@ -66,19 +66,21 @@ fRagmentomics <- function(
       stop("Error: The parameter 'mut' should be a single value, not multiple elements.")
     }
 
+    # Sanity check to validate input transformation
+    mut_info_checked <- sanity_check_read_mut(mut_info)
+
     # Load fasta as FaFile
     fasta_loaded <- FaFile(fasta)
     open(fasta_loaded)
 
-
     # -------------------------------
     # Normalisation of Ref, Alt and Pos
     # -------------------------------
-    for (i in 1:nrow(mut_info)) {
-      chr <- mut_info[i, 1]
-      pos <- mut_info[i, 2]
-      ref <- mut_info[i, 3]
-      alt <- mut_info[i, 4]
+    for (i in 1:nrow(mut_info_checked)) {
+      chr <- mut_info_checked[i, 1]
+      pos <- mut_info_checked[i, 2]
+      ref <- mut_info_checked[i, 3]
+      alt <- mut_info_checked[i, 4]
 
       # Normalization user-provided representation into vcf representation 
       normalize_user_input <- normalize_user_rep_to_vcf_rep(chr, pos, ref, alt, fasta_loaded, one_based)
@@ -115,7 +117,7 @@ fRagmentomics <- function(
     
 
     # Read and extract bam around the mutation position 
-    # Return a troncated sam 
+    # Return a truncated sam 
     sam <- preprocess_bam(
       bam,
       chr,
@@ -127,12 +129,6 @@ fRagmentomics <- function(
 
     # Find mutation_status "insertion", "deletion", "SNV", "MNP"
     mutation_status <- define_mutation_status(ref, alt)
-
-    # Normalize the REF and ALT format for the indel. We have the mutation status 
-    c(ref, alt) <- normalize_ref_alt(chr, pos, ref, alt, mutation_status, fasta)
-
-    # Apply the normalization from bcftools
-    
 
     # Process fragmentomics on truncated bam and the mutation 
     process_fragmentomics <- function(

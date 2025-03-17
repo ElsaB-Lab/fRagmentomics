@@ -2,7 +2,7 @@
 % Please edit documentation in R/fRagmentomics.R
 \name{fRagmentomics}
 \alias{fRagmentomics}
-\title{Build fragment information table}
+\title{fRagmentomics}
 \usage{
 fRagmentomics(
   bam,

@@ -8,9 +8,29 @@
 #' @return None. The function stops execution if files are missing or creates an index for the FASTA file if needed.
 #' 
 #' @noRd 
-check_input <- function(bam, fasta) {
+check_input <- function(mut, bam, fasta) {
+  check_mut(mut)
   check_bam(bam)
   check_fasta(fasta)
+}
+
+#' Check if the mut file exists
+#'
+#' This function verifies whether the specified mutation file exists. If not, it stops execution with an error message.
+#'
+#' @param bam Character. Path to the mutation file.
+#'
+#' @return None. The function stops execution if the file is missing.
+#' 
+#' @noRd
+check_mut <- function(mut) {
+    # Check if mut is a valid file format (VCF, TSV, or their compressed versions)
+    is_file_format <- grepl("\\.(vcf|tsv)(\\.gz)?$", mut)
+
+    # If it's a file, check if it exists
+    if (is_file_format && !file.exists(mut)) {
+        stop("Error: The Mutation file does not exist: ", mut)
+    }
 }
 
 #' Check if the BAM file exists
@@ -21,10 +41,22 @@ check_input <- function(bam, fasta) {
 #'
 #' @return None. The function stops execution if the file is missing.
 #' 
+#' @importFrom Rsamtools indexBam
+#' 
 #' @noRd
 check_bam <- function(bam) {
+  # Check if the BAM file exists
   if (!file.exists(bam)) {
     stop("Error: The BAM file does not exist: ", bam)
+  }
+  
+  # Define the expected BAM index file (.bai)
+  bam_index <- paste0(bam, ".bai")
+  
+  # If the BAM index is missing, create it
+  if (!file.exists(bam_index)) {
+    message("Creating BAM index...")
+    Rsamtools::indexBam(bam)
   }
 }
 

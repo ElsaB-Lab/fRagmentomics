@@ -1,6 +1,6 @@
 # Project : ElsaBLab_fRagmentomics
 
-#' Sanity Check VCF
+#' Parser VCF
 #'
 #' This function checks if the VCF file contains the expected structure and columns "CHROM", "POS", "REF", "ALT".
 #'
@@ -8,14 +8,16 @@
 #' @return A cleaned data frame with required columns.
 #' 
 #' @noRd
-sanity_check_vcf <- function(vcf_file) {
-    # Check if file exists
-    if (!file.exists(vcf_file)) {
-        stop(paste("Error: The file", vcf_file, "does not exist."))
-    }
+parser_vcf <- function(vcf_file) {
+    # Determine if the file is compressed
+    is_compressed <- grepl("\\.vcf\\.gz$", vcf_file)
 
-    # Read all files and keep only the usefull info (header + data)
-    lines <- readLines(vcf_file)
+    # Read all lines while handling compressed files
+    con <- if (is_compressed) gzfile(vcf_file, "rt") else vcf_file
+    lines <- readLines(con)
+    close(con)
+
+    # Keep only the useful info (header + data)
     data_lines <- lines[!grepl("^##", lines)]
 
     # To do the read.table, we need at list one row of data
@@ -57,12 +59,16 @@ sanity_check_vcf <- function(vcf_file) {
     # Create the df with only the necessary column
     vcf_subset <- df_vcf[, expected_cols, drop = FALSE]
 
-    # Convert POS to integer explicitly
-    # If there's any invalid integer, we'll catch it via `is.na(...)`
-    vcf_subset[["POS"]] <- as.integer(vcf_subset[["POS"]])
-    if (any(is.na(vcf_subset[["POS"]]))) {
-        stop("Error: The POS column contains non-integer values.")
-    }
+    # Convert POS column into int (Force to NA if str)
+    vcf_subset[["POS"]] <- suppressWarnings(as.integer(vcf_subset[["POS"]]))
+
+    # Check if there is NA in POS column after conversion
+    invalid_pos_rows <- vcf_subset[is.na(vcf_subset[["POS"]]), ]
+
+    # If line have no convertible POS value into int, print it
+    if (nrow(invalid_pos_rows) > 0) {
+        warning("Warning: The following rows have non-integer values in the POS column:")
+        print(invalid_pos_rows)
 
     # Remove empty lines
     vcf_subset <- vcf_subset[rowSums(is.na(vcf_subset) | vcf_subset == "") != ncol(vcf_subset), ]
@@ -72,10 +78,11 @@ sanity_check_vcf <- function(vcf_file) {
     }
 
     return(vcf_subset)
+    }
 }
 
 
-#' Sanity Check TSV
+#' Parser TSV
 #'
 #' This function checks if the TSV file contains the expected structure and columns.
 #'
@@ -83,21 +90,26 @@ sanity_check_vcf <- function(vcf_file) {
 #' @return A cleaned data frame with required columns.
 #' 
 #' @noRd
-sanity_check_tsv <- function(tsv_file) {
-    # Check if file exists
-    if (!file.exists(tsv_file)) {
-        stop(paste("Error: The file", tsv_file, "does not exist."))
-    }
+parser_tsv <- function(tsv_file) {
+    # Determine if the file is compressed
+    is_compressed <- grepl("\\.tsv\\.gz$", tsv_file)
 
-    # Read the data while avoiding auto-conversion of 'T' or 'NA' to logical/NA
-    df_tsv <- read.table(
-        tsv_file,
-        header = TRUE,
-        sep = "\t",
-        colClasses = "character",    # Force everything to character
-        na.strings = c(),            # Prevent automatic conversion of "NA" to <NA>
-        stringsAsFactors = FALSE
+    # Read the file while handling compression
+    con <- if (is_compressed) gzfile(tsv_file, "rt") else tsv_file
+    df_tsv <- tryCatch(
+        read.table(
+            con,
+            header = TRUE,
+            sep = "\t",
+            colClasses = "character",    # Force everything to character
+            na.strings = c(),            # Prevent automatic conversion of "NA" to <NA>
+            stringsAsFactors = FALSE
+        ),
+        error = function(e) {
+            stop("Error: Failed to read the TSV file. Ensure it's properly formatted.")
+        }
     )
+    if (is_compressed) close(con)
 
     # Check if the file is empty
     if (nrow(df_tsv) == 0) {
@@ -116,12 +128,16 @@ sanity_check_tsv <- function(tsv_file) {
     # Extract only the necessary columns
     tsv_subset <- df_tsv[, expected_cols, drop = FALSE]
 
-    # Convert POS to integer explicitly
-    # If there's any invalid integer, we'll catch it via `is.na(...)`
-    tsv_subset[["POS"]] <- as.integer(tsv_subset[["POS"]])
-    if (any(is.na(tsv_subset[["POS"]]))) {
-        stop("Error: The POS column contains non-integer values.")
-    }
+    # Convert POS column into int (Force to NA if str)
+    tsv_subset[["POS"]] <- suppressWarnings(as.integer(tsv_subset[["POS"]]))
+
+    # Check if there is NA in POS column after conversion
+    invalid_pos_rows <- tsv_subset[is.na(tsv_subset[["POS"]]), ]
+
+    # If line have no convertible POS value into int, print it
+    if (nrow(invalid_pos_rows) > 0) {
+        warning("Warning: The following rows have non-integer values in the POS column:")
+        print(invalid_pos_rows)
 
     # Remove empty rows
     tsv_subset <- tsv_subset[rowSums(is.na(tsv_subset) | tsv_subset == "") != ncol(tsv_subset), ]
@@ -132,37 +148,43 @@ sanity_check_tsv <- function(tsv_file) {
     }
 
     return(tsv_subset)
+    }
 }
 
-#' Expand Multiallelic Variants
+#' Parser chr:pos:ref:alt
 #'
-#' This function expands multiallelic variants by splitting the ALT column at commas,
-#' creating a new row for each allele while preserving CHROM (in string), POS, and REF values.
+#' This function checks if the mutation info contains the expected well structured informations.
 #'
-#' @param df A data frame containing variant data with columns CHROM, POS, REF, and ALT.
-#' @return A data frame where each row contains only a single alternative allele.
+#' @param mut String chr:pos:ref:alt
+#' @return A cleaned data frame with required informations
 #' 
 #' @noRd
-expand_multiallelics <- function(df) {
-  expanded_rows <- list()
-
-  for (i in seq_len(nrow(df))) {
-    # Before doing the strsplit, we have to be sure ALT doesn't finish by ","
-    if (grepl(",$", df$ALT[i])) {
-        df$ALT[i] <- paste0(df$ALT[i], "-")
+parser_mut_str <- function(mut) {
+    # If mut is finished by ":", the programm will add - at the end to use strsplit
+    if (grepl(":$", mut)) {
+      mut <- paste0(mut, "-")
     }
-    
-    # Devide all the alternatives alleles
-    alts <- unlist(strsplit(df$ALT[i], ","))  
 
-    for (alt in alts) {
-      expanded_rows <- append(expanded_rows, list(
-        data.frame(CHROM = df$CHROM[i], POS = df$POS[i], REF = df$REF[i], ALT = alt, stringsAsFactors = FALSE)
-      ))
+    # Devide the 4 parts of the mutation expected
+    parts <- unlist(strsplit(mut, ":"))
+
+    # Check if mutation contains exactly these parts (CHR, POS, REF, ALT)
+    if (length(parts) != 4) {
+      stop(paste0("Error: The parameter 'mut' (", mut, ") is not in the expected format (.tsv, .vcf, chr:pos:ref:alt)."))
     }
-  }
 
-  # Recreate the df with one line for each alt 
-  expanded_df <- do.call(rbind, expanded_rows)
-  return(expanded_df)
+    chr <- parts[1]
+
+    # Only take into account integer
+    if (!grepl("^[0-9]+$", pos_str)) {
+        pos <- NA
+    } else {
+        pos <- suppressWarnings(as.integer(parts[2]))
+    }
+
+    ref <- ref <- parts[3]
+    alt <- alt <- parts[4]
+
+    # Return the info into a list 
+    mut_df <- data.frame(CHROM = chr, POS = pos, REF = ref, ALT = alt, stringsAsFactors = FALSE)
 }

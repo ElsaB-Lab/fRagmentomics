@@ -1,5 +1,38 @@
 # Project : ElsaBLab_fRagmentomics
 
+#' Expand Multiallelic Variants
+#'
+#' This function expands multiallelic variants by splitting the ALT column at commas,
+#' creating a new row for each allele while preserving CHROM (in string), POS, and REF values.
+#'
+#' @param df A data frame containing variant data with columns CHROM, POS, REF, and ALT.
+#' @return A data frame where each row contains only a single alternative allele.
+#' 
+#' @noRd
+expand_multiallelics <- function(df) {
+  expanded_rows <- list()
+
+  for (i in seq_len(nrow(df))) {
+    # Before doing the strsplit, we have to be sure ALT doesn't finish by ","
+    if (grepl(",$", df$ALT[i])) {
+        df$ALT[i] <- paste0(df$ALT[i], "-")
+    }
+    
+    # Devide all the alternatives alleles
+    alts <- unlist(strsplit(df$ALT[i], ","))  
+
+    for (alt in alts) {
+      expanded_rows <- append(expanded_rows, list(
+        data.frame(CHROM = df$CHROM[i], POS = df$POS[i], REF = df$REF[i], ALT = alt, stringsAsFactors = FALSE)
+      ))
+    }
+  }
+
+  # Recreate the df with one line for each alt 
+  expanded_df <- do.call(rbind, expanded_rows)
+  return(expanded_df)
+}
+
 #' Read VCF File
 #'
 #' This function reads a VCF file, applies sanity checks, and expands multiallelic variants.
@@ -9,7 +42,7 @@
 #' 
 #' @noRd
 read_vcf_input <- function(vcf_file) {
-    vcf_subset <- sanity_check_vcf(vcf_file)
+    vcf_subset <- parser_vcf(vcf_file)
     # Create a row for each alt in multiallelics cases
     vcf_subset_without_multiallelic <- expand_multiallelics(vcf_subset)
     return(vcf_subset_without_multiallelic)
@@ -24,7 +57,7 @@ read_vcf_input <- function(vcf_file) {
 #' 
 #' @noRd
 read_tsv_input <- function(tsv_file) {
-    tsv_subset <- sanity_check_tsv(tsv_file)
+    tsv_subset <- parser_tsv(tsv_file)
     tsv_subset_without_multiallelic <- expand_multiallelics(tsv_subset)
     return(tsv_subset_without_multiallelic)
 }
@@ -37,29 +70,8 @@ read_tsv_input <- function(tsv_file) {
 #' @return A processed data frame with normalized variants.
 #' 
 #' @noRd
-read_mut_input <- function(mut) {
-    # If mut is finished by ":", the programm will add - at the end to use strsplit
-    if (grepl(":$", mut)) {
-      mut <- paste0(mut, "-")
-    }
-
-    # Devide the 4 parts of the mutation expected
-    parts <- unlist(strsplit(mut, ":"))
-
-    # Check if mutation contains exactly these parts (CHR, POS, REF, ALT)
-    if (length(parts) != 4) {
-      stop(paste0("Error: The parameter 'mut' (", mut, ") is not in the expected format (.tsv, .vcf, chr:pos:ref:alt)."))
-    }
-
-    chr <- parts[1]
-    pos <- pos <- as.integer(parts[2])
-    ref <- ref <- parts[3]
-    alt <- alt <- parts[4]
-
-    # Return the info into a list 
-    mut_df <- data.frame(CHROM = chr, POS = pos, REF = ref, ALT = alt, stringsAsFactors = FALSE)
-
-    # We take into account multiallelic in ALT column 
+read_str_input <- function(mut) {
+    mut_df <- parser_mut_str(mut)
     mut_df_without_multiallelic <- expand_multiallelics(mut_df)
     return(mut_df_without_multiallelic)
 }
@@ -69,39 +81,22 @@ read_mut_input <- function(mut) {
 #'
 #' @inheritParams fRagmentomics
 #' @param mut could be a .vcf, .tsv or chr:pos:ref:alt
-#' @return a df without multiallelic ALT
+#' 
+#' @return a df without multiallelic ALT and without header with chr pos ref alt columns
 #'
 #' @noRd
 read_mut <- function(mut) {
-  # Define the REGEX that will be used to capture chr:pos:ref:alt
-  chromosome_pattern <- "([0-9XY]+|chr[0-9XY]*)"             # Mandatory: chr1 or 1
-  position_pattern <- ":[0-9]+"                              # Mandatory: A number
-  ref_pattern <- "([ACGT._-]+|NA)"                           # REF can be ACGT, ".", "_" o "-"
-  alt_pattern <- "([ACGT._-]+(,[ACGT._-]*)*|NA)"             # ALT can be ACGT, ".", "_" o "-"
-
-  # Different possible cases
-  ref_alt_pattern <- paste0(ref_pattern, ":", alt_pattern)   # Normal case (REF:ALT)
-  ref_missing_pattern <- paste0(ref_pattern, ":")            # REF but no ALT (REF:)
-  alt_missing_pattern <- paste0(":", alt_pattern)            # ALT but no REF (:ALT)
-
-  # Combine all patterns into one full regex
-  full_pattern <- paste0("^", chromosome_pattern, position_pattern, 
-                        ":(?:", ref_alt_pattern, "|", ref_missing_pattern, "|", alt_missing_pattern, ")$")
-
-  # Return a datafram without header, with all the mutations from the vcf
-  # Columns : chr pos ref alt
-
-  if (grepl("\\.tsv$", mut)) {
+  if (grepl("\\.tsv(.gz)?$", mut)) {
 
     mut_df <- read_tsv_input(mut)
 
-  } else if (grepl("\\.vcf$", mut)) {
+  } else if (grepl("\\.vcf(.gz)?$", mut)) {
     
     mut_df <- read_vcf_input(mut)
 
-  } else if (grepl(full_pattern, mut)) {
+  } else if (grepl("^[^:]+:[^:]+:[^:]+:[^:]+$", mut)) {
     
-    mut_df <- read_mut_input(mut)
+    mut_df <- read_str_input(mut)
 
   } else {
     stop(paste0("Error: The parameter 'mut' (", mut, ") is not in the expected format (.tsv, .vcf, chr:pos:ref:alt)."))

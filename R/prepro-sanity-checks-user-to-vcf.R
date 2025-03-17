@@ -19,7 +19,7 @@
 #' @importFrom IRanges IRanges
 #'
 #' @noRd
-sanity_check_prepro_user_to_vcf_repr <- function(chr, pos, ref, fasta) {
+sanity_check_ref_in_fasta <- function(chr, pos, ref, fasta) {
 
     # Fetch the names (i.e., FASTA headers) for each sequence
     idx <- scanFaIndex(fasta)
