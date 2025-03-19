@@ -2,7 +2,7 @@ test_that("sanity check read mut", {
     # --- 1. Test ---
     valid_mut_info <- data.frame(
         CHROM = c("chr1", "2", "chr3", "chr22", "22", "chrX", "chrY", "chr4", "chr5", "chr6",
-                    "chr7", "chr8", "42453", ""),
+                "chr7", "chr8", "42453", ""),
         POS = c(12345, 67890, 101112, 56789, 56789, 54321, 99999, 1234, 5678, 91011,
                 121314, 151617, 181920, 181920),
         REF = c("A", "GT", "A.", "NA", ".", "A", "", "-", "", "G",
@@ -20,11 +20,24 @@ test_that("sanity check read mut", {
         stringsAsFactors = FALSE
     )
 
-    expect_equal(sanity_check_read_mut(valid_mut_info), expected_results)
-    
-    
+    # Warning capture
+    warnings <- testthat::capture_warnings({
+        actual_results <- sanity_check_read_mut(valid_mut_info)
 
-    # --- 2. Test if pos is string ---
+        # Reinitiate rownames to avoid error
+        rownames(actual_results) <- NULL
+        rownames(expected_results) <- NULL
+
+        # Check if equal
+        expect_equal(actual_results, expected_results)
+        }
+    )
+
+    # Check if warnings has been generated 
+    expect_true(any(grepl("Invalid row", warnings)),
+                info = "At least one warning 'Invalid row' was expected")
+
+    # --- 2. Test si POS est string ---
     valid_mut_info2 <- data.frame(
         CHROM = c("chr9", "chrX", "chrY"),
         POS = c("181920", "", "."),
@@ -33,7 +46,9 @@ test_that("sanity check read mut", {
         stringsAsFactors = FALSE
     )
 
-    expect_error(sanity_check_read_mut(valid_mut_info2), 
-                 "No valid mutations found after sanity check.")
-    }
-)
+    # Here we are espected a specific error
+    expect_error(
+        suppressWarnings(sanity_check_read_mut(valid_mut_info2)),
+        "No valid mutations found after sanity check."
+    )
+})

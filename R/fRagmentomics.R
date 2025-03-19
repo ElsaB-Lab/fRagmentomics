@@ -83,14 +83,14 @@ fRagmentomics <- function(
       alt <- mut_info_checked[i, 4]
 
       # Normalization user-provided representation into vcf representation 
-      normalize_user_input <- normalize_user_rep_to_vcf_rep(chr, pos, ref, alt, fasta_loaded, one_based)
+      mut_info_vcf_normalized <- normalize_user_rep_to_vcf_rep(chr, pos, ref, alt, fasta_loaded, one_based)
       
       # Sanity check to see if ref != fasta
-      if (is.null(normalize_user_input)) {
+      if (is.null(mut_info_vcf_normalized)) {
         next
       }
       
-      with(normalize_user_input, {
+      with(mut_info_vcf_normalized, {
         chr_norm <- chr
         pos_norm <- pos
         ref_norm <- ref
@@ -98,9 +98,17 @@ fRagmentomics <- function(
       })
 
       # Normalization vcf representation with bcftools norm 
-      normalize_vcf <- normalize_vcf_rep(chr_norm, pos_norm, ref_norm, alt_norm, fasta_loaded)
+      mut_info_bcftools_normalized <- apply_bcftools_norm(chr_norm, pos_norm, ref_norm, alt_norm, fasta)
+
+      # Sanity check to see if bcftools worked properly
+      if (is.null(mut_info_bcftools_normalized)) {
+        next
+      }
+
 
       # Append to the final dataframe
+      # ATTENTION ICI DF. SAUF QUE ETAPE AVANT SI BCFTOOLS NORM DONNE 2 LIGNES JE SUIS DEAD
+      # LIST ? REFLECHIR
 
     }
 
@@ -180,4 +188,3 @@ fRagmentomics <- function(
     }
   } 
 }
-

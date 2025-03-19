@@ -106,4 +106,3 @@ check_ref_alt_input <- function(ref, alt) {
 
     return(FALSE)
 }
-

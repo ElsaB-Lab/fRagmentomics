@@ -11,16 +11,13 @@
 #' @return A normalized data frame.
 #' 
 #' @noRd
-normalize_na_representation <- function(chr, ref, alt) {
+normalize_na_representation <- function(ref, alt) {
   # Remove only the forbidden characters (-, ., _, NA) while conserving the rest of the sequence
   ref <- gsub("[-._]|NA", "", ref)
   alt <- gsub("[-._]|NA", "", alt)
   
-  # Conversion into string and add chr if necessary 
-  chr <- as.character(chr)
-  
   # Return variables
-  return(list(chr = chr, ref = ref, alt = alt))
+  return(list(ref = ref, alt = alt))
 }
 
 #' Retrieve a single nucleotide from a multi-chromosome FASTA
@@ -102,23 +99,26 @@ harmonize_chr_to_fasta <- function(chr, fasta) {
 #'
 #' @noRd
 normalize_user_rep_to_vcf_rep <- function(chr, pos, ref, alt, fasta, one_based) {
+  # Normalize chr column into chr1 convention 
+  # Remove all the forbidden characters (-, ., _, NA) while conserving the rest of the sequence
+  result <- normalize_na_representation(ref, alt)
 
   # # Convert a 0-based position to a 1-based position
   if (!one_based) {
     pos_norm <- pos + 1
+  } else {
+    pos_norm <- pos
   }
 
-  # Normalize chr column into chr1 convention 
-  # Remove all the forbidden characters (-, ., _, NA) while conserving the rest of the sequence
-  result <- normalize_na_representation(chr, ref, alt)
+  # Conversion into string and add chr if necessary 
+  chr <- as.character(chr)
 
   # Get back the variables
-  chr_norm <- result$chr
   ref_norm <- result$ref
   alt_norm <- result$alt
 
   # Normalize the chr convention from user with the one from the fasta
-  chr_norm_fasta <- harmonize_chr_to_fasta(chr_norm, fasta)
+  chr_norm <- harmonize_chr_to_fasta(chr, fasta)
 
   # Adapt ref and alt for the vcf convention in function of the mutation type 
   if (nchar(ref_norm) == nchar(alt_norm)) {
@@ -131,7 +131,7 @@ normalize_user_rep_to_vcf_rep <- function(chr, pos, ref, alt, fasta, one_based) 
     # We also have to return the position before 
     if (nchar(alt_norm) == 0) {
       anchor_base <- retrieve_anchor_base(
-        chr      = chr_norm_fasta,
+        chr      = chr_norm,
         position = pos_norm - 1, # shift one base to the left to find the anchor
         fasta    = fasta
       )
@@ -139,7 +139,7 @@ normalize_user_rep_to_vcf_rep <- function(chr, pos, ref, alt, fasta, one_based) 
       # Add this base before the sequence of ref and alt 
       alt_norm <- anchor_base
       ref_norm <- paste0(anchor_base, ref_norm)
-      pos      <- pos_norm -1 
+      pos_norm <- pos_norm -1 
 
     } 
   } else {
@@ -147,7 +147,7 @@ normalize_user_rep_to_vcf_rep <- function(chr, pos, ref, alt, fasta, one_based) 
     # Indeed, position meant to match the position before the insertion in the ref
     if (nchar(ref_norm) == 0) {
         anchor_base <- retrieve_anchor_base(
-        chr      = chr_norm_fasta,
+        chr      = chr_norm,
         position = pos_norm,
         fasta    = fasta
       )
@@ -159,11 +159,11 @@ normalize_user_rep_to_vcf_rep <- function(chr, pos, ref, alt, fasta, one_based) 
   }
 
   # Sanity check: Seq ref = fasta at the position 
-  check_result <- sanity_check_ref_in_fasta(chr_norm_fasta, pos_norm, ref_norm, fasta)
+  check_result <- sanity_check_ref_in_fasta(chr_norm, pos_norm, ref_norm, fasta)
   if (check_result) {
     message("Reference allele matches FASTA")
     # Return the final normalized values
-    return(list(chr = chr_norm_fasta, pos = pos_norm, ref = ref_norm, alt = alt_norm))
+    return(list(chr = chr_norm, pos = pos_norm, ref = ref_norm, alt = alt_norm))
   } else {
     warning(paste0("Mismatch found between ref and fasta for (", chr, " ", pos, " ", ref, ")."))
     return(NULL)

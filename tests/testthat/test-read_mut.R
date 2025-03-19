@@ -1,10 +1,9 @@
 test_that("read mut", {
     
-    vcf_test <- load(system.file("testdata", "mutations_test.vcf", package="fRagmentomics"))
-    tsv_test <- load(system.file("testdata", "mutations_test.tsv", package="fRagmentomics"))
-    vcf_test_compressed <- load(system.file("testdata", "mutations_test.vcf.gz", package="fRagmentomics"))
-    tsv_test_compressed <- load(system.file("testdata", "mutations_test.tsv.gz", package="fRagmentomics"))
-
+    vcf_test <- system.file("testdata/mutations/", "mutations_test.vcf", package="fRagmentomics")
+    tsv_test <- system.file("testdata/mutations/", "mutations_test.tsv", package="fRagmentomics")
+    vcf_test_compressed <- system.file("testdata/mutations/", "mutations_test.vcf.gz", package="fRagmentomics")
+    tsv_test_compressed <- system.file("testdata/mutations/", "mutations_test.tsv.gz", package="fRagmentomics")
 
     #---------------------------------------
     # chr:pos:ref:alt cases
@@ -31,16 +30,14 @@ test_that("read mut", {
         stringsAsFactors = FALSE
         )
     )
-    expect_equal(
-    read_mut("8:555:TAC,_,,T:TA"),
-    data.frame(
-        CHROM = rep("8", 4),
-        POS = rep(555, 4),
-        REF = c("TAC", "_", "", "T"),
-        ALT = rep("TA", 4),
-        stringsAsFactors = FALSE
-        )
+
+    # Multiallelic ref is not accepted
+    expect_warning(
+        expect_error(read_mut("8:555:TAC,_,,T:TA"),
+        "After reading, the mutation information is empty. No valid mutation data found."),
+        "REF can not be multiallelic"
     )
+
     # Invalid case to see eror
     # Miss Ref or Alt
     expect_error(read_mut("chr1:123:A"), 
@@ -56,82 +53,101 @@ test_that("read mut", {
     # vcf cases
     #---------------------------------------
     # Case 1: VCF 
-    df_vcf_test <- read_mut(vcf_test)
-    print("df_vcf_test:")
-    print(df_vcf_test)
+    # Capture the warning to not be shown in the console 
+     captured_warnings <- testthat::capture_warnings(
+        df_vcf_test <- read_mut(vcf_test)
+     )
 
     expected_results <- data.frame(
         CHROM = c("chr1", "2", "chr3", "chr22", "22", "chrX", "chrY", "chr4", "chr5", "chr6",
-                    "chr7", "chr7", "chr8", "chr8", "chrX", "chrY", "42453", "."),
+                  "chr8", "chr8", "chrY", "42453", "."),
         POS = c(12345, 67890, 101112, 56789, 56789, 54321, 99999, 1234, 5678, 91011,
-                121314, 121314, 151617, 151617, "NA", "NA", 181920, 181920),
+                151617, 151617, NA, 181920, 181920),
         REF = c("A", "GT", "A.", "NA", ".", "A", ".", "-", ".", "G",
-                "T", "T", "G", "G", "A", "AC", "AC"),
+                "G", "G", "T", "AC", "AC"),
         ALT = c("T", "C", "A-", "NA", "-", ".", "C", "A", ".", "NA",
-                "C", "C", "A", "T", "-", "C", "-", "-"),
+                "A", "T", "C", "-", "-"),
         stringsAsFactors = FALSE
     )
 
-    expect_equal(df_vcf_test, expected_results)
+     # Check if the warning ae here
+     print(captured_warnings)
+     expect_true(any(grepl("non-integer values in the POS column", captured_warnings)))
+     expect_true(any(grepl("REF can not be multiallelic", captured_warnings)))
+     # Check if the test pass
+     expect_equal(df_vcf_test, expected_results)
 
     # Case 2: Compressed VCF
-    df_vcf_test2 <- read_mut(vcf_test_compressed)
-    print("df_vcf_test2:")
-    print(df_vcf_test2)
+    # Capture the warning to not be shown in the console 
+     captured_warnings <- testthat::capture_warnings(
+        df_vcf_test2 <- read_mut(vcf_test_compressed)
+     )
 
     expected_results2 <- data.frame(
         CHROM = c("chr1", "2", "chr3", "chr22", "22", "chrX", "chrY", "chr4", "chr5", "chr6",
-                    "chr7", "chr7", "chr8", "chr8", "chrX", "chrY", "42453", "."),
+                  "chr8", "chr8", "chrY", "42453", "."),
         POS = c(12345, 67890, 101112, 56789, 56789, 54321, 99999, 1234, 5678, 91011,
-                121314, 121314, 151617, 151617, "NA", "NA", 181920, 181920),
+                151617, 151617, NA, 181920, 181920),
         REF = c("A", "GT", "A.", "NA", ".", "A", ".", "-", ".", "G",
-                "T", "T", "G", "G", "A", "AC", "AC"),
+                "G", "G", "T", "AC", "AC"),
         ALT = c("T", "C", "A-", "NA", "-", ".", "C", "A", ".", "NA",
-                "C", "C", "A", "T", "-", "C", "-", "-"),
+                "A", "T", "C", "-", "-"),
         stringsAsFactors = FALSE
     )
 
-    expect_equal(df_vcf_test2, expected_results2)
+     # Check if the warning ae here
+     expect_true(any(grepl("non-integer values in the POS column", captured_warnings)))
+     expect_true(any(grepl("REF can not be multiallelic", captured_warnings)))
+     # Check if the test pass
+     expect_equal(df_vcf_test2, expected_results2)
 
     #---------------------------------------
     # tsv cases
     #---------------------------------------
     # Case 1: TSV
-    df_tsv_test <- read_mut(tsv_test)
-    print("df_tsv_test:")
-    print(df_tsv_test)
+     captured_warnings <- testthat::capture_warnings(
+        df_tsv_test <- read_mut(tsv_test)
+     )
 
     expected_results3 <- data.frame(
         CHROM = c("chr1", "2", "chr3", "chr22", "22", "chrX", "chrY", "chr4", "chr5", "chr6",
-                    "chr7", "chr7", "chr8", "chr8", "chrX", "chrY", "42453", "."),
+                  "chr8", "chr8", "chrX", "chrY", "42453", ""),
         POS = c(12345, 67890, 101112, 56789, 56789, 54321, 99999, 1234, 5678, 91011,
-                121314, 121314, 151617, 151617, "NA", "NA", 181920, 181920),
-        REF = c("A", "GT", "A.", "NA", ".", "A", ".", "-", ".", "G",
-                "T", "T", "G", "G", "A", "AC", "AC"),
-        ALT = c("T", "C", "A-", "NA", "-", ".", "C", "A", ".", "NA",
-                "C", "C", "A", "T", "-", "C", "-", "-"),
+                151617, 151617, NA, NA, 181920, 181920),
+        REF = c("A", "GT", "A.", "NA", ".", "A", "", "-", "", "G",
+                "G", "G", "A", "T", "AC", "AC"),
+        ALT = c("T", "C", "A-", "NA", "-", "-", "C", "A", "-", "NA",
+                "A", "T", "-", "C", "-", "-"),
         stringsAsFactors = FALSE
     )
 
-    expect_equal(df_tsv_test, expected_results3)
+     # Check if the warning ae here
+     expect_true(any(grepl("non-integer values in the POS column", captured_warnings)))
+     expect_true(any(grepl("REF can not be multiallelic", captured_warnings)))
+     # Check if the test pass
+     expect_equal(df_tsv_test, expected_results3)
 
     # Case 2: Compressed TSV
-    df_tsv_test2 <- read_mut(tsv_test_compressed)
-    print("df_tsv_test2:")
-    print(df_tsv_test2)
+     captured_warnings <- testthat::capture_warnings(
+        df_tsv_test2 <- read_mut(tsv_test_compressed)
+     )
 
     expected_results4 <- data.frame(
         CHROM = c("chr1", "2", "chr3", "chr22", "22", "chrX", "chrY", "chr4", "chr5", "chr6",
-                    "chr7", "chr7", "chr8", "chr8", "chrX", "chrY", "42453", "-"),
+                  "chr8", "chr8", "chrX", "chrY", "42453", ""),
         POS = c(12345, 67890, 101112, 56789, 56789, 54321, 99999, 1234, 5678, 91011,
-                121314, 121314, 151617, 151617, "NA", "NA", 181920, 181920),
-        REF = c("A", "GT", "A.", "NA", ".", "A", ".", "-", ".", "G",
-                "T", "T", "G", "G", "A", "AC", "AC"),
-        ALT = c("T", "C", "A-", "NA", "-", ".", "C", "A", ".", "NA",
-                "C", "C", "A", "T", "-", "C", "-", "-"),
+                151617, 151617, NA, NA, 181920, 181920),
+        REF = c("A", "GT", "A.", "NA", ".", "A", "", "-", "", "G",
+                "G", "G", "A", "T", "AC", "AC"),
+        ALT = c("T", "C", "A-", "NA", "-", "-", "C", "A", "-", "NA",
+                "A", "T", "-", "C", "-", "-"),
         stringsAsFactors = FALSE
     )
-
-    expect_equal(df_tsv_test2, expected_results4)
-    }
+     
+     # Check if the warning ae here
+     expect_true(any(grepl("non-integer values in the POS column", captured_warnings)))
+     expect_true(any(grepl("REF can not be multiallelic", captured_warnings)))
+     # Check if the test pass
+     expect_equal(df_tsv_test2, expected_results4)
+}
 )

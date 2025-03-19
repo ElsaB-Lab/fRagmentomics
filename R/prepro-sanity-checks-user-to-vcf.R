@@ -45,6 +45,8 @@ sanity_check_ref_in_fasta <- function(chr, pos, ref, fasta) {
     # Transform fasta_seq into string
     fasta_seq_char <- unname(as.character(fasta_seq))
 
+    print(fasta_seq_char)
+
     # Compare the full `ref` to the fetched FASTA sequence
     if (identical(ref, fasta_seq_char)) {
         return(TRUE)

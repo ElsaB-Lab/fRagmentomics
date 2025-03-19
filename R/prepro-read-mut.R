@@ -13,9 +13,19 @@ expand_multiallelics <- function(df) {
   expanded_rows <- list()
 
   for (i in seq_len(nrow(df))) {
+    
+    # If ALT is empty, add "-"
+    if (is.na(df$ALT[i]) || df$ALT[i] == "") {
+        df$ALT[i] <- "-"
+    }
     # Before doing the strsplit, we have to be sure ALT doesn't finish by ","
-    if (grepl(",$", df$ALT[i])) {
+    else if (grepl(",$", df$ALT[i])) {
         df$ALT[i] <- paste0(df$ALT[i], "-")
+    }
+
+    if (grepl(",", df$REF[i])) {
+        warning("REF can not be multiallelic")
+        next
     }
     
     # Devide all the alternatives alleles
@@ -28,7 +38,12 @@ expand_multiallelics <- function(df) {
     }
   }
 
-  # Recreate the df with one line for each alt 
+  # Stop and error if no data after multiallelic verification
+  if (length(expanded_rows) == 0) {
+    stop("After reading, the mutation information is empty. No valid mutation data found.")
+  }
+
+  # Recreate the df with one line for each alt. Return empty df if 
   expanded_df <- do.call(rbind, expanded_rows)
   return(expanded_df)
 }
@@ -101,8 +116,6 @@ read_mut <- function(mut) {
   } else {
     stop(paste0("Error: The parameter 'mut' (", mut, ") is not in the expected format (.tsv, .vcf, chr:pos:ref:alt)."))
   }
-  
+
   return(mut_df)
 }
-
-
