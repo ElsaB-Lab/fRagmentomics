@@ -54,25 +54,4 @@ parse_cigar <- function(cigar) {
   data.frame(length = lengths, type = types, stringsAsFactors = FALSE)
 }
 
-#' Function to see verify if it's the indel that we're looking for
-#'
-#' @param indel_rep an integer value
-#' @param is_length_ok an booleen value
-#' @param diff_mutation_bam an integer value
-#' @param deletion_length an integer value
-#' @return 0 or 1 if the indel is the one we're looking for
-#'
-#' @keywords internal
-sanity_check_indel <- function(is_length_ok, diff_mutation_bam, deletion_length) {
-  if (!is_length_ok) {
-    return(0)
-  }
-  if (diff_mutation_bam == 0) {
-    return(1)
-  }
-  if ((diff_mutation_bam %% deletion_length) == 0) {
-    factor <- abs(diff_mutation_bam) / deletion_length
-    return(as.integer(factor <= indel_rep))
-  }
-  return(0)
-}
+

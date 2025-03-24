@@ -14,5 +14,4 @@ test_that("bitvalues from bam flag", {
 
   expect_true(flag_2[,"isFirstMateRead"]==1)
   expect_true(flag_2[,"isSecondMateRead"]==0)
- 
 })

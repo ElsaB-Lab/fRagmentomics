@@ -3,14 +3,24 @@
 #' @title Retrieve mutation-specific information
 #' @description Extracts base, quality, and indel information based on the mutation type.
 #'
-#' @param mutation_type Type of mutation: "mutation", "deletion", or "insertion".
+#' @param mutation_type Type of mutation: "SNV", "deletion", or "insertion".
 #' @param pos Genomic position of interest.
 #' @param ref Reference base.
 #' @param alt Alternative base or sequence (for insertion).
-#' @param del_info Deletion-specific information (if applicable).
 #' @param read_stats A list of read-level statistics (position, cigar string, query sequence, quality scores).
 #'
-#' @return A list containing "base", "qual", and "indel" (if applicable).
+#' @return A list containing "base", "qual".
+#' Base could be:
+#'  - NA if the read doesn't cover the position of interest
+#'  - Nucleodide for SNV if the read covers the position of interest
+#'  - "insertion_detected" or "no_insertion_detected"
+#'  - "deletion_detected" or "no_deletion_detected"
+#' 
+#' Qual could be:
+#'  - NA if the read doesn't cover the position of interest
+#'  - Qual for SNV and insertion if the read covers the position of interest
+#'  - "no_insertion_detected"
+#'  - "-" if the read covers the position of the deletion of interest or "no_deletion_detected"
 #' 
 #' @noRd 
 get_mutation_info <- function(mutation_type, pos, ref, alt, read_stats) {
@@ -50,9 +60,8 @@ get_mutation_info <- function(mutation_type, pos, ref, alt, read_stats) {
     
   } else {
     return(list(
-      base = NA,
-      qual = NA,
-      indel = "Error: mutation_type not defined properly"
+      base = "Error: mutation_type not defined properly",
+      qual = "Error: mutation_type not defined properly"
     ))
   }
 }

@@ -68,6 +68,4 @@ test_that("test get fragment inner distance", {
   inner_distance_6 <- get_fragment_inner_distance(r_pos1=r_pos1_6, r_cigar1=r_cigar1_6, read_length1=read_length1_6, r_pos2=r_pos2_6, r_cigar2=r_cigar2_6, read_length2=read_length2_6)
 
   expect_setequal(inner_distance_6, -173)
-
-
 })

@@ -70,11 +70,14 @@ process_fragment <- function(df_sam,
                              pos,
                              ref,
                              alt,
-                             mutation_type) {
+                             mutation_type,
+                             report_bases_fragment_5p_3p) {
   
   df_fragment_reads <- df_sam[df_sam[,1,drop=TRUE] == fragment_name, , drop=FALSE]
   
-  # Sanity checks
+  # -------------------------------
+  # Sanity check fragments
+  # -------------------------------
   fragment_qc <- ""
   if (!all(df_fragment_reads[,3] == chr)) {
     fragment_qc <- paste(fragment_qc, "& Read(s) from another chromosome than", chr)
@@ -97,42 +100,100 @@ process_fragment <- function(df_sam,
   read1_stats <- get_read_stats(reads$read1)
   read2_stats <- get_read_stats(reads$read2)
   
-  # Retrieve mutation information
+  # -------------------------------
+  # Retrieve mutation information (a list with base and qual)
+  # -------------------------------
   r_info1 <- get_mutation_info(mutation_type, pos, ref, alt, read1_stats)
   r_info2 <- get_mutation_info(mutation_type, pos, ref, alt, read2_stats)
   
-  # Compute distances and fragment size
-  n_unique_del_ins <- get_nb_unique_del_ins(
-    read1_stats$pos, read1_stats$cigar,
-    read2_stats$pos, read2_stats$cigar
-  )
-  inner_distances <- get_fragment_inner_distance(
+  # -------------------------------
+  # Compute fragment size 
+  # -------------------------------
+  inner_distance <- get_fragment_inner_distance(
     read1_stats$pos, read1_stats$cigar, read1_stats$read_length,
     read2_stats$pos, read2_stats$cigar, read2_stats$read_length
   )
   absolute_size <- read1_stats$read_length +
                    read2_stats$read_length +
-                   inner_distances$b
-
-  identity_RIGHT <- ifelse(read1_stats$pos <= read2_stats$pos, 2, 1)
-  identity_LEFT  <- ifelse(identity_RIGHT == 2, 1, 2)
+                   inner_distance
   
-  return(data.frame(
-    Sample_Id        = sample_id,
+  # -------------------------------
+  # Define fragment status
+  # -------------------------------
+  fragment_status <- process_fragment_status(mutation_type, r_info1$base, r_info2$base)
+
+  # -------------------------------
+  # Define 3' and 5' reads
+  # -------------------------------
+  identity_3p <- ifelse(read1_stats$pos <= read2_stats$pos, 2, 1)
+  identity_5p <- ifelse(identity_3p == 2, 1, 2)
+
+  if (identity_5p == 1){
+    read_stats_5p <- read1_stats
+    read_stats_3p <- read2_stats
+  } else {
+    read_stats_5p <- read2_stats
+    read_stats_3p <- read1_stats
+  }
+
+  # -------------------------------
+  # Build an adaptative dataframe 
+  # -------------------------------
+  final_columns <- list(
     Chromosome       = chr,
     Position         = pos,
     Ref              = ref,
     Alt              = alt,
-    Fragment         = fragment_name,
-    Fragment_Check   = "OK",
-    Mutation_type    = mutation_type,
-    Mapq_Read_1      = read1_stats$mapq,
-    Mapq_Read_2      = read2_stats$mapq,
-    Base_Read_1      = r_info1$base,
-    Base_Read_2      = r_info2$base,
-    Qual_Read_1      = r_info1$qual,
-    Qual_Read_2      = r_info2$qual,
-    TLEN             = abs(read1_stats$tlen),
-    Absolute_size    = absolute_size
-  ))
+    Sample_Id        = sample,
+    Fragment_Id      = fragment_name,
+    Fragment_QC      = "OK",
+    Fragment_Mutated = fragment_status,
+    Absolute_size    = absolute_size,
+    Inner_distance   = inner_distance,
+    Read_5p          = identity_5p,
+    MAPQ_5p          = read_stats_5p$mapq,
+    MAPQ_3p          = read_stats_3p$mapq,
+    ALT_5p           = read_stats_5p$base,
+    ALT_3p           = read_stats_3p$base,
+    BASQ_5p          = read_stats_5p$qual,
+    BASQ_3p          = read_stats_3p$qual,
+    TLEN             = abs(read1_stats$tlen)
+  )
+
+  # -------------------------------
+  # Define n base 5' and 3'
+  # -------------------------------
+  # if report_5p_3p_bases_fragment != 0, we call the function process_get_fragment_bases
+  if (report_5p_3p_bases_fragment != 0) {
+    process_get_fragment_bases_5p_3p <- process_get_fragment_bases(
+      read_stats_5p$query, 
+      read_stats_3p$query,
+      read_stats_5p$qual,
+      read_stats_3p$qual
+    )
+    
+    final_columns$Fragment_bases_5p  <- process_get_fragment_bases_5p_3p$Fragment_bases_5p
+    final_columns$Fragment_bases_3p  <- process_get_fragment_bases_5p_3p$Fragment_bases_3p
+    final_columns$Fragment_Qbases_5p <- process_get_fragment_bases_5p_3p$Fragment_Qbases_5p
+    final_columns$Fragment_Qbases_3p <- process_get_fragment_bases_5p_3p$Fragment_Qbases_3p
+  }
+
+  # -------------------------------
+  # Define number of soft clipped bases in 5' and 3'
+  # -------------------------------
+  # If report_softclip is TRUE, we call the function process_get_fragment_bases_softclip
+  if (report_softclip) {
+    process_get_fragment_bases_softclip_5p_3p <- process_get_fragment_bases_softclip(
+      read_stats_5p$cigar,
+      read_stats_3p$cigar
+    )
+    
+    final_columns$Nb_fragment_bases_softclip_5p <- process_get_fragment_bases_softclip_5p_3p$Nb_SC_5p
+    final_columns$Nb_fragment_bases_softclip_3p <- process_get_fragment_bases_softclip_5p_3p$Nb_SC_3p
+  }
+
+  # Creation of the dataframe with the wanted columns
+  result_df <- as.data.frame(final_columns)
+
+  return(result_df)
 }

@@ -42,10 +42,9 @@ fRagmentomics <- function(
     one_based = TRUE, 
     flag_keep = 0x03,
     flag_remove = 0x900, 
-    report_5p_bases = 0,
-    report_3p_bases = 0,
     report_tlen = FALSE,
     report_softclip = FALSE, 
+    report_5p_3p_bases_fragment = 5,
     n_cores = 1
     ) {
     
@@ -54,7 +53,9 @@ fRagmentomics <- function(
     # -------------------------------
     # Check if bam and fasta exist
     # Check if fasta is indexed
-    check_input(mut, bam, fasta)
+    check_input(mut, bam, fasta, sample, neg_offset_mate_search, pos_offset_mate_search,
+                one_based, flag_keep, flag_remove, report_tlen, report_softclip, 
+                report_bases_fragment_5p_3p, n_cores)
 
     # Read a vcf ou .tsv file 
     # Return a df with all the mutation we want to study 
@@ -148,9 +149,6 @@ fRagmentomics <- function(
         flag_keep,
         flag_remove)
 
-      # -------------------------------
-      # Perform fragment analysis 
-      # -------------------------------
       # Process fragmentomics on truncated bam and the mutation 
       # Extract unique fragment names
       fragments_names <- unique(df_sam[, 1, drop = TRUE])
@@ -175,14 +173,16 @@ fRagmentomics <- function(
           pos              = pos_final,
           ref              = ref_final,
           alt              = alt_final,
-          mutation_type    = mutation_type
+          mutation_type    = mutation_type,
+          report_softclip  = report_softclip,
+          report_5p_3p_bases_fragment = report_5p_3p_bases_fragment
         )
       }
     
       # Stop cluster
       parallel::stopCluster(cl)
-      
-      return(df_fragments_info)
     }
+
+    return(df_fragments_info)
 } 
 

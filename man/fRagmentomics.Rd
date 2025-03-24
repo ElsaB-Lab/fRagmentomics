@@ -14,10 +14,9 @@ fRagmentomics(
   one_based = TRUE,
   flag_keep = 3,
   flag_remove = 2304,
-  report_5p_bases = 0,
-  report_3p_bases = 0,
   report_tlen = FALSE,
   report_softclip = FALSE,
+  report_5p_3p_bases_fragment = 5,
   n_cores = 1
 )
 }

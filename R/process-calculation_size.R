@@ -11,7 +11,7 @@
 #' @param read_length2 numeric value representing the length of read 2
 #' @return a named list with names `a` and `b`.
 #'
-#' @importFrom stringr str_extract
+#' @importFrom stringr str_extract str_extract_all
 #'
 #' @noRd
 get_fragment_inner_distance <- function(r_pos1, r_cigar1, read_length1, r_pos2, r_cigar2, read_length2){
@@ -49,20 +49,16 @@ get_fragment_inner_distance <- function(r_pos1, r_cigar1, read_length1, r_pos2, 
     }
 
 
-    # inner distance (two formulas)
+    # inner distance 
     if (r_pos1 <= r_pos2){
-      # 1 = LEFT
-      # 2 = RIGHT
-      inner_distance_a <- r_pos2 - r_pos1 + bases_softcl_left1 - read_length1 - bases_softcl_left2 + bases_ins1 - bases_del1
-
-      inner_distance_b <- r_pos2 - r_pos1 - bases_match1 - bases_del1 - bases_softcl_left2 - bases_softcl_right1
+      # 1 = 5'
+      # 2 = 3'
+      inner_distance <- r_pos2 - r_pos1 - bases_match1 - bases_del1 - bases_softcl_left2 - bases_softcl_right1
     } else {
-      # 2 = LEFT
-      # 1 = RIGHT
-      inner_distance_a <- r_pos1 - r_pos2 + bases_softcl_left2 - read_length2 - bases_softcl_left1 + bases_ins2 - bases_del2
-
-      inner_distance_b <- r_pos1 - r_pos2 - bases_match2 - bases_del2 - bases_softcl_left1 - bases_softcl_right2
+      # 2 = 5'
+      # 1 = 3'
+      inner_distance <- r_pos1 - r_pos2 - bases_match2 - bases_del2 - bases_softcl_left1 - bases_softcl_right2
     }
 
-  list(a=inner_distance_a, b=inner_distance_b)
+  return(inner_distance)
 }
