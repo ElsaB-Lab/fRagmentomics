@@ -36,8 +36,6 @@ fRagmentomics(
 
 \item{alt}{Alternative base (for SNV) or sequence (for insertion).}
 
-\item{del_info}{Deletion-specific information (if applicable).}
-
 \item{mutation_type}{Type of mutation: "mutation", "deletion", or "insertion".}
 }
 \value{

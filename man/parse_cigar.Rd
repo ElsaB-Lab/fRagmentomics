@@ -10,7 +10,7 @@ parse_cigar(cigar)
 \item{cigar}{a character vector}
 }
 \value{
-a df with length and type of the CIGAR string
+a df with length and type of the CIGAR string. One row per operation.
 }
 \description{
 Function to parse the CIGAR string

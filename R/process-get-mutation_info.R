@@ -13,9 +13,9 @@
 #' @return A list containing "base", "qual", and "indel" (if applicable).
 #' 
 #' @noRd 
-get_mutation_info <- function(mutation_type, pos, ref, alt, del_info, read_stats) {
+get_mutation_info <- function(mutation_type, pos, ref, alt, read_stats) {
   
-  if (mutation_type == "mutation") {
+  if (mutation_type == "SNV") {
     return(
       get_base_qual_from_read(
         pos      = pos,
@@ -31,7 +31,6 @@ get_mutation_info <- function(mutation_type, pos, ref, alt, del_info, read_stats
       get_deletion(
         pos      = pos,
         ref      = ref,
-        del_info = del_info,
         r_pos    = read_stats$pos,
         r_cigar  = read_stats$cigar
       )

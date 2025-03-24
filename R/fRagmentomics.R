@@ -24,7 +24,6 @@ setup_parallel_computations <- function(n_cores){
 #' @param pos Genomic position of interest.
 #' @param ref Reference base.
 #' @param alt Alternative base (for SNV) or sequence (for insertion).
-#' @param del_info Deletion-specific information (if applicable).
 #' @param mutation_type Type of mutation: "mutation", "deletion", or "insertion".
 #' @param n_cores Number of cores for parallel computation.
 #'
@@ -48,7 +47,7 @@ fRagmentomics <- function(
     report_tlen = FALSE,
     report_softclip = FALSE, 
     n_cores = 1
-  ) {
+    ) {
     
     # -------------------------------
     # Check the inputs and load files
@@ -76,15 +75,25 @@ fRagmentomics <- function(
     # -------------------------------
     # Normalisation of Ref, Alt and Pos
     # -------------------------------
-    for (i in 1:nrow(mut_info_checked)) {
+    # Initialisation of the normalized variants
+    final_variants <- data.frame()
+
+    for (i in seq_len(nrow(mut_info_checked))) {
       chr <- mut_info_checked[i, 1]
       pos <- mut_info_checked[i, 2]
       ref <- mut_info_checked[i, 3]
       alt <- mut_info_checked[i, 4]
 
       # Normalization user-provided representation into vcf representation 
-      mut_info_vcf_normalized <- normalize_user_rep_to_vcf_rep(chr, pos, ref, alt, fasta_loaded, one_based)
-      
+      mut_info_vcf_normalized <- normalize_user_rep_to_vcf_rep(
+        chr = chr, 
+        pos = pos, 
+        ref = ref, 
+        alt = alt, 
+        fasta_loaded = fasta_loaded, 
+        one_based = one_based
+      )
+
       # Sanity check to see if ref != fasta
       if (is.null(mut_info_vcf_normalized)) {
         next
@@ -98,93 +107,82 @@ fRagmentomics <- function(
       })
 
       # Normalization vcf representation with bcftools norm 
-      mut_info_bcftools_normalized <- apply_bcftools_norm(chr_norm, pos_norm, ref_norm, alt_norm, fasta)
+      mut_info_bcftools_normalized <- apply_bcftools_norm(
+        chr = chr_norm, 
+        pos = pos_norm, 
+        ref = ref_norm, 
+        alt = alt_norm, 
+        fasta = fasta
+      )
 
       # Sanity check to see if bcftools worked properly
       if (is.null(mut_info_bcftools_normalized)) {
         next
       }
 
-
       # Append to the final dataframe
-      # ATTENTION ICI DF. SAUF QUE ETAPE AVANT SI BCFTOOLS NORM DONNE 2 LIGNES JE SUIS DEAD
-      # LIST ? REFLECHIR
-
+      final_variants <- rbind(final_variants, mut_info_bcftools_normalized)
     }
 
     # -------------------------------
     # Perform fragment analysis 
     # -------------------------------
     # Loop on each row of the mut_info
-    for (i in 1:nrow(mut_info)) {
-      chr <- mut_info[i, 1]
-      pos <- mut_info[i, 2]
-      ref <- mut_info[i, 3]
-      alt <- mut_info[i, 4]
+    for (i in 1:nrow(final_variants)) {
+      chr_final <- final_variants[i, 1]
+      pos_final <- final_variants[i, 2]
+      ref_final <- final_variants[i, 3]
+      alt_final <- final_variants[i, 4]
 
+      # Return the mutation status in SNV, ins, del, MNP 
+      mutation_status <- define_mutation_status(ref_final, alt_final) 
+
+      # Read and extract bam around the mutation position 
+      # Return a truncated sam 
+      df_sam <- preprocess_bam(
+        bam,
+        chr_final,
+        pos_final,
+        neg_offset_mate_search,
+        pos_offset_mate_search,
+        flag_keep,
+        flag_remove)
+
+      # -------------------------------
+      # Perform fragment analysis 
+      # -------------------------------
+      # Process fragmentomics on truncated bam and the mutation 
+      # Extract unique fragment names
+      fragments_names <- unique(df_sam[, 1, drop = TRUE])
+      n_fragments <- length(fragments_names)
+      
+      # Initialize parallel cluster
+      cl <- setup_parallel_computations(n_cores)
+      
+      # Parallel execution
+      df_fragments_info <- foreach::foreach(
+        i = seq_len(n_fragments),
+        .combine = rbind,
+        .inorder = FALSE,
+        .packages = c("stringr")
+      ) %dopar% {
+        # Call the fragment processing function
+        process_fragment(
+          df_sam           = df_sam,
+          fragment_name    = fragments_names[i],
+          sample           = sample,
+          chr              = chr_final,
+          pos              = pos_final,
+          ref              = ref_final,
+          alt              = alt_final,
+          mutation_type    = mutation_type
+        )
+      }
     
-
-    # Read and extract bam around the mutation position 
-    # Return a truncated sam 
-    sam <- preprocess_bam(
-      bam,
-      chr,
-      pos,
-      neg_offset_mate_search,
-      pos_offset_mate_search,
-      flag_keep,
-      flag_remove)
-
-    # Find mutation_status "insertion", "deletion", "SNV", "MNP"
-    mutation_status <- define_mutation_status(ref, alt)
-
-    # Process fragmentomics on truncated bam and the mutation 
-    process_fragmentomics <- function(
-      sam,
-      sample_id,
-      chr,
-      pos,
-      ref,
-      alt,
-      out,
-      n_cores = 1
-    ) {
-
-
-
-
-    # Extract unique fragment names
-    fragments_names <- unique(df_sam[, 1, drop = TRUE])
-    n_fragments <- length(fragments_names)
-    
-    # Initialize parallel cluster
-    cl <- setup_parallel_computations(n_cores)
-    
-    # Parallel execution
-    df_fragments_info <- foreach::foreach(
-      i = seq_len(n_fragments),
-      .combine = rbind,
-      .inorder = FALSE,
-      .packages = c("stringr")
-    ) %dopar% {
-      # Call the fragment processing function
-      process_fragment(
-        df_sam           = df_sam,
-        fragment_name    = fragments_names[i],
-        sample_id        = sample_id,
-        chr              = chr,
-        pos              = pos,
-        ref              = ref,
-        alt              = alt,
-        del_info         = del_info,
-        mutation_type    = mutation_type
-      )
+      # Stop cluster
+      parallel::stopCluster(cl)
+      
+      return(df_fragments_info)
     }
-    
-    # Stop cluster
-    parallel::stopCluster(cl)
-    
-    return(df_fragments_info)
-    }
-  } 
-}
+} 
+
