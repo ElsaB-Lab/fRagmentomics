@@ -8,19 +8,19 @@ test_that("apply_bcftools_norm", {
 
   # Valid cases
   expect_equal(
-    apply_bcftools_norm("chr17", 126, "TG", "TGT", fasta_38),
+    apply_bcftools_norm("chr17", 126, "TG", "TGT", fasta_38, tempdir()),
     data.frame(chr = "chr17", pos = 127, ref = "G", alt = "GT", stringsAsFactors = FALSE),
     ignore_attr = TRUE
   )
 
   expect_equal(
-    apply_bcftools_norm("chr17", 126, "TGTA", "TG", fasta_38),
+    apply_bcftools_norm("chr17", 126, "TGTA", "TG", fasta_38, tempdir()),
     data.frame(chr = "chr17", pos = 127, ref = "GTA", alt = "G", stringsAsFactors = FALSE),
     ignore_attr = TRUE
   )
 
   expect_equal(
-    apply_bcftools_norm("chr17", 126, "TGT", "TGTAGG", fasta_38),
+    apply_bcftools_norm("chr17", 126, "TGT", "TGTAGG", fasta_38, tempdir()),
     data.frame(chr = "chr17", pos = 128, ref = "T", alt = "TAGG", stringsAsFactors = FALSE),
     ignore_attr = TRUE
   )
@@ -50,18 +50,18 @@ test_that("apply_bcftools_norm", {
   # )
 
   expect_equal(
-    apply_bcftools_norm("chr17", 126, "TG", "TG", fasta_38),
+    apply_bcftools_norm("chr17", 126, "TG", "TG", fasta_38, tempdir()),
     data.frame(chr = "chr17", pos = 126, ref = "TG", alt = "TG", stringsAsFactors = FALSE),
     ignore_attr = TRUE
   )
 
   # Error cases
-  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "AGT", "A", fasta_38)))
-  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "TAT", "TA", fasta_38)))
-  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "T", "", fasta_38)))
-  # expect_null(apply_bcftools_norm("chr17", 126, "T", ".", fasta_38))
-  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "T", "-", fasta_38)))
-  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "", "GG", fasta_38)))
-  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, ".", "G", fasta_38)))
-  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "-", "GG", fasta_38)))
+  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "AGT", "A", fasta_38, tempdir())))
+  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "TAT", "TA", fasta_38, tempdir())))
+  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "T", "", fasta_38, tempdir())))
+  # expect_null(apply_bcftools_norm("chr17", 126, "T", ".", fasta_38, tempdir()))
+  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "T", "-", fasta_38, tempdir())))
+  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "", "GG", fasta_38, tempdir())))
+  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, ".", "G", fasta_38, tempdir())))
+  expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "-", "GG", fasta_38, tempdir())))
 })

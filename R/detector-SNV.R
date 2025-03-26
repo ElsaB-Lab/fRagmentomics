@@ -2,11 +2,8 @@
 
 #' Get base identity and sequencing quality from read and position of interest.
 #'
-#' @inheritParams fRagmentomics
-#' @param r_pos numeric value representing the read mapping position
-#' @param r_cigar character vector representing the read CIGAR
-#' @param r_query character vector representing the read base sequence
-#' @param r_qual character vector representing the read sequencing qualities
+#' @inheritParams get_insertion
+#'
 #' @return a named list with names `base` and `qual`.
 #'
 #' @importFrom stringr str_extract
@@ -14,10 +11,10 @@
 #' @noRd
 get_base_qual_from_read <- function(pos, r_pos, r_cigar, r_query, r_qual) {
   # table of operations-cursor movement
-  Op <- c("M", "I", "D", "N", "S", "H", "P", "=", "X")
-  Consumes_query <- c("yes", "yes", "no", "no", "yes", "no", "no", "yes", "yes")
-  Consumes_reference <- c("yes", "no", "yes", "yes", "no", "no", "no", "yes", "yes")
-  CIGAR <- data.frame(Op, Consumes_query, Consumes_reference)
+  op <- c("M", "I", "D", "N", "S", "H", "P", "=", "X")
+  consumes_query <- c("yes", "yes", "no", "no", "yes", "no", "no", "yes", "yes")
+  consumes_reference <- c("yes", "no", "yes", "yes", "no", "no", "no", "yes", "yes")
+  cigar <- data.frame(op, consumes_query, consumes_reference)
 
 
   # cursors and index to be incremented
@@ -25,7 +22,7 @@ get_base_qual_from_read <- function(pos, r_pos, r_cigar, r_query, r_qual) {
   index_query <- 1
   pos_is_readed <- FALSE
 
-  while (nchar(r_cigar) > 0 & cursor_reference <= pos) {
+  while (nchar(r_cigar) > 0 && cursor_reference <= pos) {
     # get current cigar operation
     c_dg_str <- str_extract(r_cigar, "^[\\d]+")
     c_dg_num <- as.numeric(c_dg_str)
@@ -34,8 +31,8 @@ get_base_qual_from_read <- function(pos, r_pos, r_cigar, r_query, r_qual) {
 
 
     # execute cigar operation to move cursors
-    c_query <- CIGAR[CIGAR$Op == c_op, "Consumes_query"]
-    c_reference <- CIGAR[CIGAR$Op == c_op, "Consumes_reference"]
+    c_query <- cigar[cigar$op == c_op, "consumes_query"]
+    c_reference <- cigar[cigar$op == c_op, "consumes_reference"]
 
     # If cursor reference is equal to the position of interest, then the cursor can advance to the position of interest
     if (cursor_reference == pos) {

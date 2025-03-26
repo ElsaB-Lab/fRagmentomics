@@ -5,17 +5,14 @@
 #' @inheritParams get_insertion
 #' @param alt_len an integer value representing the length of the insertion
 #' @param current_pos an integer value
-#' @param r_pos numeric value representing the read mapping position
-#' @param cigar character vector representing the read CIGAR
-#' @param r_query character vector representing the read base sequence
 #'
 #' @return a character vector representing the insertion sequence
 #'
 #' @noRd
-get_seq_ins <- function(alt_len, current_pos, r_pos, cigar, r_query) {
+get_seq_ins <- function(alt_len, current_pos, r_pos, r_cigar, r_query) {
   # Extraction of the sum of the cigar with the S
-  matches <- gregexpr("^[0-9]+S", cigar) # The ^ means start of the chain
-  extracted <- regmatches(cigar, matches)[[1]]
+  matches <- gregexpr("^[0-9]+S", r_cigar) # The ^ means start of the chain
+  extracted <- regmatches(r_cigar, matches)[[1]]
 
   # Put 0 if no soft clipping
   if (length(extracted) == 0) {
@@ -28,13 +25,11 @@ get_seq_ins <- function(alt_len, current_pos, r_pos, cigar, r_query) {
 
   # Keep the sequence from the beggining of the insertion
   insertion_seq <- substr(r_query, pos_insertion, pos_insertion + alt_len)
-
-  return(insertion_seq)
+  insertion_seq
 }
 
 #' Get the informations about the presence of a insertion in the read.
 #'
-#' @inheritParams get_deletion
 #' @param pos numeric value representing the position of interest
 #' @param alt character vector representing the insertion sequence
 #' @param r_pos numeric value representing the read mapping position

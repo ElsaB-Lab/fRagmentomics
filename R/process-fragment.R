@@ -61,16 +61,11 @@ get_read_stats <- function(df_read) {
 #' @inheritParams fRagmentomics
 #' @param df_sam A dataframe containing sequencing reads.
 #' @param fragment_name Name of the fragment (paired-end reads).
-#' @param sample_id Character vector representing the sample identifier.
 #' @param chr Character vector representing the chromosome of interest.
 #' @param pos Numeric value representing the Genomic position of interest.
 #' @param ref Character vector representing reference base(s).
 #' @param alt Character vector representing alternative base(s).
 #' @param mutation_type In "SNV", "deletion", or "insertion".
-#' @param report_tlen Boolean.
-#' @param report_softclip Boolean.
-#' @param report_5p_3p_bases_fragment Integer.
-#'  Number of nucleotides in 3p/5p to report
 #'
 #' @return A dataframe with the processed fragment information.
 #'
@@ -160,7 +155,7 @@ process_fragment <- function(df_sam,
   # -------------------------------
   # Build an adaptative dataframe
   # -------------------------------
-  final_columns <- list(
+  final_row_fragment <- list(
     Chromosome       = chr,
     Position         = pos,
     Ref              = ref,
@@ -176,21 +171,21 @@ process_fragment <- function(df_sam,
     ALT_5p           = read_stats_5p$base,
     ALT_3p           = read_stats_3p$base,
     BASQ_5p          = read_stats_5p$qual,
-    BASQ_3p          = read_stats_3p$qual,
+    BASQ_3p          = read_stats_3p$qual
   )
 
   # -------------------------------
   # Put sample if not NA
   # -------------------------------
   if (!is.na(sample_id) && is.character(sample_id)) {
-    final_columns$Sample_Id <- sample_id
+    final_row_fragment$Sample_Id <- sample_id
   }
 
   # -------------------------------
   # Put sample if not NA
   # -------------------------------
   if (report_tlen) {
-    final_columns$TLEN <- abs(read1_stats$tlen)
+    final_row_fragment$TLEN <- abs(read1_stats$tlen)
   }
 
   # -------------------------------
@@ -206,10 +201,14 @@ process_fragment <- function(df_sam,
       read_stats_3p$qual
     )
 
-    final_columns$Fragment_bases_5p <- fragment_bases_5p_3p$fragment_bases_5p
-    final_columns$Fragment_bases_3p <- fragment_bases_5p_3p$fragment_bases_3p
-    final_columns$Fragment_Qbases_5p <- fragment_bases_5p_3p$fragment_Qbases_5p
-    final_columns$Fragment_Qbases_3p <- fragment_bases_5p_3p$fragment_Qbases_3p
+    final_row_fragment$Fragment_bases_5p <-
+      fragment_bases_5p_3p$fragment_bases_5p
+    final_row_fragment$Fragment_bases_3p <-
+      fragment_bases_5p_3p$fragment_bases_3p
+    final_row_fragment$Fragment_Qbases_5p <-
+      fragment_bases_5p_3p$fragment_Qbases_5p
+    final_row_fragment$Fragment_Qbases_3p <-
+      fragment_bases_5p_3p$fragment_Qbases_3p
   }
 
   # -------------------------------
@@ -223,11 +222,13 @@ process_fragment <- function(df_sam,
       read_stats_3p$cigar
     )
 
-    final_columns$Nb_fragment_bases_softclip_5p <- fragment_bases_softclip_5p_3p$nb_softclip_5p
-    final_columns$Nb_fragment_bases_softclip_3p <- fragment_bases_softclip_5p_3p$nb_softclip_3p
+    final_row_fragment$Nb_fragment_bases_softclip_5p <-
+      fragment_bases_softclip_5p_3p$nb_softclip_5p
+    final_row_fragment$Nb_fragment_bases_softclip_3p <-
+      fragment_bases_softclip_5p_3p$nb_softclip_3p
   }
 
   # Creation of the dataframe with the wanted columns
-  result_df <- as.data.frame(final_columns)
-  return(result_df)
+  result_df <- as.data.frame(final_row_fragment)
+  result_df
 }

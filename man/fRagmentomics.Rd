@@ -2,63 +2,17 @@
 % Please edit documentation in R/fRagmentomics.R
 \name{fRagmentomics}
 \alias{fRagmentomics}
-\title{fRagmentomics}
-\usage{
-fRagmentomics(
-  bam,
-  mut,
-  fasta,
-  sample_id = NA,
-  neg_offset_mate_search = -1000,
-  pos_offset_mate_search = 1000,
-  one_based = TRUE,
-  flag_keep = 3,
-  flag_remove = 2304,
-  report_tlen = FALSE,
-  report_softclip = FALSE,
-  report_5p_3p_bases_fragment = 5,
-  n_cores = 1
-)
-}
-\arguments{
-\item{bam}{A dataframe containing sequencing reads.}
-
-\item{mut}{Could be a .vcf, .tsv or chr:pos:ref:alt.}
-
-\item{fasta}{A reference genome in FASTA format.}
-
-\item{sample_id}{Sample identifier.}
-
-\item{neg_offset_mate_search}{Integer. Use in read_bam.
-Represents the number of nucleotides to extend upstream (negative direction)
-from the position of interest when querying the BAM file with Rsamtools.
-his extension ensures that paired reads are retrieved, even if only one mate
-overlaps the queried position.}
-
-\item{pos_offset_mate_search}{Integer. Use in read_bam.}
-
-\item{one_based}{Boolean. TRUE if fasta is in one based. False if in 0 based.}
-
-\item{flag_keep}{Character vector. Use in read_bam.
-Represents the SAM flags that should be kept when filtering alignments.}
-
-\item{flag_remove}{Character vector. Use in read_bam.
-Represents the SAM flags that should be excluded when filtering alignments.}
-
-\item{report_tlen}{Boolean. Whether to include the TLEN (template length)
-information in the output.}
-
-\item{report_softclip}{Boolean. Whether to include the number of soft-clipped
-bases at the fragment extremities in the output.}
-
-\item{report_5p_3p_bases_fragment}{Integer. Whether to include N fragment
-extremity bases in the output.}
-
-\item{n_cores}{Number of cores for parallel computation.}
-}
-\value{
-A dataframe containing extracted fragment-level information.
-}
+\title{A user-friendly R package, that enables the characterization
+of each cfDNA fragment overlapping one or multiple mutations of interest,
+starting from a sequencing file containing aligned reads (BAM file).}
 \description{
-fRagmentomics
+fRagmentomics supports multiple mutation input formats (e.g.,
+VCF, TSV, or string “chr:pos:ref:alt” representation), accommodates one-based
+and zero-based genomic conventions, handles mutation representation ambiguities,
+and accepts any reference file and species in FASTA format. For each cfDNA
+fragment, fRagmentomics outputs its size, its 3’ and 5’ sequences, and its
+mutational status.
+}
+\author{
+Killian Maudet
 }

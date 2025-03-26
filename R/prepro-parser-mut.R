@@ -2,10 +2,11 @@
 
 #' Parser VCF
 #'
-#' This function checks if the VCF file contains the expected structure and columns "CHROM", "POS", "REF", "ALT".
-#'
 #' @param vcf_file Path to the VCF file.
+#'
 #' @return A cleaned data frame with required columns.
+#'
+#' @importFrom utils read.table
 #'
 #' @noRd
 parser_vcf <- function(vcf_file) {
@@ -75,25 +76,21 @@ parser_vcf <- function(vcf_file) {
     stop("Error: The VCF file does not contain any mutation data.")
   }
 
-  return(df_vcf)
+  df_vcf
 }
 
 
 
 #' Parser TSV
 #'
-#' This function checks if the TSV file contains the expected structure and columns.
-#'
 #' @param tsv_file Path to the TSV file.
+#'
 #' @return A cleaned data frame with required columns.
 #'
 #' @importFrom readr read_tsv
 #'
 #' @noRd
 parser_tsv <- function(tsv_file) {
-  # Define expected columns
-  expected_cols <- c("CHROM", "POS", "REF", "ALT")
-
   # Read the file while handling compression
   df_tsv <- tryCatch(
     {
@@ -143,15 +140,14 @@ parser_tsv <- function(tsv_file) {
     stop("Error: The TSV file does not contain any mutation data.")
   }
 
-  return(df_tsv)
+  df_tsv
 }
 
 
 #' Parser chr:pos:ref:alt
 #'
-#' This function checks if the mutation info contains the expected well structured informations.
-#'
 #' @param mut String chr:pos:ref:alt
+#'
 #' @return A cleaned data frame with required informations
 #'
 #' @noRd
@@ -189,5 +185,5 @@ parser_mut_str <- function(mut) {
     stop("Error: The mutation string does not contain any mutation data.")
   }
 
-  return(mut_df)
+  mut_df
 }

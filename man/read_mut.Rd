@@ -6,9 +6,6 @@
 \usage{
 read_mut(mut)
 }
-\arguments{
-\item{mut}{could be a .vcf, .tsv or chr:pos:ref:alt}
-}
 \value{
 a df without multiallelic ALT and without header
 with chr pos ref alt columns

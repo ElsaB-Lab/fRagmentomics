@@ -102,7 +102,6 @@ read_str_input <- function(mut) {
 #' Put the informations about mutations into a dataframe
 #'
 #' @inheritParams fRagmentomics
-#' @param mut could be a .vcf, .tsv or chr:pos:ref:alt
 #'
 #' @return a df without multiallelic ALT and without header
 #' with chr pos ref alt columns

@@ -72,8 +72,8 @@ read_bam <- function(
   # We only keep the reads with the appropriate flags
   sam_pos_df <- subset(
     sam_pos_df,
-    (bitwAnd(FLAG, flag_keep_int) == flag_keep_int) &
-      (bitwAnd(FLAG, flag_remove_int) == 0)
+    (bitwAnd(sam_pos_df$FLAG, flag_keep_int) == flag_keep_int) &
+      (bitwAnd(sam_pos_df$FLAG, flag_remove_int) == 0)
   )
 
   # ---------------------------------------
@@ -118,8 +118,8 @@ read_bam <- function(
   # We only keep the reads with the appropriate flags
   sam_ext_df <- subset(
     sam_ext_df,
-    (bitwAnd(FLAG, flag_keep_int) == flag_keep_int) &
-      (bitwAnd(FLAG, flag_remove_int) == 0)
+    (bitwAnd(sam_pos_df$FLAG, flag_keep_int) == flag_keep_int) &
+      (bitwAnd(sam_pos_df$FLAG, flag_remove_int) == 0)
   )
 
   # Select only the lines where QNAME (col 1) is in sam_pos_df
@@ -127,5 +127,5 @@ read_bam <- function(
   sam_final_df <- sam_ext_df[sam_ext_df$QNAME %in% fragments_of_interest, ]
 
   # Return df with sam data
-  return(sam_final_df)
+  sam_final_df
 }

@@ -9,7 +9,7 @@
 #'
 #' @noRd
 bitvalues_from_bam_flag <- function(flag, bitnames) {
-  FLAG_BITNAMES <- c(
+  flag_bitnames <- c(
     "isPaired",
     "isProperPair",
     "isUnmappedQuery",
@@ -24,16 +24,22 @@ bitvalues_from_bam_flag <- function(flag, bitnames) {
     "isSupplementaryAlignment"
   )
 
-  bitpos <- match(bitnames, FLAG_BITNAMES)
+  bitpos <- match(bitnames, flag_bitnames)
   invalid_bitnames_idx <- which(is.na(bitpos))
   if (length(invalid_bitnames_idx) != 0L) {
     in1string <- paste0(bitnames[invalid_bitnames_idx], collapse = ", ")
     stop("invalid bitname(s): ", in1string)
   }
 
-  ans <- S4Vectors:::explodeIntBits(flag, bitpos = bitpos)
-  dimnames(ans) <- list(names(flag), bitnames)
-  ans
+  # Custom implementation of explodeIntBits
+  get_bits <- function(flag, pos) {
+    sapply(pos, function(p) bitwAnd(bitwShiftR(flag, p - 1), 1))
+  }
+
+  result <- t(apply(matrix(flag, ncol = 1), 1, function(f) get_bits(f, bitpos)))
+  colnames(result) <- bitnames
+  rownames(result) <- names(flag)
+  result
 }
 
 #' Function to parse the CIGAR string

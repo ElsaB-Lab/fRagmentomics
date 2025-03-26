@@ -41,7 +41,7 @@ sanity_check_read_mut <- function(mut_info) {
 #' Check Chromosome Input
 #' It must be either "chrN" or "N" (where N is between 1 and 22).
 #'
-#' @param chr Character vector representing the chromosome of interest.
+#' @inheritParams process_fragment
 #'
 #' @return TRUE if the chromosome is valid, otherwise FALSE.
 #'
@@ -82,8 +82,7 @@ check_pos_input <- function(pos) {
 #' Check Reference and Alternative Alleles
 #' Ensures that the reference and alternative alleles follow specific rules
 #'
-#' @param ref Character vector representing reference base(s).
-#' @param alt Character vector representing alternative base(s).
+#' @inheritParams process_fragment
 #'
 #' @return TRUE if both alleles are valid, otherwise FALSE.
 #'

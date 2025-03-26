@@ -5,8 +5,6 @@
 #' replacing invalid values with an empty string.
 #'
 #' @inheritParams normalize_user_rep_to_vcf_rep
-#' @param ref String with reference base.
-#' @param alt String with alternative base (for SNV) or sequence.
 #'
 #' @return A normalized data frame.
 #'
@@ -23,9 +21,6 @@ normalize_na_representation <- function(ref, alt) {
 #' Retrieve a single nucleotide from a multi-chromosome FASTA
 #'
 #' @inheritParams normalize_user_rep_to_vcf_rep
-#' @param chr A character string specifying the chromosome name "chr1".
-#' @param position An integer specifying the genomic position (1-based).
-#' @param fasta A FASTA reference that contains all chromosomes.
 #'
 #' @return A character string representing the single nucleotide at
 #' the specified chromosome and position.
@@ -33,7 +28,6 @@ normalize_na_representation <- function(ref, alt) {
 #' @importFrom Biostrings getSeq
 #' @importFrom IRanges IRanges
 #' @importFrom GenomicRanges GRanges
-#' @importFrom GenomeInfoDb seqnames
 #'
 #' @noRd
 retrieve_anchor_base <- function(chr, position, fasta) {
@@ -57,10 +51,9 @@ retrieve_anchor_base <- function(chr, position, fasta) {
 #' matches the convention used in the provided FASTA.
 #'
 #' @inheritParams normalize_user_rep_to_vcf_rep
-#' @param chr Character vector representing the chromosome of interest.
-#' @param fasta A reference genome in FASTA format.
 #'
 #' @importFrom Rsamtools scanFaIndex
+#' @importFrom GenomeInfoDb seqnames
 #'
 #' @return String with the chr notation harmonized to match the FASTA reference.
 #'
@@ -89,17 +82,19 @@ harmonize_chr_to_fasta <- function(chr, fasta) {
 #' a given FASTA reference.
 #'
 #' @inheritParams process_fragment
-#' @param chr Character vector representing the chromosome of interest.
-#' @param pos Numeric value representing the Genomic position of interest.
-#' @param ref Character vector representing reference base(s).
-#' @param alt Character vector representing alternative base(s).
 #' @param fasta A reference genome in FASTA format.
 #' @param one_based Boolean. TRUE if fasta is in one based. False if in 0 based.
 #'
 #' @return A list with chr, pos, ref and alt
 #'
 #' @keywords internal
-normalize_user_rep_to_vcf_rep <- function(chr, pos, ref, alt, fasta, one_based) {
+normalize_user_rep_to_vcf_rep <- function(
+    chr,
+    pos,
+    ref,
+    alt,
+    fasta,
+    one_based) {
   # Remove all the forbidden characters (-, ., _, NA)
   result <- normalize_na_representation(ref, alt)
 

@@ -24,7 +24,6 @@ Imports:
     foreach,
     parallel,
     readr,
-    S4Vectors,
     stringr,
     Rsamtools,
     GenomicRanges,

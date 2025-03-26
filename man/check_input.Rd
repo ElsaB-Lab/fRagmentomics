@@ -17,44 +17,9 @@ check_input(
   report_tlen,
   report_softclip,
   report_5p_3p_bases_fragment,
+  tmp_folder,
   n_cores
 )
-}
-\arguments{
-\item{mut}{Could be a .vcf, .tsv or chr:pos:ref:alt.}
-
-\item{bam}{A dataframe containing sequencing reads.}
-
-\item{fasta}{Character vector.}
-
-\item{sample_id}{Sample identifier.}
-
-\item{neg_offset_mate_search}{Integer. Use in read_bam.
-Represents the number of nucleotides to extend upstream (negative direction)
-from the position of interest when querying the BAM file with Rsamtools.
-his extension ensures that paired reads are retrieved, even if only one mate
-overlaps the queried position.}
-
-\item{pos_offset_mate_search}{Integer. Use in read_bam.}
-
-\item{one_based}{Boolean. TRUE if fasta is in one based. False if in 0 based.}
-
-\item{flag_keep}{Character vector. Use in read_bam.
-Represents the SAM flags that should be kept when filtering alignments.}
-
-\item{flag_remove}{Character vector. Use in read_bam.
-Represents the SAM flags that should be excluded when filtering alignments.}
-
-\item{report_tlen}{Boolean. Whether to include the TLEN (template length)
-information in the output.}
-
-\item{report_softclip}{Boolean. Whether to include the number of soft-clipped
-bases at the fragment extremities in the output.}
-
-\item{report_5p_3p_bases_fragment}{Integer. Whether to include N fragment
-extremity bases in the output.}
-
-\item{n_cores}{Number of cores for parallel computation.}
 }
 \value{
 None. The function stops execution if error.

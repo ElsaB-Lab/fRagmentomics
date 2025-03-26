@@ -9,9 +9,9 @@ the length of the REF and ALT strings.}
 define_mutation_status(ref, alt)
 }
 \arguments{
-\item{ref}{Reference allele (character string).}
+\item{ref}{Character vector representing reference base(s).}
 
-\item{alt}{Alternate allele (character string).}
+\item{alt}{Character vector representing alternative base(s).}
 }
 \value{
 A character string indicating the type of mutation:

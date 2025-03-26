@@ -24,8 +24,6 @@ process_fragment(
 
 \item{fragment_name}{Name of the fragment (paired-end reads).}
 
-\item{sample_id}{Character vector representing the sample identifier.}
-
 \item{chr}{Character vector representing the chromosome of interest.}
 
 \item{pos}{Numeric value representing the Genomic position of interest.}
@@ -35,13 +33,6 @@ process_fragment(
 \item{alt}{Character vector representing alternative base(s).}
 
 \item{mutation_type}{In "SNV", "deletion", or "insertion".}
-
-\item{report_tlen}{Boolean.}
-
-\item{report_softclip}{Boolean.}
-
-\item{report_5p_3p_bases_fragment}{Integer.
-Number of nucleotides in 3p/5p to report}
 }
 \value{
 A dataframe with the processed fragment information.

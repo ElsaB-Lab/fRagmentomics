@@ -1,36 +1,25 @@
 #' Check input files for fRagmentomics function
 #'
 #' @inheritParams fRagmentomics
-#' @param mut Could be a .vcf, .tsv or chr:pos:ref:alt.
-#' @param bam A dataframe containing sequencing reads.
-#' @param fasta Character vector.
-#' @param sample_id Sample identifier.
-#' @param neg_offset_mate_search Integer. Use in read_bam.
-#'  Represents the number of nucleotides to extend upstream (negative direction)
-#'  from the position of interest when querying the BAM file with Rsamtools.
-#'  his extension ensures that paired reads are retrieved, even if only one mate
-#'  overlaps the queried position.
-#' @param pos_offset_mate_search Integer. Use in read_bam.
-#' @param one_based Boolean. TRUE if fasta is in one based. False if in 0 based.
-#' @param flag_keep Character vector. Use in read_bam.
-#'  Represents the SAM flags that should be kept when filtering alignments.
-#' @param flag_remove Character vector. Use in read_bam.
-#'  Represents the SAM flags that should be excluded when filtering alignments.
-#' @param report_tlen Boolean. Whether to include the TLEN (template length)
-#'  information in the output.
-#' @param report_softclip Boolean. Whether to include the number of soft-clipped
-#'  bases at the fragment extremities in the output.
-#' @param report_5p_3p_bases_fragment Integer. Whether to include N fragment
-#'  extremity bases in the output.
-#' @param n_cores Number of cores for parallel computation.
 #'
 #' @return None. The function stops execution if error.
 #'
 #' @keywords internal
 check_input <- function(
-    mut, bam, fasta, sample_id, neg_offset_mate_search,
-    pos_offset_mate_search, one_based, flag_keep, flag_remove,
-    report_tlen, report_softclip, report_5p_3p_bases_fragment, n_cores) {
+    mut,
+    bam,
+    fasta,
+    sample_id,
+    neg_offset_mate_search,
+    pos_offset_mate_search,
+    one_based,
+    flag_keep,
+    flag_remove,
+    report_tlen,
+    report_softclip,
+    report_5p_3p_bases_fragment,
+    tmp_folder,
+    n_cores) {
   check_mut(mut)
   check_bam(bam)
   check_fasta(fasta)
@@ -43,13 +32,13 @@ check_input <- function(
   check_report_tlen(report_tlen)
   check_report_softclip(report_softclip)
   check_report_bases_fragm_5p_3p(report_5p_3p_bases_fragment)
+  check_tmp_folder(tmp_folder)
   check_n_cores(n_cores)
 }
 
 #' Check if the mut file exists
 #'
 #' @inheritParams check_input
-#' @param mut Could be a .vcf, .tsv or chr:pos:ref:alt.
 #'
 #' @noRd
 check_mut <- function(mut) {
@@ -65,7 +54,6 @@ check_mut <- function(mut) {
 #' Check if the BAM file exists
 #'
 #' @inheritParams check_input
-#' @param bam Character. Path to the BAM file.
 #'
 #' @importFrom Rsamtools indexBam
 #'
@@ -89,7 +77,6 @@ check_bam <- function(bam) {
 #' Check if the FASTA file exists and has an index
 #'
 #' @inheritParams check_input
-#' @param fasta Character. Path to the FASTA file.
 #'
 #' @importFrom Rsamtools indexFa
 #'
@@ -109,7 +96,6 @@ check_fasta <- function(fasta) {
 #' Check if the sample ID is valid
 #'
 #' @inheritParams check_input
-#' @param sample_id Character or NA. Sample ID to be checked.
 #'
 #' @noRd
 check_sample <- function(sample_id) {
@@ -121,7 +107,6 @@ check_sample <- function(sample_id) {
 #' Check if the neg_offset_mate_search parameter is valid
 #'
 #' @inheritParams check_input
-#' @param neg_offset_mate_search Numeric. The negative offset mate search value.
 #'
 #' @noRd
 check_neg_offset_mate_search <- function(neg_offset_mate_search) {
@@ -136,7 +121,6 @@ check_neg_offset_mate_search <- function(neg_offset_mate_search) {
 #' Check if the pos_offset_mate_search parameter is valid
 #'
 #' @inheritParams check_input
-#' @param pos_offset_mate_search Numeric. The positive offset mate search value.
 #'
 #' @noRd
 check_pos_offset_mate_search <- function(pos_offset_mate_search) {
@@ -151,7 +135,6 @@ check_pos_offset_mate_search <- function(pos_offset_mate_search) {
 #' Check if the one_based parameter is valid
 #'
 #' @inheritParams check_input
-#' @param one_based Logical. Indicates whether indexing is one-based.
 #'
 #' @noRd
 check_one_based <- function(one_based) {
@@ -163,7 +146,6 @@ check_one_based <- function(one_based) {
 #' Check if the flag_keep parameter is valid
 #'
 #' @inheritParams check_input
-#' @param flag_keep Numeric. The flag to keep.
 #'
 #' @noRd
 check_flag_keep <- function(flag_keep) {
@@ -178,7 +160,6 @@ check_flag_keep <- function(flag_keep) {
 #' Check if the flag_remove parameter is valid
 #'
 #' @inheritParams check_input
-#' @param flag_remove Numeric. The flag to remove.
 #'
 #' @noRd
 check_flag_remove <- function(flag_remove) {
@@ -193,8 +174,6 @@ check_flag_remove <- function(flag_remove) {
 #' Check if the report_5p_bases parameter is valid
 #'
 #' @inheritParams check_input
-#' @param report_bases_fragment_5p_3p Integer. Whether to include N fragment
-#'  extremity bases in the output.
 #'
 #' @noRd
 check_report_bases_fragm_5p_3p <- function(report_5p_3p_bases_fragment) {
@@ -209,7 +188,6 @@ check_report_bases_fragm_5p_3p <- function(report_5p_3p_bases_fragment) {
 #' Check if the report_tlen parameter is valid
 #'
 #' @inheritParams check_input
-#' @param report_tlen Logical. Indicates whether to report TLEN.
 #'
 #' @noRd
 check_report_tlen <- function(report_tlen) {
@@ -221,8 +199,6 @@ check_report_tlen <- function(report_tlen) {
 #' Check if the report_softclip parameter is valid
 #'
 #' @inheritParams check_input
-#' @param report_softclip Boolean. Whether to include the number of soft-clipped
-#'  bases at the fragment extremities in the output.
 #'
 #' @noRd
 check_report_softclip <- function(report_softclip) {
@@ -231,10 +207,30 @@ check_report_softclip <- function(report_softclip) {
   }
 }
 
+#' Check if the tmp folder exists. If not, create it.
+#'
+#' @inheritParams check_input
+#'
+#' @noRd
+check_tmp_folder <- function(tmp_folder) {
+  if (is.na(tmp_folder)) {
+    return(tempdir())
+  }
+
+  if (!is.character(tmp_folder) || length(tmp_folder) != 1) {
+    stop("Error: tmp_folder must be a single character string or NA.")
+  }
+
+  if (!dir.exists(tmp_folder)) {
+    dir.create(tmp_folder, recursive = TRUE, showWarnings = FALSE)
+  }
+
+  tmp_folder
+}
+
 #' Check if the n_cores parameter is valid
 #'
 #' @inheritParams check_input
-#' @param n_cores Numeric. The number of cores to use.
 #'
 #' @noRd
 check_n_cores <- function(n_cores) {

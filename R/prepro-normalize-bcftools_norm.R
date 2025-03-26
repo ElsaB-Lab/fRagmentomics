@@ -4,10 +4,6 @@
 #' This function creates a temporary VCF file.
 #'
 #' @inheritParams apply_bcftools_norm
-#' @param chr Character. The chromosome identifier.
-#' @param pos Integer. The position of the variant.
-#' @param ref Character. The reference allele.
-#' @param alt Character. The alternative allele.
 #'
 #' @return Character. The path to the temporary VCF file.
 #'
@@ -38,16 +34,13 @@ create_temporary_vcf <- function(chr, pos, ref, alt) {
 #' chr, pos, ref, and alt.
 #'
 #' @inheritParams process_fragment
-#' @param chr Character vector representing the chromosome of interest.
-#' @param pos Numeric value representing the Genomic position of interest.
-#' @param ref Character vector representing reference base(s).
-#' @param alt Character vector representing alternative base(s).
 #' @param fasta A reference genome in FASTA format.
+#' @param tmp_folder Character vector for the folder temporary path.
 #'
 #' @return A dataframe containing normalized variant information with bcftools.
 #'
 #' @keywords internal
-apply_bcftools_norm <- function(chr, pos, ref, alt, fasta) {
+apply_bcftools_norm <- function(chr, pos, ref, alt, fasta, tmp_folder) {
   # Pass if REF and ALT are equals
   if (ref == alt) {
     normalized_variants <- data.frame(
@@ -62,7 +55,7 @@ apply_bcftools_norm <- function(chr, pos, ref, alt, fasta) {
     tmp_vcf <- create_temporary_vcf(chr, pos, ref, alt)
 
     # Create a temporary file to store the output of bcftools norm
-    tmp_out_vcf <- tempfile(fileext = ".vcf")
+    tmp_out_vcf <- tempfile(tmpdir = tmp_folder, fileext = ".vcf")
 
     # Ensure that temporary files are removed after the function executes
     on.exit(
@@ -75,7 +68,7 @@ apply_bcftools_norm <- function(chr, pos, ref, alt, fasta) {
 
     # Build the bcftools norm command
     cmd <- sprintf(
-      "bcftools norm -m +both -d exact --check REF,ATL -f %s -o %s %s",
+      "bcftools norm -m +both -d exact --check REF,ALT -f %s -o %s %s",
       shQuote(fasta),
       shQuote(tmp_out_vcf),
       shQuote(tmp_vcf)

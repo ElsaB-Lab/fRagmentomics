@@ -24,10 +24,11 @@ process_get_fragment_bases <- function(
     qual_5p,
     qual_3p) {
   if (nbr_bases > nchar(query_5p)) {
-    fragment_bases_5p <- "Number of bases in 5p and 3p bigger than the fragment length"
-    fragment_qbases_5p <- "Number of bases in 5p and 3p bigger than the fragment length"
-    fragment_bases_3p <- "Number of bases in 5p and 3p bigger than the fragment length"
-    fragment_qbases_3p <- "Number of bases in 5p and 3p bigger than the fragment length"
+    warning("Number of bases in 5p and 3p bigger than the fragment length")
+    fragment_bases_5p <- query_5p
+    fragment_qbases_5p <- qual_5p
+    fragment_bases_3p <- query_3p
+    fragment_qbases_3p <- qual_3p
   } else {
     fragment_bases_5p <- substr(query_5p, 1, nbr_bases)
     fragment_qbases_5p <- substr(qual_5p, 1, nbr_bases)

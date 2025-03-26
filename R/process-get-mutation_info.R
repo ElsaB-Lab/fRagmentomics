@@ -4,10 +4,6 @@
 #' Extracts base, quality, and indel informations based on the mutation type.
 #'
 #' @inheritParams process_fragment
-#' @param mutation_type In "SNV", "deletion", or "insertion".
-#' @param pos Numeric value representing the Genomic position of interest.
-#' @param ref Character vector representing reference base(s).
-#' @param alt Character vector representing alternative base(s).
 #' @param read_stats A list of read-level statistics.
 #'
 #' @return A list containing "base", "qual".

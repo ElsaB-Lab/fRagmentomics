@@ -4,8 +4,7 @@
 #' Determines the type of mutation (SNV, MNP, insertion, or deletion) based on
 #' the length of the REF and ALT strings.
 #'
-#' @param ref Reference allele (character string).
-#' @param alt Alternate allele (character string).
+#' @inheritParams process_fragment
 #'
 #' @return A character string indicating the type of mutation:
 #'   one of "SNV", "MNP", "insertion", or "deletion".

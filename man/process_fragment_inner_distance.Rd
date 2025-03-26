@@ -2,7 +2,8 @@
 % Please edit documentation in R/process-calculation_size.R
 \name{process_fragment_inner_distance}
 \alias{process_fragment_inner_distance}
-\title{Compute fragment inner distance}
+\title{Compute fragment inner distance
+Calculates the inner distance between two paired-end sequencing reads.}
 \usage{
 process_fragment_inner_distance(
   r_pos1,
@@ -30,6 +31,7 @@ process_fragment_inner_distance(
 a named list with names \code{a} and \code{b}.
 }
 \description{
+Compute fragment inner distance
 Calculates the inner distance between two paired-end sequencing reads.
 }
 \keyword{internal}

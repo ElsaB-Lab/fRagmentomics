@@ -5,7 +5,13 @@ test_that("get base and qual from read", {
   r_cigar1 <- "2M1D50M"
   r_query1 <- "CTGCCGGAACATTGGGAACCACCCCACTATGTCTAAAAGTGTTTCTTTAATC"
   r_qual1 <- ",,F,,F:,,,,,,FF,,FF,:F,,,,,,,:,,:,FFF,:::FF,,,,,,F,F"
-  base_qual1 <- get_base_qual_from_read(pos = pos1, r_pos = r_pos1, r_cigar = r_cigar1, r_query = r_query1, r_qual = r_qual1)
+  base_qual1 <- get_base_qual_from_read(
+    pos = pos1,
+    r_pos = r_pos1,
+    r_cigar = r_cigar1,
+    r_query = r_query1,
+    r_qual = r_qual1
+  )
 
   expect_setequal(base_qual1$base, "-")
   expect_setequal(base_qual1$qual, NA)
@@ -16,7 +22,13 @@ test_that("get base and qual from read", {
   r_cigar2 <- "2M1D50M"
   r_query2 <- "CTGCCGGAACATTGGGAACCACCCCACTATGTCTAAAAGTGTTTCTTTAATC"
   r_qual2 <- ",,F,,F:,,,,,,FF,,FF,:F,,,,,,,:,,:,FFF,:::FF,,,,,,F,F"
-  base_qual2 <- get_base_qual_from_read(pos = pos2, r_pos = r_pos2, r_cigar = r_cigar2, r_query = r_query2, r_qual = r_qual2)
+  base_qual2 <- get_base_qual_from_read(
+    pos = pos2,
+    r_pos = r_pos2,
+    r_cigar = r_cigar2,
+    r_query = r_query2,
+    r_qual = r_qual2
+  )
 
   expect_setequal(base_qual2$base, NA)
   expect_setequal(base_qual2$qual, NA)

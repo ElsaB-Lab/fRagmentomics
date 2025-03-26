@@ -67,6 +67,7 @@ test_that("check_input", {
     report_tlen                  = FALSE,
     report_softclip              = FALSE,
     report_5p_3p_bases_fragment  = 5,
+    tmp_folder                   = tempdir(),
     n_cores                      = 1
   )
 
@@ -87,6 +88,7 @@ test_that("check_input", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
+      tmp_folder = valid_params$tmp_folder,
       n_cores = valid_params$n_cores
     )
   )
@@ -108,6 +110,7 @@ test_that("check_input", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
+      tmp_folder = valid_params$tmp_folder,
       n_cores = valid_params$n_cores
     ),
     "Error: The Mutation file does not exist",
@@ -131,6 +134,7 @@ test_that("check_input", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
+      tmp_folder = valid_params$tmp_folder,
       n_cores = valid_params$n_cores
     ),
     "Error: The BAM file does not exist",
@@ -154,6 +158,7 @@ test_that("check_input", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
+      tmp_folder = valid_params$tmp_folder,
       n_cores = valid_params$n_cores
     ),
     "Error: The FASTA file does not exist",
@@ -180,6 +185,7 @@ test_that("check_input", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
+      tmp_folder = valid_params$tmp_folder,
       n_cores = valid_params$n_cores
     ),
     "Creating BAM index..."
@@ -205,6 +211,7 @@ test_that("check_input", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
+      tmp_folder = valid_params$tmp_folder,
       n_cores = valid_params$n_cores
     ),
     "Creating FASTA index..."

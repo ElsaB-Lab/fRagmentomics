@@ -6,10 +6,8 @@
 #' position (`pos`) matches the corresponding nucleotide in the provided FASTA
 #' reference genome.
 #'
-#' @param chr A character string specifying the chromosome name (e.g., "chr1", "1").
-#' @param pos An integer specifying the genomic position (1-based).
-#' @param ref A character string representing the reference allele at `pos`.
-#' @param fasta A FASTA reference genome (loaded using `Biostrings` or a file path).
+#' @inheritParams process_fragment
+#' @param fasta A FASTA ref genome (loaded using `Biostrings` or a file path).
 #'
 #' @return Logical `TRUE` if the reference allele matches the FASTA nucleotide,
 #'   otherwise `FALSE` with a warning.

@@ -3,11 +3,7 @@
 #' Get the informations about the presence of a deletion in the read.
 #'
 #' @inheritParams get_insertion
-#' @param pos numeric value representing the position of interest
 #' @param ref character vector representing the deletion sequence
-#' @param r_pos numeric value representing the read mapping position
-#' @param r_cigar character vector representing the read CIGAR
-#' @param r_qual character vector representing the read sequencing qualities
 #'
 #' @return a named list with names `base`,`qual`.
 #'

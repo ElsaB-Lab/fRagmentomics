@@ -7,7 +7,7 @@ This function normalizes a VCF file by calling bcftools norm on a temp VCF.
 The normalized output is then read into a dataframe, extracting the columns:
 chr, pos, ref, and alt.}
 \usage{
-apply_bcftools_norm(chr, pos, ref, alt, fasta)
+apply_bcftools_norm(chr, pos, ref, alt, fasta, tmp_folder)
 }
 \arguments{
 \item{chr}{Character vector representing the chromosome of interest.}
@@ -19,6 +19,8 @@ apply_bcftools_norm(chr, pos, ref, alt, fasta)
 \item{alt}{Character vector representing alternative base(s).}
 
 \item{fasta}{A reference genome in FASTA format.}
+
+\item{tmp_folder}{Character vector for the folder temporary path.}
 }
 \value{
 A dataframe containing normalized variant information with bcftools.
