@@ -3,7 +3,7 @@ devel*
 results*
 workflow/logs*
 workflow/benchmark*
-config*/*.tsv
+pipeline/config*/*.tsv
 resources
 external
 .snakemake
