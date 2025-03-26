@@ -7,12 +7,12 @@ test_that("get insertion", {
     r_pos    = 10,
     r_cigar  = "3S6M2I1M",
     r_query  = "AAAAAAAAATTA",
-    r_qual   = "#########++#"
+    r_qual   = "########I++#"
   )
-  
-  expect_equal(res1$base, "insertion_detected")        
-  expect_equal(res1$qual, "#++")    
-  
+
+  expect_equal(res1$base, "+TT")
+  expect_equal(res1$qual, "I")
+
   # example 2: Case where no insertion is present in the CIGAR
   res2 <- get_insertion(
     pos      = 15,
@@ -22,9 +22,9 @@ test_that("get insertion", {
     r_query  = "AAAAAAAAAATT",
     r_qual   = "##########++"
   )
-  
-  expect_equal(res2$base, "no_insertion_detected")        
-  expect_equal(res2$qual, "no_insertion_detected")    
+
+  expect_equal(res2$base, "no_insertion_detected")
+  expect_equal(res2$qual, "no_insertion_detected")
 
 
   # example 3: Case where the insertion length in CIGAR does not match alt
@@ -37,9 +37,9 @@ test_that("get insertion", {
     r_query  = "AAAAAAAAATTA",
     r_qual   = "#########+##"
   )
-  
-  expect_equal(res3$base, "no_insertion_detected")        
-  expect_equal(res3$qual, "no_insertion_detected")  
+
+  expect_equal(res3$base, "no_insertion_detected")
+  expect_equal(res3$qual, "no_insertion_detected")
 
 
   # example 4: Case where the position does not correspond to the insertion area
@@ -51,8 +51,8 @@ test_that("get insertion", {
     r_cigar  = "3S6M2I1M",
     r_query  = "AAAAAAAAATTA",
     r_qual   = "#########++#"
-  ) 
-  
+  )
+
   expect_equal(res4$base, NA)
   expect_equal(res4$qual, NA)
 })

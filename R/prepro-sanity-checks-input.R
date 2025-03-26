@@ -1,20 +1,40 @@
 #' Check input files for fRagmentomics function
 #'
-#' This function verifies the existence of the BAM and FASTA files and ensures the FASTA file has an index.
+#' @inheritParams fRagmentomics
+#' @param mut Could be a .vcf, .tsv or chr:pos:ref:alt.
+#' @param bam A dataframe containing sequencing reads.
+#' @param fasta Character vector.
+#' @param sample_id Sample identifier.
+#' @param neg_offset_mate_search Integer. Use in read_bam.
+#'  Represents the number of nucleotides to extend upstream (negative direction)
+#'  from the position of interest when querying the BAM file with Rsamtools.
+#'  his extension ensures that paired reads are retrieved, even if only one mate
+#'  overlaps the queried position.
+#' @param pos_offset_mate_search Integer. Use in read_bam.
+#' @param one_based Boolean. TRUE if fasta is in one based. False if in 0 based.
+#' @param flag_keep Character vector. Use in read_bam.
+#'  Represents the SAM flags that should be kept when filtering alignments.
+#' @param flag_remove Character vector. Use in read_bam.
+#'  Represents the SAM flags that should be excluded when filtering alignments.
+#' @param report_tlen Boolean. Whether to include the TLEN (template length)
+#'  information in the output.
+#' @param report_softclip Boolean. Whether to include the number of soft-clipped
+#'  bases at the fragment extremities in the output.
+#' @param report_5p_3p_bases_fragment Integer. Whether to include N fragment
+#'  extremity bases in the output.
+#' @param n_cores Number of cores for parallel computation.
 #'
-#' @param bam Character. Path to the BAM file.
-#' @param fasta Character. Path to the FASTA file.
+#' @return None. The function stops execution if error.
 #'
-#' @return None. The function stops execution if files are missing or creates an index for the FASTA file if needed.
-#' 
-#' @noRd 
-check_input <- function(mut, bam, fasta, sample, neg_offset_mate_search, pos_offset_mate_search,
-                        one_based, flag_keep, flag_remove, report_tlen, report_softclip, 
-                        report_bases_fragment_5p_3p, n_cores) {
+#' @keywords internal
+check_input <- function(
+    mut, bam, fasta, sample_id, neg_offset_mate_search,
+    pos_offset_mate_search, one_based, flag_keep, flag_remove,
+    report_tlen, report_softclip, report_5p_3p_bases_fragment, n_cores) {
   check_mut(mut)
   check_bam(bam)
   check_fasta(fasta)
-  check_sample(sample)
+  check_sample(sample_id)
   check_neg_offset_mate_search(neg_offset_mate_search)
   check_pos_offset_mate_search(pos_offset_mate_search)
   check_one_based(one_based)
@@ -22,50 +42,43 @@ check_input <- function(mut, bam, fasta, sample, neg_offset_mate_search, pos_off
   check_flag_remove(flag_remove)
   check_report_tlen(report_tlen)
   check_report_softclip(report_softclip)
-  check_report_bases_fragment_5p_3p(report_bases_fragment_5p_3p)
-  check_report_bases_fragment_5p_3p(report_bases_fragment_5p_3p)
+  check_report_bases_fragm_5p_3p(report_5p_3p_bases_fragment)
   check_n_cores(n_cores)
 }
 
 #' Check if the mut file exists
 #'
-#' This function verifies whether the specified mutation file exists. If not, it stops execution with an error message.
+#' @inheritParams check_input
+#' @param mut Could be a .vcf, .tsv or chr:pos:ref:alt.
 #'
-#' @param bam Character. Path to the mutation file.
-#'
-#' @return None. The function stops execution if the file is missing.
-#' 
 #' @noRd
 check_mut <- function(mut) {
-    # Check if mut is a valid file format (VCF, TSV, or their compressed versions)
-    is_file_format <- grepl("\\.(vcf|tsv)(\\.gz)?$", mut)
+  # Check if mut is a valid file format (VCF, TSV, or their compressed versions)
+  is_file_format <- grepl("\\.(vcf|tsv)(\\.gz)?$", mut)
 
-    # If it's a file, check if it exists
-    if (is_file_format && !file.exists(mut)) {
-        stop("Error: The Mutation file does not exist: ", mut)
-    }
+  # If it's a file, check if it exists
+  if (is_file_format && !file.exists(mut)) {
+    stop("Error: The Mutation file does not exist: ", mut)
+  }
 }
 
 #' Check if the BAM file exists
 #'
-#' This function verifies whether the specified BAM file exists. If not, it stops execution with an error message.
-#'
+#' @inheritParams check_input
 #' @param bam Character. Path to the BAM file.
 #'
-#' @return None. The function stops execution if the file is missing.
-#' 
 #' @importFrom Rsamtools indexBam
-#' 
+#'
 #' @noRd
 check_bam <- function(bam) {
   # Check if the BAM file exists
   if (!file.exists(bam)) {
     stop("Error: The BAM file does not exist: ", bam)
   }
-  
+
   # Define the expected BAM index file (.bai)
   bam_index <- paste0(bam, ".bai")
-  
+
   # If the BAM index is missing, create it
   if (!file.exists(bam_index)) {
     message("Creating BAM index...")
@@ -75,20 +88,17 @@ check_bam <- function(bam) {
 
 #' Check if the FASTA file exists and has an index
 #'
-#' This function verifies whether the specified FASTA file exists. If an index (.fai) is missing, it generates one using the Rsamtools package.
-#'
+#' @inheritParams check_input
 #' @param fasta Character. Path to the FASTA file.
 #'
-#' @return None. The function stops execution if the file is missing or generates an index if needed.
-#' 
 #' @importFrom Rsamtools indexFa
-#' 
+#'
 #' @noRd
 check_fasta <- function(fasta) {
   if (!file.exists(fasta)) {
     stop("Error: The FASTA file does not exist: ", fasta)
   }
-  
+
   fasta_index <- paste0(fasta, ".fai")
   if (!file.exists(fasta_index)) {
     message("Creating FASTA index...")
@@ -98,27 +108,20 @@ check_fasta <- function(fasta) {
 
 #' Check if the sample ID is valid
 #'
-#' This function verifies whether the sample ID is a character string or NA.
-#' If not, it stops execution with an error message.
-#'
-#' @param sample Character or NA. Sample ID to be checked.
-#'
-#' @return None. The function stops execution if the sample ID is invalid.
+#' @inheritParams check_input
+#' @param sample_id Character or NA. Sample ID to be checked.
 #'
 #' @noRd
-check_sample <- function(sample) {
-    if (!is.character(sample) && !is.na(sample)) {
-        stop("Error: sample ID must be a character string or NA.")
-    }
+check_sample <- function(sample_id) {
+  if (!is.character(sample_id) && !is.na(sample_id)) {
+    stop("Error: sample ID must be a character string or NA.")
+  }
 }
 
 #' Check if the neg_offset_mate_search parameter is valid
 #'
-#' This function verifies that the provided negative offset mate search value is numeric and negative.
-#'
+#' @inheritParams check_input
 #' @param neg_offset_mate_search Numeric. The negative offset mate search value.
-#'
-#' @return None. The function stops execution if the parameter is invalid.
 #'
 #' @noRd
 check_neg_offset_mate_search <- function(neg_offset_mate_search) {
@@ -132,11 +135,8 @@ check_neg_offset_mate_search <- function(neg_offset_mate_search) {
 
 #' Check if the pos_offset_mate_search parameter is valid
 #'
-#' This function verifies that the provided positive offset mate search value is numeric and positive.
-#'
+#' @inheritParams check_input
 #' @param pos_offset_mate_search Numeric. The positive offset mate search value.
-#'
-#' @return None. The function stops execution if the parameter is invalid.
 #'
 #' @noRd
 check_pos_offset_mate_search <- function(pos_offset_mate_search) {
@@ -150,11 +150,8 @@ check_pos_offset_mate_search <- function(pos_offset_mate_search) {
 
 #' Check if the one_based parameter is valid
 #'
-#' This function verifies that the provided one_based parameter is a single logical value.
-#'
+#' @inheritParams check_input
 #' @param one_based Logical. Indicates whether indexing is one-based.
-#'
-#' @return None. The function stops execution if the parameter is invalid.
 #'
 #' @noRd
 check_one_based <- function(one_based) {
@@ -165,11 +162,8 @@ check_one_based <- function(one_based) {
 
 #' Check if the flag_keep parameter is valid
 #'
-#' This function verifies that the provided flag_keep parameter is numeric and non-negative.
-#'
+#' @inheritParams check_input
 #' @param flag_keep Numeric. The flag to keep.
-#'
-#' @return None. The function stops execution if the parameter is invalid.
 #'
 #' @noRd
 check_flag_keep <- function(flag_keep) {
@@ -183,11 +177,8 @@ check_flag_keep <- function(flag_keep) {
 
 #' Check if the flag_remove parameter is valid
 #'
-#' This function verifies that the provided flag_remove parameter is numeric and non-negative.
-#'
+#' @inheritParams check_input
 #' @param flag_remove Numeric. The flag to remove.
-#'
-#' @return None. The function stops execution if the parameter is invalid.
 #'
 #' @noRd
 check_flag_remove <- function(flag_remove) {
@@ -201,29 +192,24 @@ check_flag_remove <- function(flag_remove) {
 
 #' Check if the report_5p_bases parameter is valid
 #'
-#' This function verifies that the provided report_5p_bases parameter is numeric and non-negative.
-#'
-#' @param report_bases_fragment_5p_3p Numeric. The number of bases to report for the 5' read.
-#'
-#' @return None. The function stops execution if the parameter is invalid.
+#' @inheritParams check_input
+#' @param report_bases_fragment_5p_3p Integer. Whether to include N fragment
+#'  extremity bases in the output.
 #'
 #' @noRd
-check_report_bases_fragment_5p_3p <- function(report_bases_fragment_5p_3p) {
-  if (!is.numeric(report_bases_fragment_5p_3p)) {
+check_report_bases_fragm_5p_3p <- function(report_5p_3p_bases_fragment) {
+  if (!is.numeric(report_5p_3p_bases_fragment)) {
     stop("Error: report_bases_fragment_5p_3p must be numeric.")
   }
-  if (report_bases_fragment_5p_3p < 0) {
+  if (report_5p_3p_bases_fragment < 0) {
     stop("Error: report_bases_fragment_5p_3p must be non-negative.")
   }
 }
 
 #' Check if the report_tlen parameter is valid
 #'
-#' This function verifies that the provided report_tlen parameter is a single logical value.
-#'
+#' @inheritParams check_input
 #' @param report_tlen Logical. Indicates whether to report TLEN.
-#'
-#' @return None. The function stops execution if the parameter is invalid.
 #'
 #' @noRd
 check_report_tlen <- function(report_tlen) {
@@ -234,11 +220,9 @@ check_report_tlen <- function(report_tlen) {
 
 #' Check if the report_softclip parameter is valid
 #'
-#' This function verifies that the provided report_softclip parameter is a single logical value.
-#'
-#' @param report_softclip Logical. Indicates whether to report softclip information.
-#'
-#' @return None. The function stops execution if the parameter is invalid.
+#' @inheritParams check_input
+#' @param report_softclip Boolean. Whether to include the number of soft-clipped
+#'  bases at the fragment extremities in the output.
 #'
 #' @noRd
 check_report_softclip <- function(report_softclip) {
@@ -249,11 +233,8 @@ check_report_softclip <- function(report_softclip) {
 
 #' Check if the n_cores parameter is valid
 #'
-#' This function verifies that the provided n_cores parameter is numeric and positive.
-#'
+#' @inheritParams check_input
 #' @param n_cores Numeric. The number of cores to use.
-#'
-#' @return None. The function stops execution if the parameter is invalid.
 #'
 #' @noRd
 check_n_cores <- function(n_cores) {

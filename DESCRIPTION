@@ -2,12 +2,12 @@ Package: fRagmentomics
 Title: Compute Fragments Statistics Of Sequencing Experiments
 Version: 0.0.1
 Authors@R: c(
+    person("Killian", "Maudet", email = "killian.maudet@gustaveroussy.fr",
+	   role = "aut"),
     person("Juliette", "Samaniego", email = "juliette.samaniego@gustaveroussy.fr",
 	   role = "aut"),
     person("Yoann", "Pradat", email = "yoann.pradat@gustaveroussy.fr",
 	   role = c("aut", "cre"), comment = c(ORCID = "0000-0002-4647-5779")),
-    person("Killian", "Maudet", email = "killian.maudet@gustaveroussy.fr",
-	   role = "aut"),
     person("Elsa", "Bernard", email = "elsa.bernard@gustaveroussy.fr",
 	   role = "aut", comment = c(ORCID = "0000-0002-2057-7187"))
   )
@@ -28,4 +28,6 @@ Imports:
     stringr,
     Rsamtools,
     GenomicRanges,
-    Biostrings
+    Biostrings,
+    IRanges,
+    GenomeInfoDb

@@ -23,9 +23,9 @@ if (length(args) < 3) {
   stop("Requires 3 arguments: input_file, position, output_file.")
 }
 
-input_file    <- args[1]
-pos           <- as.numeric(args[2])  # Convert position to numeric
-output_file   <- args[3]
+input_file <- args[1]
+pos <- as.numeric(args[2]) # Convert position to numeric
+output_file <- args[3]
 
 # Function definition ==============================================================================
 DetermineMutationStatus <- function(inputfile, position, outputfile) {
@@ -35,16 +35,16 @@ DetermineMutationStatus <- function(inputfile, position, outputfile) {
     show_col_types = FALSE,
     progress = FALSE,
     col_types = cols(
-      Base_Read_1    = col_character(),
-      Base_Read_2    = col_character(),
-      Alt            = col_character(),
-      mutation_type  = col_character(),
+      Base_Read_1 = col_character(),
+      Base_Read_2 = col_character(),
+      Alt = col_character(),
+      mutation_type = col_character(),
       Startpos_read_1 = col_double(),
       Startpos_read_2 = col_double(),
-      read_length1   = col_double(),
-      read_length2   = col_double(),
-      Indel_1        = col_double(),
-      Indel_2        = col_double()
+      read_length1 = col_double(),
+      read_length2 = col_double(),
+      Indel_1 = col_double(),
+      Indel_2 = col_double()
     ),
     quote = ""
   )
@@ -55,9 +55,9 @@ DetermineMutationStatus <- function(inputfile, position, outputfile) {
 
   # Prepare string patterns for SNVs (mutation_type == "mutation")
   # These patterns are used to detect which reads contain the ALT base.
-  Base_read_mut_mut <- paste0(Alt_value, "_", Alt_value)      # read1=ALT, read2=ALT
-  Base_read_mut_NA  <- paste0(Alt_value, "_NA")         # read1=ALT, read2=NA
-  Base_read_NA_mut  <- paste0("NA_", Alt_value)         # read1=NA,  read2=ALT
+  Base_read_mut_mut <- paste0(Alt_value, "_", Alt_value) # read1=ALT, read2=ALT
+  Base_read_mut_NA <- paste0(Alt_value, "_NA") # read1=ALT, read2=NA
+  Base_read_NA_mut <- paste0("NA_", Alt_value) # read1=NA,  read2=ALT
 
   # Create a combined base for easy checking
   df <- df %>%

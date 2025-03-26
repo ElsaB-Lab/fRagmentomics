@@ -2,55 +2,55 @@
 
 #' Get the informations about the presence of a deletion in the read.
 #'
-#' @inheritParams fRagmentomics
+#' @inheritParams get_insertion
 #' @param pos numeric value representing the position of interest
 #' @param ref character vector representing the deletion sequence
 #' @param r_pos numeric value representing the read mapping position
 #' @param r_cigar character vector representing the read CIGAR
-#' @return a named list with names `base`,`qual`
+#' @param r_qual character vector representing the read sequencing qualities
 #'
-#' @noRd
-get_deletion <- function(pos, ref, r_pos, r_cigar) {
+#' @return a named list with names `base`,`qual`.
+#'
+#' @keywords internal
+get_deletion <- function(pos, ref, r_pos, r_cigar, r_qual) {
   # Initialize variables
   c_base <- "no_deletion_detected"
-  c_qual <- "no_deletion_detected"                 
-  ref_len <- nchar(ref) -1      # because we added one nucleotide for VCF convention
+  c_qual <- "no_deletion_detected"
+  ref_len <- nchar(ref) - 1 # because we added one nucleotide for VCF convention
   pos_is_readed <- FALSE
 
   # Parse the CIGAR string
-  # ops is a df with a column length and a column type; Each row for each operation
+  # ops is a df with columns length and type; Each row for one operation
   ops <- parse_cigar(r_cigar)
 
   # Iterating over CIGAR operations
-  current_pos <- r_pos  # Current reference position, aligned with the read
+  current_pos <- r_pos # Current reference position, aligned with the read
   for (i in seq_len(nrow(ops))) {
     op_len <- ops$length[i]
     op_type <- ops$type[i]
 
     if (op_type %in% c("M", "N", "=", "X")) {
-      # M: match or mismatch, N: skip in the reference, =: perfect match, X: mismatch
+      # M: match or mismatch, N: skip in the ref, =: perfect match, X: mismatch
       current_pos <- current_pos + op_len
-
     } else if (op_type == "D") {
       # D: deletion in the read (missing in the read compared to the reference)
       # Compare this deletion to the one in the reference
       diff_mutation_bam <- pos - (current_pos - 1)
-      
-      # Advance the reference position after the deletion
-      current_pos <- current_pos + op_len
 
       # Check if position and length of deletion is correct
       # Deletion sequence has already been check in the preprocessing
       if ((ref_len == op_len) && (diff_mutation_bam == 0)) {
-        c_base <- "deletion_detected"
-        c_qual <- "-"
+        c_base <- paste0("-", substring(ref, 2))
+        c_qual <- find_c_qual(current_pos, r_pos, r_cigar, r_qual)
         pos_is_readed <- TRUE
         break
       }
 
+      # Advance the reference position after the deletion
+      current_pos <- current_pos + op_len
     } else {
-      # I, S, H, P: Insertion, Soft clip, Hard clip, Pad - do not advance the reference position
-      # No action is taken
+      # I, S, H, P: Insertion, Soft clip, Hard clip, Pad
+      # No advance the reference position
     }
   }
 
@@ -60,10 +60,10 @@ get_deletion <- function(pos, ref, r_pos, r_cigar) {
   }
 
   # if the read does not cover the position of interest
-  if (pos_is_readed == FALSE){
+  if (pos_is_readed == FALSE) {
     c_base <- NA
     c_qual <- NA
   }
 
-  return(list(base = c_base, qual = c_qual))
+  list(base = c_base, qual = c_qual)
 }
