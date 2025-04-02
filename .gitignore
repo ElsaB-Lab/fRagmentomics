@@ -6,6 +6,7 @@ workflow/benchmark*
 pipeline/config*/*.tsv
 resources
 external
+commands.sh
 .snakemake
 
 # Logs
