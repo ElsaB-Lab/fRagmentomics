@@ -78,7 +78,5 @@ get_base_qual_from_read <- function(pos, r_pos, r_cigar, r_query, r_qual) {
     c_qual <- NA
   }
 
-  c_indel <- NA
-
-  list(base = c_base, qual = c_qual, indel = c_indel)
+  list(base = c_base, qual = c_qual)
 }

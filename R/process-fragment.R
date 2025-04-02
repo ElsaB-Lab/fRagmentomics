@@ -11,11 +11,11 @@
 identify_reads <- function(df_fragment_reads) {
   # Extract flag values
   flag_a <- bitvalues_from_bam_flag(
-    as.integer(df_fragment_reads[1, "flag"]),
+    as.integer(df_fragment_reads[1, "FLAG"]),
     bitnames = c("isFirstMateRead", "isSecondMateRead")
   )
   flag_b <- bitvalues_from_bam_flag(
-    as.integer(df_fragment_reads[2, "flag"]),
+    as.integer(df_fragment_reads[2, "FLAG"]),
     bitnames = c("isFirstMateRead", "isSecondMateRead")
   )
 
@@ -45,13 +45,13 @@ identify_reads <- function(df_fragment_reads) {
 #' @noRd
 get_read_stats <- function(df_read) {
   list(
-    mapq        = df_read$mapq,
-    tlen        = df_read$tlen,
-    cigar       = df_read$cigar,
-    pos         = df_read$pos,
-    query       = df_read$seq,
-    qual        = df_read$qual,
-    read_length = nchar(df_read$seq)
+    MAPQ        = df_read$MAPQ,
+    TLEN        = df_read$TLEN,
+    CIGAR       = df_read$CIGAR,
+    POS         = df_read$POS,
+    SEQ         = df_read$SEQ,
+    QUAL        = df_read$QUAL,
+    read_length = nchar(df_read$SEQ)
   )
 }
 
@@ -122,8 +122,8 @@ process_fragment <- function(df_sam,
   # Compute fragment size
   # -------------------------------
   inner_distance <- process_fragment_inner_distance(
-    read1_stats$pos, read1_stats$cigar, read1_stats$read_length,
-    read2_stats$pos, read2_stats$cigar, read2_stats$read_length
+    read1_stats$POS, read1_stats$CIGAR, read1_stats$read_length,
+    read2_stats$POS, read2_stats$CIGAR, read2_stats$read_length
   )
   absolute_size <- read1_stats$read_length +
     read2_stats$read_length +
@@ -133,6 +133,7 @@ process_fragment <- function(df_sam,
   # Define fragment status
   # -------------------------------
   fragment_status <- process_fragment_status(
+    alt,
     mutation_type,
     r_info1$base,
     r_info2$base
@@ -141,15 +142,19 @@ process_fragment <- function(df_sam,
   # -------------------------------
   # Define 3' and 5' reads
   # -------------------------------
-  identity_3p <- ifelse(read1_stats$pos <= read2_stats$pos, 2, 1)
+  identity_3p <- ifelse(read1_stats$POS <= read2_stats$POS, 2, 1)
   identity_5p <- ifelse(identity_3p == 2, 1, 2)
 
   if (identity_5p == 1) {
     read_stats_5p <- read1_stats
+    r_info_5p <- r_info1
     read_stats_3p <- read2_stats
+    r_info_3p <- r_info2
   } else {
     read_stats_5p <- read2_stats
+    r_info_5p <- r_info2
     read_stats_3p <- read1_stats
+    r_info_3p <- r_info1
   }
 
   # -------------------------------
@@ -166,12 +171,12 @@ process_fragment <- function(df_sam,
     Absolute_size    = absolute_size,
     Inner_distance   = inner_distance,
     Read_5p          = identity_5p,
-    MAPQ_5p          = read_stats_5p$mapq,
-    MAPQ_3p          = read_stats_3p$mapq,
-    ALT_5p           = read_stats_5p$base,
-    ALT_3p           = read_stats_3p$base,
-    BASQ_5p          = read_stats_5p$qual,
-    BASQ_3p          = read_stats_3p$qual
+    MAPQ_5p          = read_stats_5p$MAPQ,
+    MAPQ_3p          = read_stats_3p$MAPQ,
+    BASE_5p          = r_info_5p$base,
+    BASE_3p          = r_info_3p$base,
+    BASQ_5p          = r_info_5p$qual,
+    BASQ_3p          = r_info_3p$qual
   )
 
   # -------------------------------
@@ -185,7 +190,11 @@ process_fragment <- function(df_sam,
   # Put sample if not NA
   # -------------------------------
   if (report_tlen) {
-    final_row_fragment$TLEN <- abs(read1_stats$tlen)
+    if (is.null(read1_stats$TLEN) || is.na(read1_stats$TLEN)) {
+      message("Warning: TLEN is NULL")
+    } else {
+      final_row_fragment$TLEN <- abs(read1_stats$TLEN)
+    }
   }
 
   # -------------------------------
@@ -195,10 +204,11 @@ process_fragment <- function(df_sam,
   # Call the function process_get_fragment_bases
   if (report_5p_3p_bases_fragment != 0) {
     fragment_bases_5p_3p <- process_get_fragment_bases(
-      read_stats_5p$query,
-      read_stats_3p$query,
-      read_stats_5p$qual,
-      read_stats_3p$qual
+      report_5p_3p_bases_fragment,
+      read_stats_5p$SEQ,
+      read_stats_3p$SEQ,
+      read_stats_5p$QUAL,
+      read_stats_3p$QUAL
     )
 
     final_row_fragment$Fragment_bases_5p <-
@@ -218,8 +228,8 @@ process_fragment <- function(df_sam,
   # Call the function process_get_fragment_bases_softclip
   if (report_softclip) {
     fragment_bases_softclip_5p_3p <- process_get_fragment_bases_softclip(
-      read_stats_5p$cigar,
-      read_stats_3p$cigar
+      read_stats_5p$CIGAR,
+      read_stats_3p$CIGAR
     )
 
     final_row_fragment$Nb_fragment_bases_softclip_5p <-

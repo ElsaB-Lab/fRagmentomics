@@ -177,8 +177,8 @@ check_flag_remove <- function(flag_remove) {
 #'
 #' @noRd
 check_report_bases_fragm_5p_3p <- function(report_5p_3p_bases_fragment) {
-  if (!is.numeric(report_5p_3p_bases_fragment)) {
-    stop("Error: report_bases_fragment_5p_3p must be numeric.")
+  if (!is.integer(report_5p_3p_bases_fragment)) {
+    stop("Error: report_bases_fragment_5p_3p must be integer.")
   }
   if (report_5p_3p_bases_fragment < 0) {
     stop("Error: report_bases_fragment_5p_3p must be non-negative.")
@@ -234,8 +234,8 @@ check_tmp_folder <- function(tmp_folder) {
 #'
 #' @noRd
 check_n_cores <- function(n_cores) {
-  if (!is.numeric(n_cores)) {
-    stop("Error: n_cores must be numeric.")
+  if (!is.integer(n_cores)) {
+    stop("Error: n_cores must be integer.")
   }
   if (n_cores <= 0) {
     stop("Error: n_cores must be positive.")

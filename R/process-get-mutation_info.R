@@ -25,10 +25,10 @@ get_mutation_info <- function(mutation_type, pos, ref, alt, read_stats) {
     return(
       get_base_qual_from_read(
         pos      = pos,
-        r_pos    = read_stats$pos,
-        r_cigar  = read_stats$cigar,
-        r_query  = read_stats$query,
-        r_qual   = read_stats$qual
+        r_pos    = read_stats$POS,
+        r_cigar  = read_stats$CIGAR,
+        r_query  = read_stats$SEQ,
+        r_qual   = read_stats$QUAL
       )
     )
   } else if (mutation_type == "deletion") {
@@ -36,9 +36,9 @@ get_mutation_info <- function(mutation_type, pos, ref, alt, read_stats) {
       get_deletion(
         pos      = pos,
         ref      = ref,
-        r_pos    = read_stats$pos,
-        r_cigar  = read_stats$cigar,
-        r_qual   = read_stats$qual
+        r_pos    = read_stats$POS,
+        r_cigar  = read_stats$CIGAR,
+        r_qual   = read_stats$QUAL
       )
     )
   } else if (mutation_type == "insertion") {
@@ -46,10 +46,10 @@ get_mutation_info <- function(mutation_type, pos, ref, alt, read_stats) {
       get_insertion(
         pos      = pos,
         alt      = alt,
-        r_pos    = read_stats$pos,
-        r_cigar  = read_stats$cigar,
-        r_query  = read_stats$query,
-        r_qual   = read_stats$qual
+        r_pos    = read_stats$POS,
+        r_cigar  = read_stats$CIGAR,
+        r_query  = read_stats$SEQ,
+        r_qual   = read_stats$QUAL
       )
     )
   } else {

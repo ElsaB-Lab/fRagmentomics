@@ -38,7 +38,7 @@ read_bam <- function(
   )
   param_pos <- Rsamtools::ScanBamParam(
     which = region_pos,
-    what = c("qname", "flag", "rname", "pos", "mapq", "cigar", "seq", "qual")
+    what = c("qname", "flag", "rname", "pos", "isize", "mapq", "cigar", "seq", "qual")
   )
   bam_pos_list <- Rsamtools::scanBam(bam, param = param_pos)
 
@@ -49,6 +49,7 @@ read_bam <- function(
       FLAG = integer(),
       RNAME = character(),
       POS = integer(),
+      TLEN = integer(),
       MAPQ = integer(),
       CIGAR = character(),
       SEQ = character(),
@@ -61,6 +62,7 @@ read_bam <- function(
       FLAG = as.integer(bam_pos_list[[1]]$flag),
       RNAME = as.character(bam_pos_list[[1]]$rname),
       POS = as.integer(bam_pos_list[[1]]$pos),
+      TLEN = as.integer(bam_pos_list[[1]]$isize),
       MAPQ = as.integer(bam_pos_list[[1]]$mapq),
       CIGAR = as.character(bam_pos_list[[1]]$cigar),
       SEQ = as.character(bam_pos_list[[1]]$seq),
@@ -81,11 +83,11 @@ read_bam <- function(
   # ---------------------------------------
   region_ext <- GenomicRanges::GRanges(
     seqnames = chr,
-    ranges = IRanges::IRanges(start = pos - neg_offset, end = pos + pos_offset)
+    ranges = IRanges::IRanges(start = pos + neg_offset, end = pos + pos_offset)
   )
   param_ext <- Rsamtools::ScanBamParam(
     which = region_ext,
-    what = c("qname", "flag", "rname", "pos", "mapq", "cigar", "seq", "qual")
+    what = c("qname", "flag", "rname", "pos", "isize", "mapq", "cigar", "seq", "qual")
   )
   bam_ext_list <- Rsamtools::scanBam(bam, param = param_ext)
 
@@ -95,6 +97,7 @@ read_bam <- function(
       FLAG = integer(),
       RNAME = character(),
       POS = integer(),
+      TLEN = integer(),
       MAPQ = integer(),
       CIGAR = character(),
       SEQ = character(),
@@ -107,6 +110,7 @@ read_bam <- function(
       FLAG = as.integer(bam_ext_list[[1]]$flag),
       RNAME = as.character(bam_ext_list[[1]]$rname),
       POS = as.integer(bam_ext_list[[1]]$pos),
+      TLEN = as.integer(bam_ext_list[[1]]$isize),
       MAPQ = as.integer(bam_ext_list[[1]]$mapq),
       CIGAR = as.character(bam_ext_list[[1]]$cigar),
       SEQ = as.character(bam_ext_list[[1]]$seq),
@@ -118,8 +122,8 @@ read_bam <- function(
   # We only keep the reads with the appropriate flags
   sam_ext_df <- subset(
     sam_ext_df,
-    (bitwAnd(sam_pos_df$FLAG, flag_keep_int) == flag_keep_int) &
-      (bitwAnd(sam_pos_df$FLAG, flag_remove_int) == 0)
+    (bitwAnd(sam_ext_df$FLAG, flag_keep_int) == flag_keep_int) &
+      (bitwAnd(sam_ext_df$FLAG, flag_remove_int) == 0)
   )
 
   # Select only the lines where QNAME (col 1) is in sam_pos_df

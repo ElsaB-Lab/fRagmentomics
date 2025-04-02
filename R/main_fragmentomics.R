@@ -13,7 +13,7 @@
 setup_parallel_computations <- function(n_cores) {
   cl <- parallel::makeCluster(n_cores)
   doParallel::registerDoParallel(cl)
-  return(cl)
+  cl
 }
 
 #' @title Process fragmentomics
@@ -47,7 +47,9 @@ setup_parallel_computations <- function(n_cores) {
 #' @importFrom Rsamtools FaFile
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
+#' @importFrom foreach %do%
 #' @importFrom parallel stopCluster
+#' @importFrom utils txtProgressBar setTxtProgressBar flush.console
 #'
 #' @export
 process_fragmentomics <- function(
@@ -68,6 +70,12 @@ process_fragmentomics <- function(
   # -------------------------------
   # Check the inputs and load files
   # -------------------------------
+  # Put as integer for the integer parameters
+  neg_offset_mate_search <- as.integer(neg_offset_mate_search)
+  pos_offset_mate_search <- as.integer(pos_offset_mate_search)
+  report_5p_3p_bases_fragment <- as.integer(report_5p_3p_bases_fragment)
+  n_cores <- as.integer(n_cores)
+
   # Check if bam and fasta exist
   # Check if fasta is indexed
   check_input(
@@ -129,12 +137,10 @@ process_fragmentomics <- function(
       next
     }
 
-    with(mut_info_vcf_normalized, {
-      chr_norm <- chr
-      pos_norm <- pos
-      ref_norm <- ref
-      alt_norm <- alt
-    })
+    chr_norm <- mut_info_vcf_normalized$chr
+    pos_norm <- mut_info_vcf_normalized$pos
+    ref_norm <- mut_info_vcf_normalized$ref
+    alt_norm <- mut_info_vcf_normalized$alt
 
     # Normalization vcf representation with bcftools norm
     mut_info_bcftools_normalized <- apply_bcftools_norm(
@@ -155,9 +161,18 @@ process_fragmentomics <- function(
     mut_info_final <- rbind(mut_info_final, mut_info_bcftools_normalized)
   }
 
+  # Close fasta
+  close(fasta_loaded)
+
   # -------------------------------
   # Perform fragment analysis
   # -------------------------------
+  # Initialize parallel cluster
+  cl <- setup_parallel_computations(n_cores)
+
+  # Create final df
+  final_df_fragments_info <- data.frame()
+
   # Loop on each row of the mut_info
   for (i in seq_len(nrow(mut_info_final))) {
     chr_final <- mut_info_final[i, 1]
@@ -185,35 +200,40 @@ process_fragmentomics <- function(
     fragments_names <- unique(df_sam[, 1, drop = TRUE])
     n_fragments <- length(fragments_names)
 
-    # Initialize parallel cluster
-    cl <- setup_parallel_computations(n_cores)
-
+    j <- NULL # to avoid "no visible binding for global variable" in R CMD check
     # Parallel execution
     df_fragments_info <- foreach::foreach(
-      i = seq_len(n_fragments),
+      j = 1:n_fragments,
       .combine = rbind,
       .inorder = FALSE,
-      .packages = c("stringr")
+      .multicombine = FALSE,
+      .packages = "fRagmentomics"
     ) %dopar% {
-      # Call the fragment processing function
       process_fragment(
-        df_sam = df_sam,
-        fragment_name = fragments_names[i],
-        sample_id = sample_id,
+        df_sam,
+        fragment_name = fragments_names[j],
+        sample_id,
         chr = chr_final,
         pos = pos_final,
         ref = ref_final,
         alt = alt_final,
-        mutation_type = mutation_type,
-        report_tlen = report_tlen,
-        report_softclip = report_softclip,
-        report_5p_3p_bases_fragment = report_5p_3p_bases_fragment
+        mutation_type,
+        report_tlen,
+        report_softclip,
+        report_5p_3p_bases_fragment
       )
     }
 
-    # Stop cluster
-    parallel::stopCluster(cl)
+    # Fusion into the final df
+    final_df_fragments_info <- rbind(final_df_fragments_info, df_fragments_info)
   }
+  # Stop cluster
+  parallel::stopCluster(cl)
 
-  return(df_fragments_info)
+  write.table(final_df_fragments_info,
+    "df_test.tsv",
+    sep = "\t",
+    quote = FALSE,
+    row.names = FALSE
+  )
 }
