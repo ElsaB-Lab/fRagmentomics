@@ -5,7 +5,7 @@ test_that("get insertion", {
     pos = 15,
     ref = "A",
     alt = "ATT",
-    read_stats <- list(pos = 10, cigar = "3S6M2I1M", query = "AAAAAAAAATTA", qual = "########I++#")
+    read_stats <- list(POS = 10, CIGAR = "3S6M2I1M", SEQ = "AAAAAAAAATTA", QUAL = "########I++#")
   )
 
   expect_equal(res1$base, "+TT")
@@ -17,7 +17,7 @@ test_that("get insertion", {
     pos = 9,
     ref = "TAT",
     alt = "T",
-    read_stats <- list(pos = 2, cigar = "8M2D10M", query = "GGGGGGTATGGGGGGGGG", qual = "######+I!#########")
+    read_stats <- list(POS = 2, CIGAR = "8M2D10M", SEQ = "GGGGGGTATGGGGGGGGG", QUAL = "######+I!#########")
   )
 
   expect_equal(res2$base, "-AT")
@@ -30,8 +30,8 @@ test_that("get insertion", {
     ref = "A",
     alt = "T",
     read_stats <- list(
-      pos = 1, cigar = "5S5D90M", query = "CTGCCGGAACATTGGGAACCACCCCACTATGTCTAAAAGTGTTTCTTTAATCCAAATCCTCAACCCCCAATTTCCCTTCCACCCGCATAAGTTGCTGTGT",
-      qual = ",,F,,F:,,,,,,FF,,FF,:F,,,,,,,:,,:,FFF,:::FF,,,,,,F,F,F:,:,,,F,,,F,,FFF,FF,F,F,FF,:,,F,,:F,,,,,,:,,F,"
+      POS = 1, CIGAR = "5S5D90M", SEQ = "CTGCCGGAACATTGGGAACCACCCCACTATGTCTAAAAGTGTTTCTTTAATCCAAATCCTCAACCCCCAATTTCCCTTCCACCCGCATAAGTTGCTGTGT",
+      QUAL = ",,F,,F:,,,,,,FF,,FF,:F,,,,,,,:,,:,FFF,:::FF,,,,,,F,F,F:,:,,,F,,,F,,FFF,FF,F,F,FF,:,,F,,:F,,,,,,:,,F,"
     )
   )
 
@@ -45,8 +45,8 @@ test_that("get insertion", {
     ref = "A",
     alt = "T",
     read_stats <- list(
-      pos = 1, cigar = "5S5D90M", query = "CTGCCGGAACATTGGGAACCACCCCACTATGTCTAAAAGTGTTTCTTTAATCCAAATCCTCAACCC",
-      qual = ",,F,,F:,,,,,,FF,,FF,:F,,,,,,,:,,:,FFF,:::FF,,,,,,F,F,F:,:,,,F,,,F,,FFF,FF,F,F,FF,:,,F,,:F,,,,,,:,,F,"
+      POS = 1, CIGAR = "5S5D90M", SEQ = "CTGCCGGAACATTGGGAACCACCCCACTATGTCTAAAAGTGTTTCTTTAATCCAAATCCTCAACCC",
+      QUAL = ",,F,,F:,,,,,,FF,,FF,:F,,,,,,,:,,:,FFF,:::FF,,,,,,F,F,F:,:,,,F,,,F,,FFF,FF,F,F,FF,:,,F,,:F,,,,,,:,,F,"
     )
   )
 

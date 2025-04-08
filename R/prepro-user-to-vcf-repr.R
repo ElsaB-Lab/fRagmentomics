@@ -73,7 +73,7 @@ harmonize_chr_to_fasta <- function(chr, fasta) {
     chr <- sub("^chr", "", chr) # Remove "chr" if present
   }
 
-  return(chr)
+  chr
 }
 
 #' Normalize user-provided representation into VCF representation

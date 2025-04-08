@@ -1,14 +1,12 @@
+# Project : ElsaBLab_fRagmentomics
+
 #' Preprocess BAM file to extract reads around a given position
 #' This function extracts reads from a BAM file using Rsamtools, filtering them
 #' based on flags and selecting reads of interest around a genomic position.
 #'
-#' @param bam A dataframe containing sequencing reads.
+#' @inheritParams process_fragmentomics
 #' @param chr Character. Chromosome of interest.
 #' @param pos Integer. Genomic position of interest.
-#' @param neg_offset Integer. Start position for wider read extraction.
-#' @param pos_offset Integer. End position for wider read extraction.
-#' @param flag_keep Integer. SAM flag for reads to keep.
-#' @param flag_remove Integer. SAM flag for reads to exclude.
 #'
 #' @return A data frame containing the filtered SAM entries.
 #'
@@ -21,13 +19,18 @@ read_bam <- function(
     bam,
     chr,
     pos,
-    neg_offset,
-    pos_offset,
+    neg_offset_mate_search,
+    pos_offset_mate_search,
     flag_keep,
     flag_remove) {
   # Convert into hexadecimal number
   flag_keep_int <- as.integer(flag_keep)
   flag_remove_int <- as.integer(flag_remove)
+
+  # ---------------------------------------
+  # Check the start and end position of the read bam
+  # ---------------------------------------
+  start <- max(1, pos + neg_offset_mate_search)
 
   # ---------------------------------------
   # Extract reads around the interested position
@@ -83,7 +86,7 @@ read_bam <- function(
   # ---------------------------------------
   region_ext <- GenomicRanges::GRanges(
     seqnames = chr,
-    ranges = IRanges::IRanges(start = pos + neg_offset, end = pos + pos_offset)
+    ranges = IRanges::IRanges(start = start, end = pos + pos_offset_mate_search)
   )
   param_ext <- Rsamtools::ScanBamParam(
     which = region_ext,
@@ -129,6 +132,22 @@ read_bam <- function(
   # Select only the lines where QNAME (col 1) is in sam_pos_df
   fragments_of_interest <- unique(sam_pos_df$QNAME)
   sam_final_df <- sam_ext_df[sam_ext_df$QNAME %in% fragments_of_interest, ]
+
+  # Check if the final bam is empty and have the selected columns
+  if (nrow(sam_final_df) == 0) {
+    stop("The final BAM data frame is empty. No reads match the criteria.")
+  }
+
+  required_columns <-
+    c("QNAME", "FLAG", "RNAME", "POS", "MAPQ", "CIGAR", "SEQ", "QUAL")
+  missing_columns <- setdiff(required_columns, colnames(sam_final_df))
+
+  if (length(missing_columns) > 0) {
+    stop(paste(
+      "The final BAM data frame is missing the following columns:",
+      paste(missing_columns, collapse = ", ")
+    ))
+  }
 
   # Return df with sam data
   sam_final_df

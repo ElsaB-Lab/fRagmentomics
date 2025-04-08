@@ -1,6 +1,6 @@
 #' Check input files for fRagmentomics function
 #'
-#' @inheritParams fRagmentomics
+#' @inheritParams process_fragmentomics
 #'
 #' @return None. The function stops execution if error.
 #'
@@ -19,6 +19,7 @@ check_input <- function(
     report_softclip,
     report_5p_3p_bases_fragment,
     tmp_folder,
+    output_folder,
     n_cores) {
   check_mut(mut)
   check_bam(bam)
@@ -33,6 +34,7 @@ check_input <- function(
   check_report_softclip(report_softclip)
   check_report_bases_fragm_5p_3p(report_5p_3p_bases_fragment)
   check_tmp_folder(tmp_folder)
+  check_output_folder(output_folder)
   check_n_cores(n_cores)
 }
 
@@ -59,6 +61,11 @@ check_mut <- function(mut) {
 #'
 #' @noRd
 check_bam <- function(bam) {
+  # Check if the bam have a correct extension
+  if (!grepl("\\.bam$", bam)) {
+    stop("Error: The file does not have a valid BAM extension (.bam): ", bam)
+  }
+
   # Check if the BAM file exists
   if (!file.exists(bam)) {
     stop("Error: The BAM file does not exist: ", bam)
@@ -82,6 +89,10 @@ check_bam <- function(bam) {
 #'
 #' @noRd
 check_fasta <- function(fasta) {
+  if (!grepl("\\.fa(sta)?$", fasta)) {
+    stop("Error: The file does not have a valid FASTA extension (.fa or .fasta): ", fasta)
+  }
+
   if (!file.exists(fasta)) {
     stop("Error: The FASTA file does not exist: ", fasta)
   }
@@ -99,8 +110,8 @@ check_fasta <- function(fasta) {
 #'
 #' @noRd
 check_sample <- function(sample_id) {
-  if (!is.character(sample_id) && !is.na(sample_id)) {
-    stop("Error: sample ID must be a character string or NA.")
+  if (!is.na(sample_id) && sample_id == "") {
+    stop("Error: sample ID cannot be empty. Can be NA.")
   }
 }
 
@@ -224,8 +235,22 @@ check_tmp_folder <- function(tmp_folder) {
   if (!dir.exists(tmp_folder)) {
     dir.create(tmp_folder, recursive = TRUE, showWarnings = FALSE)
   }
+}
 
-  tmp_folder
+#' Check if the output folder exists. If not, create it.
+#'
+#' @inheritParams check_input
+#'
+#' @noRd
+check_output_folder <- function(output_folder) {
+  if (!is.character(output_folder) || length(output_folder) != 1 || is.na(output_folder) || output_folder == "") {
+    stop("Error: 'output_folder' must be a non-empty single character string.")
+  }
+
+  if (!dir.exists(output_folder)) {
+    message(sprintf("Creating output folder: %s", output_folder))
+    dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
+  }
 }
 
 #' Check if the n_cores parameter is valid

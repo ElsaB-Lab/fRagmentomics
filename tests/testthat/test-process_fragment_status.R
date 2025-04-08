@@ -1,5 +1,3 @@
-library(testthat)
-
 test_that("process_fragment_status - SNV with both reads covering", {
   alt <- "A"
 

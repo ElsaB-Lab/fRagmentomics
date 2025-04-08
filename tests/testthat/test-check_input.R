@@ -58,17 +58,18 @@ test_that("check_input", {
   # Define valid default parameters for the non-file arguments.
   # ---------------------------------------------------------------------------
   valid_params <- list(
-    sample                       = "test_sample",
-    neg_offset_mate_search       = -1000L,
-    pos_offset_mate_search       = 1000L,
-    one_based                    = TRUE,
-    flag_keep                    = 0x03,
-    flag_remove                  = 0x900,
-    report_tlen                  = FALSE,
-    report_softclip              = FALSE,
-    report_5p_3p_bases_fragment  = 5,
-    tmp_folder                   = tempdir(),
-    n_cores                      = 1
+    sample = "test_sample",
+    neg_offset_mate_search = -1000L,
+    pos_offset_mate_search = 1000L,
+    one_based = TRUE,
+    flag_keep = 0x03,
+    flag_remove = 0x900,
+    report_tlen = FALSE,
+    report_softclip = FALSE,
+    report_5p_3p_bases_fragment = 5L,
+    tmp_folder = tempdir(),
+    output_folder = ".",
+    n_cores = 1L
   )
 
   # ---------------------------------------------------------------------------
@@ -89,6 +90,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
+      output_folder = valid_params$output_folder,
       n_cores = valid_params$n_cores
     )
   )
@@ -111,6 +113,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
+      output_folder = valid_params$output_folder,
       n_cores = valid_params$n_cores
     ),
     "Error: The Mutation file does not exist",
@@ -135,6 +138,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
+      output_folder = valid_params$output_folder,
       n_cores = valid_params$n_cores
     ),
     "Error: The BAM file does not exist",
@@ -159,6 +163,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
+      output_folder = valid_params$output_folder,
       n_cores = valid_params$n_cores
     ),
     "Error: The FASTA file does not exist",
@@ -186,6 +191,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
+      output_folder = valid_params$output_folder,
       n_cores = valid_params$n_cores
     ),
     "Creating BAM index..."
@@ -212,6 +218,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
+      output_folder = valid_params$output_folder,
       n_cores = valid_params$n_cores
     ),
     "Creating FASTA index..."

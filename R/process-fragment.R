@@ -58,7 +58,7 @@ get_read_stats <- function(df_read) {
 #' Process a single sequencing fragment
 #' Extracts and processes relevant data from a sequencing fragment.
 #'
-#' @inheritParams fRagmentomics
+#' @inheritParams process_fragmentomics
 #' @param df_sam A dataframe containing sequencing reads.
 #' @param fragment_name Name of the fragment (paired-end reads).
 #' @param chr Character vector representing the chromosome of interest.
@@ -99,12 +99,46 @@ process_fragment <- function(df_sam,
   }
 
   if (fragment_qc != "") {
-    return(data.frame(
-      Chromosome     = chr,
-      Position       = pos,
-      Fragment_Id    = fragment_name,
-      Fragment_QC    = fragment_qc
-    ))
+    final_row_fragment <- list(
+      Chromosome = chr,
+      Position = pos,
+      Ref = ref,
+      Alt = alt,
+      Fragment_Id = fragment_name,
+      Fragment_QC = fragment_qc,
+      Fragment_Mutated = NA,
+      Absolute_size = NA,
+      Inner_distance = NA,
+      Read_5p = NA,
+      MAPQ_5p = NA,
+      MAPQ_3p = NA,
+      BASE_5p = NA,
+      BASE_3p = NA,
+      BASQ_5p = NA,
+      BASQ_3p = NA
+    )
+    if (!is.na(sample_id)) {
+      final_row_fragment$Sample_Id <- sample_id
+    }
+
+    if (report_tlen) {
+      final_row_fragment$TLEN <- NA
+    }
+
+    if (report_5p_3p_bases_fragment != 0) {
+      final_row_fragment$Fragment_bases_5p <- NA
+      final_row_fragment$Fragment_bases_3p <- NA
+      final_row_fragment$Fragment_Qbases_5p <- NA
+      final_row_fragment$Fragment_Qbases_3p <- NA
+    }
+
+    if (report_softclip) {
+      final_row_fragment$Nb_fragment_bases_softclip_5p <- NA
+      final_row_fragment$Nb_fragment_bases_softclip_3p <- NA
+    }
+
+    result_df <- as.data.frame(final_row_fragment)
+    return(result_df)
   }
 
   # Separate read1/read2
@@ -182,7 +216,7 @@ process_fragment <- function(df_sam,
   # -------------------------------
   # Put sample if not NA
   # -------------------------------
-  if (!is.na(sample_id) && is.character(sample_id)) {
+  if (!is.na(sample_id)) {
     final_row_fragment$Sample_Id <- sample_id
   }
 
@@ -192,6 +226,7 @@ process_fragment <- function(df_sam,
   if (report_tlen) {
     if (is.null(read1_stats$TLEN) || is.na(read1_stats$TLEN)) {
       message("Warning: TLEN is NULL")
+      final_row_fragment$TLEN <- "Warning: TLEN is NULL"
     } else {
       final_row_fragment$TLEN <- abs(read1_stats$TLEN)
     }

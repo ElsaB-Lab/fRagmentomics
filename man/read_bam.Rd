@@ -6,7 +6,15 @@
 This function extracts reads from a BAM file using Rsamtools, filtering them
 based on flags and selecting reads of interest around a genomic position.}
 \usage{
-read_bam(bam, chr, pos, neg_offset, pos_offset, flag_keep, flag_remove)
+read_bam(
+  bam,
+  chr,
+  pos,
+  neg_offset_mate_search,
+  pos_offset_mate_search,
+  flag_keep,
+  flag_remove
+)
 }
 \arguments{
 \item{bam}{A dataframe containing sequencing reads.}
@@ -15,13 +23,19 @@ read_bam(bam, chr, pos, neg_offset, pos_offset, flag_keep, flag_remove)
 
 \item{pos}{Integer. Genomic position of interest.}
 
-\item{neg_offset}{Integer. Start position for wider read extraction.}
+\item{neg_offset_mate_search}{Integer. Use in read_bam.
+Represents the number of nucleotides to extend upstream (negative direction)
+from the position of interest when querying the BAM file with Rsamtools.
+his extension ensures that paired reads are retrieved, even if only one mate
+overlaps the queried position.}
 
-\item{pos_offset}{Integer. End position for wider read extraction.}
+\item{pos_offset_mate_search}{Integer. Use in read_bam.}
 
-\item{flag_keep}{Integer. SAM flag for reads to keep.}
+\item{flag_keep}{Character vector. Use in read_bam.
+Represents the SAM flags that should be kept when filtering alignments.}
 
-\item{flag_remove}{Integer. SAM flag for reads to exclude.}
+\item{flag_remove}{Character vector. Use in read_bam.
+Represents the SAM flags that should be excluded when filtering alignments.}
 }
 \value{
 A data frame containing the filtered SAM entries.

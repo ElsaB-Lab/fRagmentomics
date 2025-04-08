@@ -14,7 +14,7 @@ build-cran:
 	$(R) CMD build .
 
 check: build-cran
-	$(R) CMD check $(PKGNAME)_$(PKGVERS).tar.gz --as-cran
+	$(R) CMD check $(PKGNAME)_$(PKGVERS).tar.gz --as-cran --no-timestamp
 
 manual:
 	$(R) -e 'devtools::document();devtools::build_manual(path=".")'

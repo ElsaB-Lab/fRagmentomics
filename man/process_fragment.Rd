@@ -24,6 +24,8 @@ process_fragment(
 
 \item{fragment_name}{Name of the fragment (paired-end reads).}
 
+\item{sample_id}{Sample identifier.}
+
 \item{chr}{Character vector representing the chromosome of interest.}
 
 \item{pos}{Numeric value representing the Genomic position of interest.}
@@ -33,6 +35,15 @@ process_fragment(
 \item{alt}{Character vector representing alternative base(s).}
 
 \item{mutation_type}{In "SNV", "deletion", or "insertion".}
+
+\item{report_tlen}{Boolean. Whether to include the TLEN (template length)
+information in the output.}
+
+\item{report_softclip}{Boolean. Whether to include the number of soft-clipped
+bases at the fragment extremities in the output.}
+
+\item{report_5p_3p_bases_fragment}{Integer. Whether to include N fragment
+extremity bases in the output.}
 }
 \value{
 A dataframe with the processed fragment information.

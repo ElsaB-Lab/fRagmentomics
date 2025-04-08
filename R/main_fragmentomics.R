@@ -40,6 +40,7 @@ setup_parallel_computations <- function(n_cores) {
 #' @param report_5p_3p_bases_fragment Integer. Whether to include N fragment
 #'  extremity bases in the output.
 #' @param tmp_folder Character vector for the folder temporary path.
+#' @param output_folder Character vector for the output folder path. Mandatory.
 #' @param n_cores Number of cores for parallel computation.
 #'
 #' @return A dataframe containing extracted fragment-level information.
@@ -49,7 +50,7 @@ setup_parallel_computations <- function(n_cores) {
 #' @importFrom foreach %dopar%
 #' @importFrom foreach %do%
 #' @importFrom parallel stopCluster
-#' @importFrom utils txtProgressBar setTxtProgressBar flush.console
+#' @importFrom utils write.table
 #'
 #' @export
 process_fragmentomics <- function(
@@ -66,6 +67,7 @@ process_fragmentomics <- function(
     report_softclip = FALSE,
     report_5p_3p_bases_fragment = 5,
     tmp_folder = tempdir(),
+    output_folder = NA,
     n_cores = 1) {
   # -------------------------------
   # Check the inputs and load files
@@ -91,6 +93,7 @@ process_fragmentomics <- function(
     report_softclip,
     report_5p_3p_bases_fragment,
     tmp_folder,
+    output_folder,
     n_cores
   )
 
@@ -161,9 +164,6 @@ process_fragmentomics <- function(
     mut_info_final <- rbind(mut_info_final, mut_info_bcftools_normalized)
   }
 
-  # Close fasta
-  close(fasta_loaded)
-
   # -------------------------------
   # Perform fragment analysis
   # -------------------------------
@@ -208,7 +208,7 @@ process_fragmentomics <- function(
       .inorder = FALSE,
       .multicombine = FALSE,
       .packages = "fRagmentomics"
-    ) %dopar% {
+    ) %do% {
       process_fragment(
         df_sam,
         fragment_name = fragments_names[j],
@@ -230,10 +230,42 @@ process_fragmentomics <- function(
   # Stop cluster
   parallel::stopCluster(cl)
 
-  write.table(final_df_fragments_info,
-    "df_test.tsv",
+  # Close fasta
+  close(fasta_loaded)
+
+  # Check if the df post fRagmentomics is not empty
+  if (nrow(final_df_fragments_info) == 0) {
+    stop("The final dataframe post fRagmentomics is empty.")
+  }
+
+  # -------------------------------
+  # Write output file
+  # -------------------------------
+  timestamp <- format(Sys.time(), "%Y-%m-%d_%H:%M:%S")
+
+  if (!is.na(sample_id) && nzchar(sample_id)) {
+    # sample_id is provided and not empty
+    output_file <- file.path(
+      output_folder,
+      sprintf("%s_%s_fRagmentomics_output.tsv", timestamp, sample_id)
+    )
+  } else {
+    # sample_id is either NA or empty -> use only timestamp
+    output_file <- file.path(
+      output_folder,
+      sprintf("%s_fRagmentomics_output.tsv", timestamp)
+    )
+  }
+
+  # Write file
+  write.table(
+    final_df_fragments_info,
+    output_file,
     sep = "\t",
     quote = FALSE,
     row.names = FALSE
   )
+
+  # Return final dataframe
+  final_df_fragments_info
 }
