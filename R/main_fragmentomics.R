@@ -40,7 +40,7 @@ setup_parallel_computations <- function(n_cores) {
 #' @param report_5p_3p_bases_fragment Integer. Whether to include N fragment
 #'  extremity bases in the output.
 #' @param tmp_folder Character vector for the folder temporary path.
-#' @param output_folder Character vector for the output folder path. Mandatory.
+#' @param output_file Character vector for the output file path. Mandatory.
 #' @param n_cores Number of cores for parallel computation.
 #'
 #' @return A dataframe containing extracted fragment-level information.
@@ -67,7 +67,7 @@ process_fragmentomics <- function(
     report_softclip = FALSE,
     report_5p_3p_bases_fragment = 5,
     tmp_folder = tempdir(),
-    output_folder = NA,
+    output_file = NA,
     n_cores = 1) {
   # -------------------------------
   # Check the inputs and load files
@@ -93,7 +93,7 @@ process_fragmentomics <- function(
     report_softclip,
     report_5p_3p_bases_fragment,
     tmp_folder,
-    output_folder,
+    output_file,
     n_cores
   )
 
@@ -241,22 +241,6 @@ process_fragmentomics <- function(
   # -------------------------------
   # Write output file
   # -------------------------------
-  timestamp <- format(Sys.time(), "%Y-%m-%d_%H:%M:%S")
-
-  if (!is.na(sample_id) && nzchar(sample_id)) {
-    # sample_id is provided and not empty
-    output_file <- file.path(
-      output_folder,
-      sprintf("%s_%s_fRagmentomics_output.tsv", timestamp, sample_id)
-    )
-  } else {
-    # sample_id is either NA or empty -> use only timestamp
-    output_file <- file.path(
-      output_folder,
-      sprintf("%s_fRagmentomics_output.tsv", timestamp)
-    )
-  }
-
   # Write file
   write.table(
     final_df_fragments_info,

@@ -19,7 +19,7 @@ check_input <- function(
     report_softclip,
     report_5p_3p_bases_fragment,
     tmp_folder,
-    output_folder,
+    output_file,
     n_cores) {
   check_mut(mut)
   check_bam(bam)
@@ -34,7 +34,7 @@ check_input <- function(
   check_report_softclip(report_softclip)
   check_report_bases_fragm_5p_3p(report_5p_3p_bases_fragment)
   check_tmp_folder(tmp_folder)
-  check_output_folder(output_folder)
+  check_output_file(output_file)
   check_n_cores(n_cores)
 }
 
@@ -237,19 +237,26 @@ check_tmp_folder <- function(tmp_folder) {
   }
 }
 
-#' Check if the output folder exists. If not, create it.
+#' Check if the output file's directory exists. If not, create it.
+#' Warn if the file already exists and will be overwritten.
 #'
 #' @inheritParams check_input
 #'
 #' @noRd
-check_output_folder <- function(output_folder) {
-  if (!is.character(output_folder) || length(output_folder) != 1 || is.na(output_folder) || output_folder == "") {
-    stop("Error: 'output_folder' must be a non-empty single character string.")
+check_output_file <- function(output_file) {
+  if (!is.character(output_file) || length(output_file) != 1 || is.na(output_file) || output_file == "") {
+    stop("Error: 'output_file' must be a non-empty single character string.")
   }
 
-  if (!dir.exists(output_folder)) {
-    message(sprintf("Creating output folder: %s", output_folder))
-    dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
+  output_dir <- dirname(output_file)
+
+  if (!dir.exists(output_dir)) {
+    message(sprintf("Creating output directory: %s", output_dir))
+    dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  }
+
+  if (file.exists(output_file)) {
+    message(sprintf("Warning: The file '%s' already exists and will be overwritten.", output_file))
   }
 }
 

@@ -18,7 +18,7 @@ check_input(
   report_softclip,
   report_5p_3p_bases_fragment,
   tmp_folder,
-  output_folder,
+  output_file,
   n_cores
 )
 }
@@ -58,7 +58,7 @@ extremity bases in the output.}
 
 \item{tmp_folder}{Character vector for the folder temporary path.}
 
-\item{output_folder}{Character vector for the output folder path. Mandatory.}
+\item{output_file}{Character vector for the output file path. Mandatory.}
 
 \item{n_cores}{Number of cores for parallel computation.}
 }

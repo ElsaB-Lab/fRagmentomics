@@ -68,7 +68,7 @@ test_that("check_input", {
     report_softclip = FALSE,
     report_5p_3p_bases_fragment = 5L,
     tmp_folder = tempdir(),
-    output_folder = ".",
+    output_file = "./test.tsv",
     n_cores = 1L
   )
 
@@ -90,7 +90,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
-      output_folder = valid_params$output_folder,
+      output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
     )
   )
@@ -113,7 +113,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
-      output_folder = valid_params$output_folder,
+      output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
     ),
     "Error: The Mutation file does not exist",
@@ -138,7 +138,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
-      output_folder = valid_params$output_folder,
+      output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
     ),
     "Error: The BAM file does not exist",
@@ -163,7 +163,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
-      output_folder = valid_params$output_folder,
+      output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
     ),
     "Error: The FASTA file does not exist",
@@ -191,7 +191,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
-      output_folder = valid_params$output_folder,
+      output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
     ),
     "Creating BAM index..."
@@ -218,7 +218,7 @@ test_that("check_input", {
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       tmp_folder = valid_params$tmp_folder,
-      output_folder = valid_params$output_folder,
+      output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
     ),
     "Creating FASTA index..."
@@ -261,10 +261,10 @@ test_that("check_input individual parameter validations", {
   # Temporary folder
   expect_error(check_tmp_folder(TRUE), "must be a single character")
 
-  # Output folder
-  expect_error(check_output_folder(NA), "must be a non-empty single character string")
-  expect_error(check_output_folder(""), "must be a non-empty single character string")
-  expect_error(check_output_folder(42), "must be a non-empty single character string")
+  # Output file
+  expect_error(check_output_file(NA), "must be a non-empty single character string")
+  expect_error(check_output_file(""), "must be a non-empty single character string")
+  expect_error(check_output_file(42), "must be a non-empty single character string")
 
   # n_cores
   expect_error(check_n_cores(2), "must be integer")

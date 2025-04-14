@@ -26,7 +26,7 @@ test_that("Process fRagmentomics", {
         report_softclip = TRUE,
         report_5p_3p_bases_fragment = 5,
         tmp_folder = tempdir(),
-        output_folder = ".", # file will be created in the current directory
+        output_file = "./test.tsv", # file will be created in the current directory
         n_cores = 1
     )
 
@@ -55,28 +55,21 @@ test_that("Process fRagmentomics", {
         info = "Some expected columns are missing in the output dataframe."
     )
 
-    # Now delete the output file created
-    created_files <- list.files(
-        path = ".",
-        pattern = "^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}:[0-9]{2}:[0-9]{2}_fRagmentomics_output\\.tsv$"
-    )
-
-    # We expect at least one file with that naming; fail if not found
+    # Check that the file exists
+    output_file <- "./test.tsv"
     expect_true(
-        length(created_files) > 0,
-        info = "No output file found matching the pattern 'YYYY-mm-dd_HH:MM:SS_fRagmentomics_output.tsv'."
+        file.exists(output_file),
+        info = "Output file was not created."
     )
 
-    # Remove each matching file and verify it was removed
-    for (f in created_files) {
-        file_removed <- file.remove(f)
-        expect_true(
-            file_removed,
-            info = paste("Failed to remove output file", f)
-        )
-        expect_false(
-            file.exists(f),
-            info = paste("File still exists after removal attempt:", f)
-        )
-    }
+    # Try to remove it
+    file_removed <- file.remove(output_file)
+    expect_true(
+        file_removed,
+        info = paste("Failed to remove output file", output_file)
+    )
+    expect_false(
+        file.exists(output_file),
+        info = paste("File still exists after removal attempt:", output_file)
+    )
 })

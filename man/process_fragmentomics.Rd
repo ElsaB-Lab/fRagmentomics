@@ -18,7 +18,7 @@ process_fragmentomics(
   report_softclip = FALSE,
   report_5p_3p_bases_fragment = 5,
   tmp_folder = tempdir(),
-  output_folder = NA,
+  output_file = NA,
   n_cores = 1
 )
 }
@@ -58,7 +58,7 @@ extremity bases in the output.}
 
 \item{tmp_folder}{Character vector for the folder temporary path.}
 
-\item{output_folder}{Character vector for the output folder path. Mandatory.}
+\item{output_file}{Character vector for the output file path. Mandatory.}
 
 \item{n_cores}{Number of cores for parallel computation.}
 }
