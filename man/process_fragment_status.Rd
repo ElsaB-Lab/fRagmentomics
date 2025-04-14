@@ -7,9 +7,11 @@ This function determines the mutation status of a DNA fragment based on
 the mutation type and read information. It supports (SNV), insertions,
 and deletions.}
 \usage{
-process_fragment_status(alt, mutation_type, r_info_base1, r_info_base2)
+process_fragment_status(ref, alt, mutation_type, r_info_base1, r_info_base2)
 }
 \arguments{
+\item{ref}{Character vector representing reference base(s).}
+
 \item{alt}{Character vector representing alternative base(s).}
 
 \item{mutation_type}{In "SNV", "deletion", or "insertion".}
@@ -26,6 +28,13 @@ A character string representing the fragment status:
 (or at least one read supports it when coverage is incomplete).
 -"WT_but_other_read_mut": Both reads cover the position but only
 one supports the mutation.
+-"WT_but_other_read_mut_with_other_alt": Both reads cover the position
+but one support a mutation that is not alt.
+-"MUT_but_other_read_mut_with_other_alt": Both reads cover the position
+but one is not ref or alt.
+-"Error_both_read_mut_with_other_alt": Both reads cover the position
+but both are not ref or alt.
+-"Other_MUT": One read is covering and it's not ref or alt
 -"WT": Neither read supports the mutation.
 }
 \description{

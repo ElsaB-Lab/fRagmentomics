@@ -77,7 +77,7 @@ apply_bcftools_norm <- function(chr, pos, ref, alt, fasta, tmp_folder) {
     # Execute the command to normalize the VCF file
     exit_status <- tryCatch(
       {
-        system(cmd, intern = FALSE, ignore.stderr = TRUE)
+        system(cmd, intern = FALSE, ignore.stderr = FALSE)
         0 # Success
       },
       error = function(e) {

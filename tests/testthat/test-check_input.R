@@ -230,3 +230,43 @@ test_that("check_input", {
   unlink(test_dir, recursive = TRUE)
   unlink(sam_file)
 })
+
+test_that("check_input individual parameter validations", {
+  # Sample
+  expect_error(check_sample(""), "sample ID cannot be empty")
+  expect_silent(check_sample(NA))
+
+  # Offsets
+  expect_error(check_neg_offset_mate_search(-1000), "must be integer")
+  expect_error(check_pos_offset_mate_search(1000), "must be interger")
+
+  expect_error(check_neg_offset_mate_search(as.integer(1000)), "must be negative")
+  expect_error(check_pos_offset_mate_search(as.integer(-1000)), "must be positive")
+
+  # Flags
+  expect_error(check_flag_keep("abc"), "must be numeric")
+  expect_error(check_flag_remove("abc"), "must be numeric")
+  expect_error(check_flag_keep(-1), "must be non-negative")
+  expect_error(check_flag_remove(-1), "must be non-negative")
+
+  # Logical flags
+  expect_error(check_one_based("TRUE"), "must be a single logical")
+  expect_error(check_report_tlen(1L), "must be a single logical")
+  expect_error(check_report_softclip(NULL), "must be a single logical")
+
+  # Report 5p/3p bases
+  expect_error(check_report_bases_fragm_5p_3p(5), "must be integer")
+  expect_error(check_report_bases_fragm_5p_3p(as.integer(-1)), "must be non-negative")
+
+  # Temporary folder
+  expect_error(check_tmp_folder(TRUE), "must be a single character")
+
+  # Output folder
+  expect_error(check_output_folder(NA), "must be a non-empty single character string")
+  expect_error(check_output_folder(""), "must be a non-empty single character string")
+  expect_error(check_output_folder(42), "must be a non-empty single character string")
+
+  # n_cores
+  expect_error(check_n_cores(2), "must be integer")
+  expect_error(check_n_cores(as.integer(0)), "must be positive")
+})

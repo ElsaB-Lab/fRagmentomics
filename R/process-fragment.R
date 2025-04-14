@@ -167,6 +167,7 @@ process_fragment <- function(df_sam,
   # Define fragment status
   # -------------------------------
   fragment_status <- process_fragment_status(
+    ref,
     alt,
     mutation_type,
     r_info1$base,

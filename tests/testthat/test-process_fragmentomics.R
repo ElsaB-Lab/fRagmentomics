@@ -1,7 +1,7 @@
 test_that("Process fRagmentomics", {
-    mut_test <- system.file("testdata/mutations/", "mutations_cfdna-test-01_chr17_7576000_7579000.tsv", package = "fRagmentomics")
-    bam_test <- system.file("testdata/bam/", "cfdna-test-01_chr17_7576000_7579000.bam", package = "fRagmentomics")
-    fasta_test <- system.file("testdata/fasta/hg19/", "hg19_chr17_7576000_7579000.fa", package = "fRagmentomics")
+    mut_test <- system.file("testdata/mutations/", "mutations_cfdna-test-01_chr1_27433000_27434000.tsv", package = "fRagmentomics")
+    bam_test <- system.file("testdata/bam/", "cfdna-test-01_chr1_27433000_27434000.bam", package = "fRagmentomics")
+    fasta_test <- system.file("testdata/fasta/hg19/", "hg19_chr1_27433000_27434000.fa", package = "fRagmentomics")
 
     # Read the mutation file
     mutation_file_expected <- read.table(
