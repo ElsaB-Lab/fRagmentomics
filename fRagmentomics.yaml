@@ -1,0 +1,19 @@
+name: fRagmentomics
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - r-base=4.3.*
+  - r-doparallel=1.0.17
+  - r-foreach=1.5.2
+  - r-readr=2.1.5
+  - r-stringr=1.5.*
+  - r-devtools 2.4.5
+  - bioconductor-rsamtools
+  - bioconductor-genomicranges
+  - bioconductor-biostrings
+  - bioconductor-iranges
+  - bioconductor-genomeinfodb
+  - bcftools=1.21
