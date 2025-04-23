@@ -45,9 +45,11 @@ test_that("Process fRagmentomics", {
     # Check that we have the expected columns
     expected_cols <- c(
         "Chromosome", "Position", "Ref", "Alt",
-        "Fragment_QC", "Fragment_Mutated", "Absolute_size",
+        "Fragment_QC", "Fragment_Status", "Absolute_size",
         "Inner_distance", "MAPQ_5p", "MAPQ_3p",
-        "BASE_5p", "BASE_3p", "BASQ_5p", "BASQ_3p"
+        "BASE_5p", "BASE_3p", "BASQ_5p", "BASQ_3p",
+        "Pos_bam_3p", "Pos_bam_5p", "CIGAR_3p", "CIGAR_5p",
+        "VAF"
     )
 
     expect_true(

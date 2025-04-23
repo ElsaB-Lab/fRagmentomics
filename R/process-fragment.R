@@ -106,7 +106,7 @@ process_fragment <- function(df_sam,
       Alt = alt,
       Fragment_Id = fragment_name,
       Fragment_QC = fragment_qc,
-      Fragment_Mutated = NA,
+      Fragment_Status = NA,
       Absolute_size = NA,
       Inner_distance = NA,
       Read_5p = NA,
@@ -115,8 +115,13 @@ process_fragment <- function(df_sam,
       BASE_5p = NA,
       BASE_3p = NA,
       BASQ_5p = NA,
-      BASQ_3p = NA
+      BASQ_3p = NA,
+      CIGAR_5p = NA,
+      CIGAR_3p = NA,
+      Pos_bam_5p = NA,
+      Pos_bam_3p = NA
     )
+
     if (!is.na(sample_id)) {
       final_row_fragment$Sample_Id <- sample_id
     }
@@ -202,7 +207,7 @@ process_fragment <- function(df_sam,
     Alt              = alt,
     Fragment_Id      = fragment_name,
     Fragment_QC      = "OK",
-    Fragment_Mutated = fragment_status,
+    Fragment_Status  = fragment_status,
     Absolute_size    = absolute_size,
     Inner_distance   = inner_distance,
     Read_5p          = identity_5p,
@@ -211,7 +216,11 @@ process_fragment <- function(df_sam,
     BASE_5p          = r_info_5p$base,
     BASE_3p          = r_info_3p$base,
     BASQ_5p          = r_info_5p$qual,
-    BASQ_3p          = r_info_3p$qual
+    BASQ_3p          = r_info_3p$qual,
+    CIGAR_5p         = read_stats_5p$CIGAR,
+    CIGAR_3p         = read_stats_3p$CIGAR,
+    Pos_bam_5p       = read_stats_5p$POS,
+    Pos_bam_3p       = read_stats_3p$POS
   )
 
   # -------------------------------

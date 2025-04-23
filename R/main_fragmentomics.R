@@ -223,10 +223,24 @@ process_fragmentomics <- function(
         report_5p_3p_bases_fragment
       )
     }
+    # -------------------------------
+    # Calculate VAF of the fragment
+    # -------------------------------
+    df_fragments_info$VAF <- NA
+    if (any(df_fragments_info$Fragment_Status == "MUT")) {
+      total_mut <- sum(df_fragments_info$Fragment_Status == "MUT", na.rm = TRUE)
+      total <- nrow(df_fragments_info)
+      total_valid <- total - sum(df_fragments_info$Fragment_Status == "Error_1_read_should_cover_the_position", na.rm = TRUE)
+
+      df_fragments_info$VAF <- 100 * total_mut / total_valid
+    } else {
+      df_fragments_info$VAF <- NA
+    }
 
     # Fusion into the final df
     final_df_fragments_info <- rbind(final_df_fragments_info, df_fragments_info)
   }
+
   # Stop cluster
   parallel::stopCluster(cl)
 

@@ -29,6 +29,20 @@ clean:
 	$(RM) -r $(PKGNAME).Rcheck/
 	$(RM) -f tags
 	$(RM) -f $(PKGNAME)_$(PKGVERS).pdf
- 
+
 clean-all: clean
-	$(RM) -r $(PKGNAME)_$(PKGVERS).tar.gz 
+	$(RM) -r $(PKGNAME)_$(PKGVERS).tar.gz
+
+# --------------------------
+# Coverage and code quality
+# --------------------------
+.PHONY: coverage upload-coverage badge
+
+coverage:
+	$(R) -e "cov <- covr::package_coverage(type = 'tests'); print(cov)"
+
+upload-coverage:
+	$(R) -e "cov <- covr::package_coverage(type = 'tests'); covr::codecov(coverage = cov)"
+
+badge:
+	$(R) -e "cov <- covr::package_coverage(type = 'tests'); cat(covr::badge(cov))"
