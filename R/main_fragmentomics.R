@@ -208,7 +208,7 @@ process_fragmentomics <- function(
       .inorder = FALSE,
       .multicombine = FALSE,
       .packages = "fRagmentomics"
-    ) %do% {
+    ) %dopar% {
       process_fragment(
         df_sam,
         fragment_name = fragments_names[j],
@@ -223,6 +223,7 @@ process_fragmentomics <- function(
         report_5p_3p_bases_fragment
       )
     }
+
     # -------------------------------
     # Calculate VAF of the fragment
     # -------------------------------

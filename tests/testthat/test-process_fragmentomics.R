@@ -27,7 +27,7 @@ test_that("Process fRagmentomics", {
         report_5p_3p_bases_fragment = 5,
         tmp_folder = tempdir(),
         output_file = "./test.tsv", # file will be created in the current directory
-        n_cores = 1
+        n_cores = 3
     )
 
     # Check that each row of res1 matches a line in the mutation file

@@ -69,7 +69,7 @@ get_read_stats <- function(df_read) {
 #'
 #' @return A dataframe with the processed fragment information.
 #'
-#' @keywords internal
+#' @export
 process_fragment <- function(df_sam,
                              fragment_name,
                              sample_id,

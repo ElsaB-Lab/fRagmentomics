@@ -52,4 +52,3 @@ A dataframe with the processed fragment information.
 Process a single sequencing fragment
 Extracts and processes relevant data from a sequencing fragment.
 }
-\keyword{internal}
