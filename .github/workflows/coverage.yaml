@@ -9,16 +9,26 @@ on:
 jobs:
   covr:
     runs-on: ubuntu-latest
+
     steps:
+      # Get code (cache)
       - uses: actions/checkout@v3
+
+      # Install R
       - uses: r-lib/actions/setup-r@v2
-      - name: Install deps
+
+      # Install all dependencies CRAN + Bioconductor + covr
+      - name: Install package dependencies
         run: |
-          install.packages(c('remotes','covr'))
-          remotes::install_deps(dependencies = TRUE)
+          install.packages(c("remotes", "BiocManager", "covr"), repos = "https://cloud.r-project.org")
+          options(repos = BiocManager::repositories())  # ajoute les dépôts Bioconductor
+          BiocManager::install(ask = FALSE, update = FALSE)  # pkgs de base Bioc
+          remotes::install_deps(".", dependencies = TRUE)    # pkgs de ton DESCRIPTION
+        shell: Rscript {0}
+
+      # Run test and upload codecove cov
       - name: Run tests & upload coverage
         run: |
-          library(covr)
-          cov <- covr::package_coverage(type = 'tests')
-          covr::codecov(coverage = cov)
+          cov <- covr::package_coverage(type = "tests")
+          covr::codecov(coverage = cov, branch = "main")
         shell: Rscript {0}
