@@ -79,7 +79,7 @@ get_insertion <- function(pos, alt, r_pos, r_cigar, r_query, r_qual) {
   }
 
   # Check if read covers the position of interest
-  if ((current_pos - 1) > pos) {
+  if ((current_pos - 1) >= pos) {
     pos_is_readed <- TRUE
   }
 

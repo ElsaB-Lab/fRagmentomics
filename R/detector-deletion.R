@@ -27,7 +27,6 @@ get_deletion <- function(pos, ref, r_pos, r_cigar, r_qual) {
 
     if (op_type %in% c("M", "N", "=", "X")) {
       # M: match or mismatch, N: skip in the ref, =: perfect match, X: mismatch
-      current_pos <- current_pos + op_len
     } else if (op_type == "D") {
       # D: deletion in the read (missing in the read compared to the reference)
       # Compare this deletion to the one in the reference
@@ -51,7 +50,7 @@ get_deletion <- function(pos, ref, r_pos, r_cigar, r_qual) {
   }
 
   # Check if read covers the position of interest
-  if ((current_pos - 1) > pos) {
+  if ((current_pos - 1) >= pos) {
     pos_is_readed <- TRUE
   }
 
