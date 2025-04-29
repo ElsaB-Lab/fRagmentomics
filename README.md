@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/ElsaB-Lab/fRagmentomics/branch/main/graph/badge.svg)](https://codecov.io/gh/ElsaB-Lab/fRagmentomics)
+
 # fRagmentomics
 
 **fRagmentomics** is an R package designed to integrate cell-free DNA (cfDNA) fragment features with mutational status to support the interpretation of liquid biopsies.  
