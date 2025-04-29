@@ -18,6 +18,8 @@ get_deletion <- function(pos, ref, r_pos, r_cigar, r_qual) {
   # Parse the CIGAR string
   # ops is a df with columns length and type; Each row for one operation
   ops <- parse_cigar(r_cigar)
+  # Current position in the lecture
+  read_cursor <- 0
 
   # Iterating over CIGAR operations
   current_pos <- r_pos # Current reference position, aligned with the read
@@ -25,37 +27,32 @@ get_deletion <- function(pos, ref, r_pos, r_cigar, r_qual) {
     op_len <- ops$length[i]
     op_type <- ops$type[i]
 
-    if (op_type %in% c("M", "N", "=", "X")) {
+    if (op_type %in% c("M", "=", "X")) {
       # M: match or mismatch, N: skip in the ref, =: perfect match, X: mismatch
-    } else if (op_type == "D") {
+      current_pos <- current_pos + op_len
+      read_cursor <- read_cursor + op_len
+    } else if (op_type %in% c("N", "D")) {
       # D: deletion in the read (missing in the read compared to the reference)
       # Compare this deletion to the one in the reference
-      diff_mutation_bam <- pos - (current_pos - 1)
-
-      # Check if position and length of deletion is correct
-      # Deletion sequence has already been check in the preprocessing
-      if ((ref_len == op_len) && (diff_mutation_bam == 0)) {
+      if (op_type == "D" && current_pos - 1 == pos && op_len == ref_len) {
         c_base <- paste0("-", substring(ref, 2))
-        c_qual <- find_c_qual(current_pos, r_pos, r_cigar, r_qual)
+        c_qual <- substr(r_qual, read_cursor, read_cursor)
         pos_is_readed <- TRUE
         break
       }
-
       # Advance the reference position after the deletion
       current_pos <- current_pos + op_len
+    } else if (op_type %in% c("I", "S")) {
+      # I : insertion ; S : soft-clip  -> Consume the lecture
+      read_cursor <- read_cursor + op_len
     } else {
-      # I, S, H, P: Insertion, Soft clip, Hard clip, Pad
+      # H, P: Insertion, Soft clip, Hard clip, Pad
       # No advance the reference position
     }
   }
 
-  # Check if read covers the position of interest
-  if ((current_pos - 1) >= pos) {
-    pos_is_readed <- TRUE
-  }
-
   # if the read does not cover the position of interest
-  if (pos_is_readed == FALSE) {
+  if (!pos_is_readed && (current_pos - 1) < pos) {
     c_base <- NA
     c_qual <- NA
   }

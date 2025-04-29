@@ -1,7 +1,7 @@
 test_that("get deletion", {
   # example 1 : deletion is correctly detected
   res1 <- get_deletion(
-    pos     = 9, # Position target the nucleotide before the deletion
+    pos     = 9,
     ref     = "TAT",
     r_pos   = 1,
     r_cigar = "9M2D10M",
@@ -36,7 +36,19 @@ test_that("get deletion", {
   expect_equal(res3$qual, "no_deletion_detected")
 
   # example 4: Case where the read doesn't cover the position of the deletion
-  res3 <- get_deletion(
+  res4 <- get_deletion(
+    pos     = 9,
+    ref     = "TAT",
+    r_pos   = 1,
+    r_cigar = "8M",
+    r_qual  = "########I##########"
+  )
+
+  expect_equal(res4$base, NA)
+  expect_equal(res4$qual, NA)
+
+  # example 5: Case where the read cover the position at the last nucleotide (nucleotide before the deletion)
+  res5 <- get_deletion(
     pos     = 9,
     ref     = "TAT",
     r_pos   = 1,
@@ -44,6 +56,18 @@ test_that("get deletion", {
     r_qual  = "########I##########"
   )
 
-  expect_equal(res3$base, NA)
-  expect_equal(res3$qual, NA)
+  expect_equal(res5$base, "no_deletion_detected")
+  expect_equal(res5$qual, "no_deletion_detected")
+
+  # example 6: Case where there are 2 deletions and the 2nd one is correct
+  res1 <- get_deletion(
+    pos     = 9,
+    ref     = "TAT",
+    r_pos   = 1,
+    r_cigar = "1M2D6M2D10M",
+    r_qual  = "######I##########"
+  )
+
+  expect_equal(res1$base, "-AT")
+  expect_equal(res1$qual, "I")
 })

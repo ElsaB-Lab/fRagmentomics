@@ -47,6 +47,7 @@ get_insertion <- function(pos, alt, r_pos, r_cigar, r_query, r_qual) {
 
   # Parse the CIGAR string
   ops <- parse_cigar(r_cigar)
+  read_cursor <- 0
 
   # Iterating over CIGAR operations
   current_pos <- r_pos # Current reference position, aligned with the read
@@ -54,37 +55,36 @@ get_insertion <- function(pos, alt, r_pos, r_cigar, r_query, r_qual) {
     op_len <- ops$length[i]
     op_type <- ops$type[i]
 
-    if (op_type %in% c("M", "D", "N", "=", "X")) {
+    if (op_type %in% c("M", "=", "X")) {
       # M: match or mismatch, D: deletion, N: skip in the ref,
       # =: perfect match, X: mismatch
       current_pos <- current_pos + op_len
+      read_cursor <- read_cursor + op_len
+    } else if (op_type %in% c("N", "D")) {
+      current_pos <- current_pos + op_len
     } else if (op_type == "I") {
       # I: insertion (addition in the read compared to the reference)
-      # Compare this insertion with the reference
-      diff_mutation_bam <- pos - (current_pos - 1)
-
-      # Sanity check of the insertion sequence
-      ins_seq <- get_seq_ins(op_len, current_pos, r_pos, r_cigar, r_query)
-
-      if ((ins_seq == alt) && (diff_mutation_bam == 0)) {
-        c_base <- paste0("+", substring(ins_seq, 2))
-        c_qual <- find_c_qual(current_pos, r_pos, r_cigar, r_qual)
-        pos_is_readed <- TRUE
-        break
+      # Position before the insertion
+      if (current_pos - 1 == pos) {
+        ins_seq <- substr(r_query, read_cursor, read_cursor + op_len)
+        if (ins_seq == alt) {
+          c_base <- paste0("+", substring(ins_seq, 2))
+          c_qual <- substr(r_qual, read_cursor, read_cursor)
+          pos_is_readed <- TRUE
+          break
+        }
       }
+      read_cursor <- read_cursor + op_len
+    } else if (op_type == "S") {
+      read_cursor <- read_cursor + op_len
     } else {
-      # S, H, P: Soft clip, Hard clip, Pad
-      # No advance the reference position
+      # H, P: Soft clip, Hard clip, Pad
+      # No advance the reference position and lecture
     }
   }
 
-  # Check if read covers the position of interest
-  if ((current_pos - 1) >= pos) {
-    pos_is_readed <- TRUE
-  }
-
   # if the read does not cover the position of interest
-  if (pos_is_readed == FALSE) {
+  if (!pos_is_readed && (current_pos - 1) < pos) {
     c_base <- NA
     c_qual <- NA
   }
