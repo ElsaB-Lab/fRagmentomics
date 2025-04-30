@@ -32,7 +32,7 @@ devtools::install_github("ElsaB-Lab/fRagmentomics")
 Here is a basic example of how to call the main function:
 
 ```r
-library(fRgamentomics)
+library(fRagmentomics)
 
 process_fragmentomics(
   mut = "/path/to/mutation_file.tsv",
