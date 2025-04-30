@@ -33,6 +33,7 @@ Here is a basic example of how to call the main function:
 
 ```r
 library(fRgamentomics)
+
 process_fragmentomics(
   mut = "/path/to/mutation_file.tsv",
   bam = "/path/to/bam_file.bam",
