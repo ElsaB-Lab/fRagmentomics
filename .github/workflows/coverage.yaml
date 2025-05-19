@@ -16,7 +16,12 @@ jobs:
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: '4.3.3' # Or the version you confirmed works
+          r-version: '4.3.3' # Or your confirmed working R version
+
+      - name: Check R version
+        run: |
+          Rscript --version
+        shell: bash
 
       - name: Install system dependencies for R packages
         run: |
@@ -31,23 +36,39 @@ jobs:
         run: |
           install.packages(c("remotes", "BiocManager"), repos = "https://cloud.r-project.org", Ncpus = 2)
           options(repos = BiocManager::repositories())
-          BiocManager::install(ask = FALSE, update = FALSE) # Ensures Bioconductor core packages are ready and sets Bioc version
-          
-          # dependencies = TRUE ensures 'Suggests' (like covr from DESCRIPTION) are installed
+          BiocManager::install(ask = FALSE, update = FALSE)
           remotes::install_deps(dependencies = TRUE, Ncpus = 2)
-
-          # Verify covr installation
           if (!requireNamespace("covr", quietly = TRUE)) {
             stop("covr package (expected from Suggests) was not installed. Check logs from 'remotes::install_deps'.")
           }
           print("'covr' package is available.")
         shell: Rscript {0}
 
-      - name: Run tests & upload coverage
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Token for Codecov
+      - name: Run tests & calculate coverage
+        id: run_coverage # Give an id to this step
         run: |
+          # This step will error out if tests fail, which is what we want to detect
           cov <- covr::package_coverage(type = "tests")
           print(cov) 
+          # The codecov upload will only happen if the above lines succeed
           covr::codecov(coverage = cov, token = Sys.getenv("CODECOV_TOKEN"))
         shell: Rscript {0}
+
+      - name: Show testthat failure log on error
+        if: failure() && steps.run_coverage.outcome == 'failure' # Only run if the 'run_coverage' step failed
+        run: |
+          echo "Run tests & calculate coverage step failed. Attempting to display testthat failure logs."
+          echo "Searching for testthat.Rout.fail in /tmp..."
+          # The path mentioned in the error log is like: /tmp/RtmXXXXX/R_LIBSYYYYY/fRagmentomics/fRagmentomics-tests/testthat.Rout.fail
+          # The RtmpXXXXX and R_LIBSYYYYY parts are dynamic.
+          # We will search for the fRagmentomics-specific failure log.
+          find /tmp -path "*/fRagmentomics/fRagmentomics-tests/testthat.Rout.fail" -print0 | while IFS= read -r -d $'\0' file; do
+            echo "Found test failure log: $file"
+            echo "--- Start of $file ---"
+            cat "$file"
+            echo "--- End of $file ---"
+          done
+          # As a fallback, list all .Rout.fail files if the specific one isn't found by the above
+          echo "Fallback: Searching for any testthat.Rout.fail files in /tmp..."
+          find /tmp -name "testthat.Rout.fail" -print -exec echo "--- Content of {} ---" \; -exec cat {} \; || echo "No testthat.Rout.fail files found with fallback."
+        shell: bash
