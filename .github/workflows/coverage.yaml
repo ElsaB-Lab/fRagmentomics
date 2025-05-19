@@ -16,37 +16,38 @@ jobs:
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: '4.3.3'
+          r-version: '4.3.3' # Or the version you confirmed works
 
-      - name: Check R version
+      - name: Install system dependencies for R packages
         run: |
-          echo "Vérification de la version de R via Rscript --version:"
-          Rscript --version
-          echo "Vérification de la version de R via R -e 'print(R.version.string)':"
-          R -e "print(R.version.string)"
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            libcurl4-openssl-dev \
+            libssl-dev \
+            libxml2-dev
         shell: bash
 
       - name: Install package dependencies
         run: |
           install.packages(c("remotes", "BiocManager"), repos = "https://cloud.r-project.org", Ncpus = 2)
           options(repos = BiocManager::repositories())
-          BiocManager::install(ask = FALSE, update = FALSE) # Or specify Bioc version
-          # dependencies = TRUE ensures 'Suggests' (like covr) are installed
+          BiocManager::install(ask = FALSE, update = FALSE) # Ensures Bioconductor core packages are ready and sets Bioc version
+          
+          # dependencies = TRUE ensures 'Suggests' (like covr from DESCRIPTION) are installed
           remotes::install_deps(dependencies = TRUE, Ncpus = 2)
 
           # Verify covr installation
           if (!requireNamespace("covr", quietly = TRUE)) {
-            stop("covr package (expected from Suggests) was not installed. Check logs.")
+            stop("covr package (expected from Suggests) was not installed. Check logs from 'remotes::install_deps'.")
           }
           print("'covr' package is available.")
         shell: Rscript {0}
 
       - name: Run tests & upload coverage
         env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Token for Codecov
         run: |
-          # Load covr package
           cov <- covr::package_coverage(type = "tests")
           print(cov) 
-          covr::codecov(coverage = cov, token = Sys.getenv("CODECOV_TOKEN")) # Use token for private repos
+          covr::codecov(coverage = cov, token = Sys.getenv("CODECOV_TOKEN"))
         shell: Rscript {0}
