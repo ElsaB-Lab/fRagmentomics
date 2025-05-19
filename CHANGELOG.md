@@ -11,4 +11,5 @@
   - **Other_MUT**: One read is covering and it's not ref or alt,
   - **Error_both_read_mut_with_other_alt**: Both reads cover the position but both are not ref or alt. Error because the mutation is supposed to be found in the sample.
 - For indels, if the position (nucleotide before the indel) is the last nucleotide of the read, the read will be considered as covering.
+- No graphic representation
 - No pipeline integration.
