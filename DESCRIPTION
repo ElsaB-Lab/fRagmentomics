@@ -1,6 +1,6 @@
 Package: fRagmentomics
 Title: Compute Fragments Statistics Of Sequencing Experiments
-Version: 0.0.1
+Version: 0.1.0
 Authors@R: c(
     person("Killian", "Maudet", email = "killian.maudet@gustaveroussy.fr",
 	   role = "aut"),

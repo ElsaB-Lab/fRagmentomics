@@ -33,7 +33,7 @@ get_deletion <- function(pos, ref, r_pos, r_cigar, r_qual) {
       read_cursor <- read_cursor + op_len
     } else if (op_type %in% c("N", "D")) {
       # D: deletion in the read (missing in the read compared to the reference)
-      # Compare this deletion to the one in the reference
+      # Deletion sequence has already been check in the preprocessing
       if (op_type == "D" && current_pos - 1 == pos && op_len == ref_len) {
         c_base <- paste0("-", substring(ref, 2))
         c_qual <- substr(r_qual, read_cursor, read_cursor)

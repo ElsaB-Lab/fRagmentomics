@@ -1,3 +1,4 @@
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
 [![codecov](https://codecov.io/gh/ElsaB-Lab/fRagmentomics/branch/main/graph/badge.svg)](https://codecov.io/gh/ElsaB-Lab/fRagmentomics)
 
 # fRagmentomics
