@@ -16,7 +16,7 @@ jobs:
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: '4.3.3' # Or your confirmed working R version
+          r-version: '4.3.3' 
 
       - name: Check R version
         run: |
@@ -32,43 +32,43 @@ jobs:
             libxml2-dev
         shell: bash
 
-      - name: Install package dependencies
+      - name: Install R package dependencies (including rcmdcheck)
         run: |
-          install.packages(c("remotes", "BiocManager"), repos = "https://cloud.r-project.org", Ncpus = 2)
+          # Install key tools for checking and dependency management
+          install.packages(c("rcmdcheck", "remotes", "BiocManager"), repos = "https://cloud.r-project.org", Ncpus = 2)
+          
+          # Set up Bioconductor
           options(repos = BiocManager::repositories())
-          BiocManager::install(ask = FALSE, update = FALSE)
+          BiocManager::install(ask = FALSE, update = FALSE) 
+          
+          # Install all package dependencies from DESCRIPTION (Imports, Depends, LinkingTo, Suggests)
+          # This will also install covr (from Suggests) and testthat (from Suggests or as a dep of covr)
           remotes::install_deps(dependencies = TRUE, Ncpus = 2)
-          if (!requireNamespace("covr", quietly = TRUE)) {
-            stop("covr package (expected from Suggests) was not installed. Check logs from 'remotes::install_deps'.")
+
+          # Verify rcmdcheck is available for the next step
+          if (!requireNamespace("rcmdcheck", quietly = TRUE)) {
+            stop("rcmdcheck package is required but was not installed.")
           }
-          print("'covr' package is available.")
         shell: Rscript {0}
 
-      - name: Run tests & calculate coverage
-        id: run_coverage # Give an id to this step
+      - name: Check package using rcmdcheck (runs tests)
         run: |
-          # This step will error out if tests fail, which is what we want to detect
+          options(crayon.enabled = TRUE) # For colored output if supported
+          # Test failures will be reported in detail in the output of this command.
+          check_results <- rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-build-vignettes", "--as-cran"), error_on = "warning")
+        shell: Rscript {0}
+
+      - name: Calculate and upload coverage (only if check passed)
+        # This step will only run if the 'Check package using rcmdcheck' step above succeeded
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: |
+          # Verify covr is available
+          if (!requireNamespace("covr", quietly = TRUE)) {
+            stop("covr package not found. It should have been installed from Suggests.")
+          }
+          # Tests are run again by covr here for coverage calculation
           cov <- covr::package_coverage(type = "tests")
           print(cov) 
-          # The codecov upload will only happen if the above lines succeed
           covr::codecov(coverage = cov, token = Sys.getenv("CODECOV_TOKEN"))
         shell: Rscript {0}
-
-      - name: Show testthat failure log on error
-        if: failure() && steps.run_coverage.outcome == 'failure' # Only run if the 'run_coverage' step failed
-        run: |
-          echo "Run tests & calculate coverage step failed. Attempting to display testthat failure logs."
-          echo "Searching for testthat.Rout.fail in /tmp..."
-          # The path mentioned in the error log is like: /tmp/RtmXXXXX/R_LIBSYYYYY/fRagmentomics/fRagmentomics-tests/testthat.Rout.fail
-          # The RtmpXXXXX and R_LIBSYYYYY parts are dynamic.
-          # We will search for the fRagmentomics-specific failure log.
-          find /tmp -path "*/fRagmentomics/fRagmentomics-tests/testthat.Rout.fail" -print0 | while IFS= read -r -d $'\0' file; do
-            echo "Found test failure log: $file"
-            echo "--- Start of $file ---"
-            cat "$file"
-            echo "--- End of $file ---"
-          done
-          # As a fallback, list all .Rout.fail files if the specific one isn't found by the above
-          echo "Fallback: Searching for any testthat.Rout.fail files in /tmp..."
-          find /tmp -name "testthat.Rout.fail" -print -exec echo "--- Content of {} ---" \; -exec cat {} \; || echo "No testthat.Rout.fail files found with fallback."
-        shell: bash
