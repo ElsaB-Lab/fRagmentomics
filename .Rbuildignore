@@ -2,3 +2,7 @@
 ^Makefile$
 ^index.html$
 ^pipeline$
+usethis::use_build_ignore(".github")
+^\.github$
+^CHANGELOG\.md$
+^fRagmentomics\.yaml$

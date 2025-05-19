@@ -68,6 +68,6 @@ test_that("get deletion", {
     r_qual  = "######I##########"
   )
 
-  expect_equal(res7$base, "-AT")
-  expect_equal(res7$qual, "I")
+  expect_equal(res6$base, "-AT")
+  expect_equal(res6$qual, "I")
 })

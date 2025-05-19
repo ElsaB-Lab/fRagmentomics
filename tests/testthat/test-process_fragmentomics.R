@@ -27,7 +27,7 @@ test_that("Process fRagmentomics", {
         report_5p_3p_bases_fragment = 5,
         tmp_folder = tempdir(),
         output_file = "./test.tsv", # file will be created in the current directory
-        n_cores = 3
+        n_cores = 2
     )
 
     # Check that each row of res1 matches a line in the mutation file
@@ -45,7 +45,7 @@ test_that("Process fRagmentomics", {
     # Check that we have the expected columns
     expected_cols <- c(
         "Chromosome", "Position", "Ref", "Alt",
-        "Fragment_QC", "Fragment_Status", "Absolute_size",
+        "Fragment_QC", "Fragment_Status", "Fragment_size",
         "Inner_distance", "MAPQ_5p", "MAPQ_3p",
         "BASE_5p", "BASE_3p", "BASQ_5p", "BASQ_3p",
         "Pos_bam_3p", "Pos_bam_5p", "CIGAR_3p", "CIGAR_5p",
