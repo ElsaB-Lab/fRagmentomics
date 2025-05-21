@@ -1,9 +1,0 @@
-name: cfdna_snakemake_v7
-channels:
-  - conda-forge
-  - defaults
-  - bioconda
-dependencies:
-  - snakemake=7
-  - pandas
-  - mamba

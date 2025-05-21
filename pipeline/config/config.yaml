@@ -1,5 +1,4 @@
 general:
-    tmpdir: /mnt/beegfs/scratch/j_samaniego/tmp
     samples: config/samples.tsv 
     mutations: config/mutations.tsv
 
@@ -10,10 +9,11 @@ general:
         disable: false
         project_names:
             - TP53_Y220C
+            - FRAGMENTOMICS
 
 #Tools versions
 tools_versions:
-    fragmentomics: "0.0.3"
+    fragmentomics: "0.1.0"
 
 
 ref:
@@ -22,19 +22,12 @@ ref:
     # genome build
     build: hg19
     # fasta file
-    fasta: /mnt/beegfs/database/bioinfo/Index_DB/BWA/0.7.17/UCSC/hg19.fa
-    # dict file
-    dict: /mnt/beegfs/database/bioinfo/Index_DB/BWA/0.7.17/UCSC/hg19.dict
+    fasta: /mnt/beegfs02/database/bioinfo/Index_DB/BWA/0.7.17/UCSC/hg19.fa
 
 
 params:
   fragments:
-    neg_offset: -1000
-    pos_offset: 1000
-  picard_flag:
+    neg_offset: -300
+    pos_offset: 300
     flag_keep: 0x03
     flag_remove: 0x900
-  picard:
-        MarkDuplicates:
-            remove_duplicates: true
-

@@ -1,5 +1,5 @@
-# @created: 08 Apr 24
-# @modified: 17 Oct 24
+# @created: 20 May 25
+# @modified: 20 May 25
 # @author: Yoann Pradat
 #
 # This pipeline runs an analysis of reads characteristics from cfDNA experiments starting from BAM files.
@@ -8,32 +8,20 @@ include: "rules/common.smk"
 
 ##### Target rules #####
 
-localrules: irods_get_data
-
 def get_input_rule_all(w):
     inputs = []
     # +++++++++
     #### IRODS
     # +++++++++
     # BAM, BAI, PDF, XML
-    # inputs += expand('%s/data/bam/{sample}.bam' % R_FOLDER, sample=samples)
-    # inputs += expand('%s/data/bam/{sample}.bam.bai' % R_FOLDER, sample=samples)
-    # inputs += expand('%s/data/pdf/{sample}.pdf' % R_FOLDER, sample=samples)
-    # inputs += expand('%s/data/xml/{sample}.xml' % R_FOLDER, sample=samples)
+    inputs += expand('%s/data/bam/{sample}.bam' % R_FOLDER, sample=samples)
+    inputs += expand('%s/data/bam/{sample}.bam.bai' % R_FOLDER, sample=samples)
+    inputs += expand('%s/data/pdf/{sample}.pdf' % R_FOLDER, sample=samples)
+    inputs += expand('%s/data/xml/{sample}.xml' % R_FOLDER, sample=samples)
     # +++++++++
-    #### QC
+    #### FRAGMENTOMICS
     # +++++++++
-    # inputs += expand('%s/qc/fastqc/{sample}_fastqc.html' % R_FOLDER, sample=samples)
-    # inputs += expand("%s/qc/samtools_stats/{sample}_stats.tsv" % R_FOLDER, sample=samples)
-    # inputs += expand("%s/qc/samtools_flagstat/{sample}_flagstat.tsv" % R_FOLDER, sample=samples)
-    # inputs += expand("%s/qc/collect_multiple_metrics_{sample}" % R_FOLDER, sample=samples)
-    # ++++++++++
-    #### RESULTS
-    # ++++++++++
-    inputs += expand('%s/fragments/fragmentomics/{sample}_{chr}_{pos}.tsv' % R_FOLDER,
-        get_allowed_sample_chr_pos(), sample=samples, chr=chr_all, pos=pos_all)
-    inputs += expand('%s/fragments/fragmentomics_mut_status/{sample}_{chr}_{pos}_mut_status.tsv' % R_FOLDER,
-        get_allowed_sample_chr_pos(), sample=samples, chr=chr_all, pos=pos_all)
+    inputs += expand('%s/fragmentomics/{sample}.tsv' % R_FOLDER, sample=samples)
     return inputs
 
 rule all:
@@ -44,9 +32,7 @@ rule all:
 
 include: "rules/setup.smk"
 include: "rules/irods.smk"
-include: "rules/qc.smk"
 include: "rules/fragments.smk"
-include: "rules/mutations_status.smk"
 
 ##### End messages #####
 
