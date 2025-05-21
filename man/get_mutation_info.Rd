@@ -5,7 +5,14 @@
 \title{Retrieve mutation-specific information:
 Extracts base, quality, and indel informations based on the mutation type.}
 \usage{
-get_mutation_info(mutation_type, pos, ref, alt, read_stats)
+get_mutation_info(
+  mutation_type,
+  pos,
+  ref,
+  alt,
+  read_stats,
+  pos_after_indel_repetition
+)
 }
 \arguments{
 \item{mutation_type}{In "SNV", "deletion", or "insertion".}
@@ -17,6 +24,9 @@ get_mutation_info(mutation_type, pos, ref, alt, read_stats)
 \item{alt}{Character vector representing alternative base(s).}
 
 \item{read_stats}{A list of read-level statistics.}
+
+\item{pos_after_indel_repetition}{Integer. The position after the indel
+repetion.}
 }
 \value{
 A list containing "base", "qual".

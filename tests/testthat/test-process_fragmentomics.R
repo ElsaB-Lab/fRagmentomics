@@ -46,7 +46,7 @@ test_that("Process fRagmentomics", {
     expected_cols <- c(
         "Chromosome", "Position", "Ref", "Alt",
         "Fragment_QC", "Fragment_Status", "Fragment_size",
-        "Inner_distance", "MAPQ_5p", "MAPQ_3p",
+        "Inner_distance", "MAPQ_5p", "MAPQ_3p", "Read_5p",
         "BASE_5p", "BASE_3p", "BASQ_5p", "BASQ_3p",
         "Pos_bam_3p", "Pos_bam_5p", "CIGAR_3p", "CIGAR_5p",
         "VAF"

@@ -183,6 +183,24 @@ process_fragmentomics <- function(
     # Return the mutation status in SNV, ins, del, MNP
     mutation_type <- define_mutation_status(ref_final, alt_final)
 
+    # Get the position of the nucleotide after a possible repeted sequence
+    pos_after_indel_repetition <- 0
+    if (mutation_type == "deletion" || mutation_type == "deletion") {
+      pos_after_indel_repetition <- get_repetition_seq_info(
+        chr = chr_final,
+        pos = pos_final,
+        ref = ref_final,
+        alt = alt_final,
+        fasta = fasta_loaded,
+        mutation_type
+      )
+
+      # Sanity check to see if pos_after_indel_repetition worked properly
+      if (is.null(pos_after_indel_repetition)) {
+        next
+      }
+    }
+
     # Read and extract bam around the mutation position
     # Return a truncated sam
     df_sam <- read_bam(
@@ -217,6 +235,7 @@ process_fragmentomics <- function(
         pos = pos_final,
         ref = ref_final,
         alt = alt_final,
+        pos_after_indel_repetition,
         mutation_type,
         report_tlen,
         report_softclip,
