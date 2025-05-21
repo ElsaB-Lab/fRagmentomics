@@ -40,7 +40,7 @@ rule fragmentomics:
     resources:
         queue="shortq",
         mem_mb=8000,
-        time_min=60
+        time_min=120
     shell:
         """
         eval "$(conda shell.bash hook)"
