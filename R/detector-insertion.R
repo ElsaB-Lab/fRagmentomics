@@ -44,7 +44,6 @@ get_insertion <- function(pos, alt, r_pos, r_cigar, r_query, r_qual, pos_after_i
 
   # Length of the purely inserted sequence
   insertion_actual_length <- nchar(alt) - 1
-  inserted_sequence <- substring(alt, 2)
 
   if (insertion_actual_length <= 0) {
     warning(paste0(
@@ -76,19 +75,23 @@ get_insertion <- function(pos, alt, r_pos, r_cigar, r_query, r_qual, pos_after_i
       if ((ref_pos_at_start_of_op - 1 == pos) &&
         op_len == insertion_actual_length) {
         # Extract inserted sequence from r_query.
-        if (read_cursor > 0) {
+        if (read_cursor > 0 &&
+          (substr(r_query, read_cursor, read_cursor) == substr(alt, 1, 1))) {
           seq_from_read <- substr(r_query, read_cursor, read_cursor + op_len)
 
-          if (seq_from_read == alt) {
-            insertion_op_found_in_cigar <- TRUE
-            c_base_found <- paste0("+", inserted_sequence)
+          insertion_op_found_in_cigar <- TRUE
+          c_base_found <- paste0("+", substring(seq_from_read, 2))
 
-            # Extract the quality of the inserted sequence
-            c_qual_found <- substr(r_qual, read_cursor, read_cursor)
-          }
+          # Extract the quality of the inserted sequence
+          c_qual_found <- substr(r_qual, read_cursor, read_cursor)
+        } else if (read_cursor > 0 &&
+          (substr(r_query, read_cursor, read_cursor) != substr(alt, 1, 1))) {
+          insertion_op_found_in_cigar <- TRUE
+          c_base_found <- "no_insertion_detected"
+          c_qual_found <- "no_insertion_detected"
         } else {
           insertion_op_found_in_cigar <- TRUE
-          c_base_found <- NA_character_ # Insertion at the very start of the read
+          c_base_found <- NA_character_ # Insertion at the  start of the read
           c_qual_found <- NA_character_
         }
       }

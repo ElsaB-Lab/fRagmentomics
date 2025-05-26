@@ -33,7 +33,7 @@ get_mutation_info <- function(mutation_type, pos, ref, alt, read_stats, pos_afte
     )
   } else if (mutation_type == "deletion") {
     return(
-      get_deletion(
+      get_info_deletion(
         pos      = pos,
         ref      = ref,
         r_pos    = read_stats$POS,

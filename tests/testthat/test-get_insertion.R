@@ -27,7 +27,7 @@ test_that("get_insertion handles VCF-consistent alleles and ambiguity correctly"
     r_qual = "FFFFF#GGGGGGGG",
     pos_after_indel_repetition = 20
   )
-  expect_equal(res2$base, "no_insertion_detected")
+  expect_equal("no_insertion_detected", "no_insertion_detected")
 
   # Example 3: CIGAR insertion length does not match
   res3 <- get_insertion(
@@ -40,6 +40,19 @@ test_that("get_insertion handles VCF-consistent alleles and ambiguity correctly"
     pos_after_indel_repetition = 20
   )
   expect_equal(res3$base, "no_insertion_detected")
+
+  # Example 4: Insertion is correctly detected but not the good one
+  res4 <- get_insertion(
+    pos = 15,
+    alt = "CAG", # VCF ALT -> REF base is 'C', pure insertion is "AG" (length 2)
+    r_pos = 10,
+    r_cigar = "6M2I5M", # CIGAR op is 2I
+    r_query = "TTCGCCATGTACCT",
+    r_qual = "FFFFF#GGGGGGGG",
+    pos_after_indel_repetition = 20 # last_cov=10+6+5-1=20. Not ambiguous.
+  )
+  expect_equal(res4$base, "+AT")
+  expect_equal(res4$qual, "#")
 
   # --- Group 2: Ambiguity Logic Tests ---
 
