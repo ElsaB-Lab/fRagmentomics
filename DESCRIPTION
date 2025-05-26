@@ -11,7 +11,7 @@ Authors@R: c(
     person("Elsa", "Bernard", email = "elsa.bernard@gustaveroussy.fr",
 	   role = "aut", comment = c(ORCID = "0000-0002-2057-7187"))
   )
-Description: What the package does (one paragraph).
+Description: fRagmentomics is an R package designed to integrate cell-free DNA (cfDNA) fragment features with mutational status to support the interpretation of liquid biopsies.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
