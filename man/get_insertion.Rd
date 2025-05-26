@@ -2,9 +2,17 @@
 % Please edit documentation in R/detector-insertion.R
 \name{get_insertion}
 \alias{get_insertion}
-\title{Get the informations about the presence of a insertion in the read.}
+\title{Get the informations about the presence of an insertion in the read.}
 \usage{
-get_insertion(pos, alt, r_pos, r_cigar, r_query, r_qual)
+get_insertion(
+  pos,
+  alt,
+  r_pos,
+  r_cigar,
+  r_query,
+  r_qual,
+  pos_after_indel_repetition
+)
 }
 \arguments{
 \item{pos}{numeric value representing the position of interest}
@@ -18,11 +26,38 @@ get_insertion(pos, alt, r_pos, r_cigar, r_query, r_qual)
 \item{r_query}{character vector representing the read base sequence}
 
 \item{r_qual}{character vector representing the read sequencing qualities}
+
+\item{pos_after_indel_repetition}{integer, 1-based genomic position of the
+first reference nucleotide after the (potentially repetitive)
+region involved in the indel. This position is used
+to determine if a read is long enough to be considered
+unambiguous. If the read does not cover sufficiently up to
+this position, it may be marked "ambiguous".}
 }
 \value{
-a named list with names \code{base},\code{qual}.
+a named list with names 'base','qual'.
+'base' can be:
+- 'NA': 'pos' is invalid, or read does not cover 'pos'.
+- '"ambiguous"': Read coverage is insufficient relative to 'pos_after_indel_repetition'
+to make an unambiguous call. This status is assigned if
+'last_ref_pos_covered_by_read < pos_after_indel_repetition'.
+This determination overrides CIGAR-based findings if the read
+is deemed too short by this rule.
+- '"+INSERTED_SEQ"': The specific insertion CIGAR operation was
+detected (e.g., '"+CAG"') and the read is long enough
+to be considered unambiguous.
+- '"no_insertion_detected"': No specific insertion CIGAR operation
+was found and the read is long enough to be considered
+unambiguous (WT).
+'qual' provides:
+- 'NA' if 'base' is 'NA', or if an insertion
+CIGAR operation is found at the very start of the aligned read
+portion (and the call is not "ambiguous").
+- "ambiguous" if base is "ambiguous".
+- The quality score of the read base preceding the insertion.
+- "no_insertion_detected" if base is "no_insertion_detected".
 }
 \description{
-Get the informations about the presence of a insertion in the read.
+Get the informations about the presence of an insertion in the read.
 }
 \keyword{internal}

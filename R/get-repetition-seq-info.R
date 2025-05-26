@@ -41,6 +41,7 @@ get_repetition_seq_info <- function(chr, pos, ref, alt, fasta, mutation_type) {
     return(NULL)
   }
 
+  # Warning if the derived indel sequence is empty
   if (nchar(indel_seq) == 0) {
     warning(paste0(
       "Derived indel sequence is empty for REF='", ref, "', ALT='", alt,
@@ -52,12 +53,13 @@ get_repetition_seq_info <- function(chr, pos, ref, alt, fasta, mutation_type) {
     return(NULL)
   }
 
+  # Initialize the current genomic position to the next base after the indel anchor
   current_genome_pos <- pos + 1
   indel_seq_len <- nchar(indel_seq)
   indel_char_idx <- 1 # 1-based index for substring
 
   # Max iterations to prevent potential infinite loops with unusual FASTA/indel inputs
-  max_interations <- 1000000
+  max_interations <- 100000
   iterations <- 0
 
   while (TRUE) {
@@ -96,7 +98,7 @@ get_repetition_seq_info <- function(chr, pos, ref, alt, fasta, mutation_type) {
 
         # Return a classed error object to differentiate error types
         # Check for common patterns in error messages for "chromosome not found"
-        if (iterations == 1 && grepl("not found|non-existent sequence|no .faidx entry for", e$message, ignore.case = TRUE)) {
+        if (grepl("not found|non-existent sequence|no .faidx entry|failed to retrieve|record.*failed", e$message, ignore.case = TRUE)) {
           return(structure(list(message = e$message, pos = current_genome_pos), class = "ChromosomeNotFoundError"))
         } else {
           # For other errors like reading past end of an existing chromosome
@@ -109,6 +111,12 @@ get_repetition_seq_info <- function(chr, pos, ref, alt, fasta, mutation_type) {
     if (inherits(genome_base_seq_or_error, "ChromosomeNotFoundError")) {
       return(NULL)
     } else if (inherits(genome_base_seq_or_error, "SeqReadError")) {
+      return(current_genome_pos)
+    }
+
+    # Handle cases where getSeq() reads past the chromosome end without erroring
+    # returning an empty DNAStringSet instead.
+    if (length(genome_base_seq_or_error) == 0) {
       return(current_genome_pos)
     }
 

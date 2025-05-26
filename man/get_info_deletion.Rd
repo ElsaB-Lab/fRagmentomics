@@ -34,7 +34,7 @@ long enough to be unambiguous = WT.
 to make an unambiguous call. This status is assigned if
 'last_ref_pos_covered_by_read < (pos_after_indel_repetition - deletion_length)'.
 'qual' provides the quality score of the base preceding the deletion if
-detected, "ambiguous" if base is "ambiguous", NA_character_ if base is
+detected, "ambiguous" if base is "ambiguous", NA if base is
 NA, or "no_deletion_detected".
 }
 }
