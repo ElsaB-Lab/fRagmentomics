@@ -81,73 +81,65 @@ get_info_deletion <- function(pos, ref, r_pos, r_cigar, r_qual, pos_after_indel_
   #-------------------------------------------------
   # Final decision on deletion status
   #-------------------------------------------------
-  # Initialize with default "no_deletion_detected" state
-  final_c_base <- "no_deletion_detected"
-  final_c_qual <- "no_deletion_detected"
 
-  # 1. Check if read doesn't even reach the base before the deletion.
+  # Check if the position is valid.
   if (pos < 1) {
     warning(paste0(
       "'get_deletion': 'pos' (", pos,
       ") is not a valid 1-based coordinate for the base preceding a deletion. Returning NA."
     ))
-    final_c_base <- NA_character_
-    final_c_qual <- NA_character_
-  } else if (last_ref_pos_covered_by_read < pos) {
-    final_c_base <- NA_character_
-    final_c_qual <- NA_character_
-  } else {
-    # 2. Check for ambiguity due to read length.
-    is_ambiguous_due_to_length <- FALSE
+    return(list(base = NA_character_, qual = NA_character_))
+  }
 
-    # Conditions for applying the ambiguity rule meaningfully:
-    # - pos_after_indel_repetition must be a valid positive number.
-    # - deletion_length must be positive.
+  # Check if the read covers the indel position.
+  if (last_ref_pos_covered_by_read < pos) {
+    # The read does not cover the position of interest.
+    return(list(base = NA_character_, qual = NA_character_))
+  }
 
-    can_evaluate_ambiguity_rule <- TRUE # Flag to check if rule can be evaluated
+  # Check for ambiguity.
+  can_evaluate_ambiguity_rule <- TRUE
+  if (is.null(pos_after_indel_repetition) || is.na(pos_after_indel_repetition) || !is.numeric(pos_after_indel_repetition)) {
+    warning("'get_deletion': 'pos_after_indel_repetition' is missing, NA, or not numeric. Ambiguity rule based on read length cannot be applied.")
+    can_evaluate_ambiguity_rule <- FALSE
+  } else if (pos_after_indel_repetition <= 0) {
+    warning(paste0(
+      "'get_deletion': 'pos_after_indel_repetition' (", pos_after_indel_repetition,
+      ") must be positive for the ambiguity rule. Rule cannot be applied meaningfully."
+    ))
+    can_evaluate_ambiguity_rule <- FALSE
+  }
 
-    if (is.null(pos_after_indel_repetition) || is.na(pos_after_indel_repetition) || !is.numeric(pos_after_indel_repetition)) {
-      warning("'get_deletion': 'pos_after_indel_repetition' is missing, NA, or not numeric. Ambiguity rule based on read length cannot be applied.")
-      can_evaluate_ambiguity_rule <- FALSE
-    } else if (pos_after_indel_repetition <= 0) {
-      warning(paste0(
-        "'get_deletion': 'pos_after_indel_repetition' (", pos_after_indel_repetition,
-        ") must be positive for the ambiguity rule. Rule cannot be applied meaningfully."
-      ))
-      can_evaluate_ambiguity_rule <- FALSE
-    }
+  # The ambiguity rule cannot be applied if it's not a positive-length deletion.
+  if (can_evaluate_ambiguity_rule && deletion_length <= 0) {
+    warning(paste0(
+      "'get_deletion': 'deletion_length' (", deletion_length,
+      ") must be positive for the ambiguity rule related to deletions. Rule cannot be applied in this context."
+    ))
+    can_evaluate_ambiguity_rule <- FALSE
+  }
 
-    # Ambiguity rule cannot be applied if it's not a positive length deletion.
-    if (can_evaluate_ambiguity_rule && deletion_length <= 0) {
-      warning(paste0(
-        "'get_deletion': 'deletion_length' (", deletion_length,
-        ") must be positive for the ambiguity rule related to deletions. Rule cannot be applied in this context."
-      ))
-      can_evaluate_ambiguity_rule <- FALSE
-    }
+  if (can_evaluate_ambiguity_rule) {
+    threshold_ref_pos <- pos_after_indel_repetition - deletion_length
 
-    if (can_evaluate_ambiguity_rule) {
-      # All conditions met for a meaningful evaluation of the ambiguity rule.
-      threshold_ref_pos <- pos_after_indel_repetition - deletion_length
-      if (last_ref_pos_covered_by_read < threshold_ref_pos) {
-        is_ambiguous_due_to_length <- TRUE
+    if (nrow(ops) > 0) { # Ensure the CIGAR string was not empty
+      if (op_type == "D") {
+        last_ref_pos_covered_by_read <- last_ref_pos_covered_by_read - op_len
       }
     }
 
-    if (is_ambiguous_due_to_length) {
-      final_c_base <- "ambiguous"
-      final_c_qual <- "ambiguous"
-    } else {
-      # Not NA, and not ambiguous by length.
-      # Status now depends only on whether the specific CIGAR D operation was found.
-      if (deletion_op_found_in_cigar) {
-        final_c_base <- c_base_found
-        final_c_qual <- c_qual_found
-      } else {
-        # No D op found, not NA, not ambiguous by length -> "no_deletion_detected".
-      }
+    if (last_ref_pos_covered_by_read < threshold_ref_pos) {
+      # The read is too short to be certain, so it's ambiguous. Return immediately.
+      return(list(base = "ambiguous", qual = "ambiguous"))
     }
   }
 
-  list(base = final_c_base, qual = final_c_qual)
+  # If the read is long enough (not ambiguous) and covers the site, return the result
+  # based on the CIGAR string analysis performed earlier.
+  if (deletion_op_found_in_cigar) {
+    return(list(base = c_base_found, qual = c_qual_found))
+  } else {
+    # No D op found, not NA, not ambiguous by length -> "no_deletion_detected".
+    return(list(base = "no_deletion_detected", qual = "no_deletion_detected"))
+  }
 }

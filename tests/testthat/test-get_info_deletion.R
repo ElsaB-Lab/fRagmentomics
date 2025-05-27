@@ -42,7 +42,7 @@ test_that("get_info_deletion", {
     r_pos = 1,
     r_cigar = "8M", # Covers 1+8-1=8. pos is 9. Fails coverage check.
     r_qual = "########",
-    pos_after_indel_repetition = 12 # Value doesn't matter here
+    pos_after_indel_repetition = 11 # Value doesn't matter here
   )
   expect_equal(res4$base, NA_character_)
   expect_equal(res4$qual, NA_character_)
@@ -89,14 +89,18 @@ test_that("get_info_deletion", {
   # Ambiguity logic tests
   generic_qual <- paste0(rep("F", 50), collapse = "")
 
-  # N1: Ambiguous - Deletion op PRESENT, but read too short
+  # N1: Ambiguous - Deletion op PRESENT, but read too short and finish by D
+  # Ref: CGACCT / Alt: CG   T
   res_n1 <- get_info_deletion(
-    pos = 10, ref = "GACC",
+    pos = 2, ref = "GACC",
     r_pos = 1,
-    r_cigar = "10M3D2M", # del "ACC", len 3. last_cov=1+10+3+2-1=15
+    r_cigar = "2M3D", # del "ACC", len 3. last_cov=1+2+3+1-1=6
     r_qual = generic_qual,
-    pos_after_indel_repetition = 20 # threshold = 20-3=17. 15 < 17.
+    pos_after_indel_repetition = 6 # Position of the T - 3
   )
+  # Last read covered = 5 - 3 (because D is the last operation) = 2
+  # Treshold_ref_pos = 6-3 = 3
+  # Treshold_ref_pos > Last read covered so ambiguous
   expect_equal(res_n1$base, "ambiguous")
   expect_equal(res_n1$qual, "ambiguous")
 

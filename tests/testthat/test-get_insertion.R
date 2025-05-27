@@ -56,7 +56,7 @@ test_that("get_insertion handles VCF-consistent alleles and ambiguity correctly"
 
   # --- Group 2: Ambiguity Logic Tests ---
 
-  # N1: Ambiguous - Insertion op PRESENT (and fully correct), but read too short
+  # N1: Ambiguous - Insertion op PRESENT, but read too short
   res_n1 <- get_insertion(
     pos = 15, alt = "CAG", r_pos = 10, r_cigar = "6M2I5M", # last_cov = 20
     r_query = "TTCGCCAGAGA", r_qual = generic_qual, # Correct read sequence
@@ -98,4 +98,15 @@ test_that("get_insertion handles VCF-consistent alleles and ambiguity correctly"
   )
   expect_equal(res_n4$base, NA_character_)
   expect_equal(res_n4$qual, NA_character_)
+
+  # N5: Ambiguous - Insertion op PRESENT, but read too short (limit)
+  res_n5 <- get_insertion(
+    # ref = TTCGCCT
+    pos = 15, alt = "CA", r_pos = 10, r_cigar = "6M", # last_cov = 20
+    r_query = "TTCGCC", r_qual = generic_qual, # Correct read sequence
+    pos_after_indel_repetition = 16 # T after the insertion
+  )
+  # last_nucleotide_read < pos_after_indel_repetition
+  expect_equal(res_n5$base, "ambiguous")
+  expect_equal(res_n5$qual, "ambiguous")
 })

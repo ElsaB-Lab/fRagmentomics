@@ -108,60 +108,51 @@ get_insertion <- function(pos, alt, r_pos, r_cigar, r_query, r_qual, pos_after_i
   #-------------------------------------------------
   # Final decision on insertion status
   #-------------------------------------------------
-  final_c_base <- "no_insertion_detected"
-  final_c_qual <- "no_insertion_detected"
-
+  # Handle invalid input.
   if (pos < 1) {
     warning(paste0(
       "'get_insertion': 'pos' (", pos,
       ") is not a valid 1-based coordinate for the base preceding an insertion. Returning NA."
     ))
-    final_c_base <- NA_character_
-    final_c_qual <- NA_character_
-  } else if (last_ref_pos_covered_by_read < pos) {
-    final_c_base <- NA_character_
-    final_c_qual <- NA_character_
-  } else {
-    is_ambiguous_due_to_length <- FALSE
-    can_evaluate_ambiguity_rule <- TRUE
+    return(list(base = NA_character_, qual = NA_character_))
+  }
 
-    if (is.null(pos_after_indel_repetition) || is.na(pos_after_indel_repetition) || !is.numeric(pos_after_indel_repetition)) {
-      warning("'get_insertion': 'pos_after_indel_repetition' is missing, NA, or not numeric. Ambiguity rule based on read length cannot be applied.")
-      can_evaluate_ambiguity_rule <- FALSE
-    } else if (pos_after_indel_repetition <= 0) {
-      warning(paste0(
-        "'get_insertion': 'pos_after_indel_repetition' (", pos_after_indel_repetition,
-        ") must be positive for the ambiguity rule. Rule cannot be applied meaningfully."
-      ))
-      can_evaluate_ambiguity_rule <- FALSE
-    }
+  # Check for ambiguity, as this overrides all other findings.
+  can_evaluate_ambiguity_rule <- TRUE
+  if (is.null(pos_after_indel_repetition) || is.na(pos_after_indel_repetition) || !is.numeric(pos_after_indel_repetition)) {
+    warning("'get_insertion': 'pos_after_indel_repetition' is missing, NA, or not numeric. Ambiguity rule based on read length cannot be applied.")
+    can_evaluate_ambiguity_rule <- FALSE
+  } else if (pos_after_indel_repetition <= 0) {
+    warning(paste0(
+      "'get_insertion': 'pos_after_indel_repetition' (", pos_after_indel_repetition,
+      ") must be positive for the ambiguity rule. Rule cannot be applied meaningfully."
+    ))
+    can_evaluate_ambiguity_rule <- FALSE
+  }
 
-    # Ambiguity rule is not meaningful if there's no valid insertion length.
-    if (can_evaluate_ambiguity_rule && insertion_actual_length <= 0) {
-      can_evaluate_ambiguity_rule <- FALSE
-    }
+  # Ambiguity rule is also not meaningful if there's no valid insertion length.
+  if (can_evaluate_ambiguity_rule && insertion_actual_length <= 0) {
+    can_evaluate_ambiguity_rule <- FALSE
+  }
 
-    # Ambiguous cases
-    if (can_evaluate_ambiguity_rule) {
-      # For insertions, the threshold is directly pos_after_indel_repetition
-      threshold_ref_pos <- pos_after_indel_repetition
-      if (last_ref_pos_covered_by_read < threshold_ref_pos) {
-        is_ambiguous_due_to_length <- TRUE
-      }
-    }
-
-    if (is_ambiguous_due_to_length) {
-      final_c_base <- "ambiguous"
-      final_c_qual <- "ambiguous"
-    } else {
-      if (insertion_op_found_in_cigar) {
-        final_c_base <- c_base_found
-        final_c_qual <- c_qual_found
-      } else {
-        # Defaults "no_insertion_detected" remain
-      }
+  if (can_evaluate_ambiguity_rule) {
+    if (last_ref_pos_covered_by_read < pos_after_indel_repetition) {
+      # The read is too short to make a definitive call, so it is ambiguous.
+      return(list(base = "ambiguous", qual = "ambiguous"))
     }
   }
 
-  list(base = final_c_base, qual = final_c_qual)
+  # If the read is NOT ambiguous, then check if it covers the insertion site.
+  if (last_ref_pos_covered_by_read < pos) {
+    # The read does not cover the position of interest.
+    return(list(base = NA_character_, qual = NA_character_))
+  }
+
+  # If the read is long enough and covers the site, return the call
+  # based on the CIGAR string analysis performed earlier.
+  if (insertion_op_found_in_cigar) {
+    return(list(base = c_base_found, qual = c_qual_found))
+  } else {
+    return(list(base = "no_insertion_detected", qual = "no_insertion_detected"))
+  }
 }
