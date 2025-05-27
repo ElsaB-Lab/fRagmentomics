@@ -2,15 +2,15 @@
 
 #' Sanity check: Validate reference allele against FASTA sequence
 #'
-#' This function checks whether the reference allele (`ref`) at a given genomic
-#' position (`pos`) matches the corresponding nucleotide in the provided FASTA
+#' This function checks whether the reference allele ('ref') at a given genomic
+#' position ('pos') matches the corresponding nucleotide in the provided FASTA
 #' reference genome.
 #'
 #' @inheritParams process_fragment
-#' @param fasta A FASTA ref genome (loaded using `Biostrings` or a file path).
+#' @param fasta A FASTA ref genome (loaded using 'Biostrings' or a file path).
 #'
-#' @return Logical `TRUE` if the reference allele matches the FASTA nucleotide,
-#'   otherwise `FALSE` with a warning.
+#' @return Logical 'TRUE' if the reference allele matches the FASTA nucleotide,
+#'   otherwise 'FALSE' with a warning.
 #'
 #' @importFrom Biostrings getSeq
 #' @importFrom GenomicRanges GRanges
@@ -28,7 +28,7 @@ sanity_check_ref_in_fasta <- function(chr, pos, ref, fasta) {
     return(FALSE)
   }
 
-  # Calculate the end position in the FASTA based on the length of `ref`
+  # Calculate the end position in the FASTA based on the length of 'ref'
   ref_length <- nchar(ref)
   end_pos <- pos + ref_length - 1
 
@@ -44,7 +44,7 @@ sanity_check_ref_in_fasta <- function(chr, pos, ref, fasta) {
   # Transform fasta_seq into string
   fasta_seq_char <- unname(as.character(fasta_seq))
 
-  # Compare the full `ref` to the fetched FASTA sequence
+  # Compare the full 'ref' to the fetched FASTA sequence
   if (identical(ref, fasta_seq_char)) {
     return(TRUE)
   } else {
