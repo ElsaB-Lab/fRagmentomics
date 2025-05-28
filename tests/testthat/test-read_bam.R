@@ -87,7 +87,7 @@ test_that("Read bam empty", {
       flag_keep   = 0x03,
       flag_remove = 0x900
     ),
-    "The final BAM data frame is empty. No reads match the criteria."
+    "The final BAM dataframe is empty. No reads match the criteria."
   )
 })
 
@@ -112,7 +112,7 @@ test_that("Read bam missing columns", {
       required_columns <- c("QNAME", "FLAG", "RNAME", "POS", "MAPQ", "CIGAR", "SEQ", "QUAL")
       missing_columns <- setdiff(required_columns, colnames(result))
       if (length(missing_columns) > 0) {
-        stop(paste("The final BAM data frame is missing the following columns:", paste(missing_columns, collapse = ", ")))
+        stop(paste("The final BAM dataframe is missing the following columns:", paste(missing_columns, collapse = ", ")))
       }
     },
     regexp = "missing the following columns: QUAL"

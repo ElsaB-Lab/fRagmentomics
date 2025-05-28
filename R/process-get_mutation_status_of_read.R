@@ -1,0 +1,199 @@
+#' Get mutation status of read
+#'
+#' The algorithm to determine if a read supports the mutation of interest is quite intuitive but requires careful
+#' considerations of insertions and deletions in repeated sequences to resolve ambiguities whenever possible. The core
+#' idea is to apply the mutation on the reference sequence and compare the mutated reference sequence to the read
+#' sequence starting from the position of the mutation of interest. The sequence of the read should be compared to the
+#' sequence of the reference sequence and of the mutated reference sequence for just enough bases to assign mutational
+#' status without ambiguity.
+#'
+#' @inheritParams get_alt_basq_mstat_from_read
+#' @param read_index_at_pos An integer representing the index of the nucleotide in sequence aligning with the position of interest.
+#'
+#' @keywords internal
+get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile, cigar_free_mode=F){
+  ref_len <- nchar(ref)
+  alt_len <- nchar(alt)
+  read_seq_len <- nchar(read_stats$SEQ)
+
+  # first identify the minimum number of bases that should be considered in the comparison
+  # this number should be at the very least the size of the one base before + size of the mutated sequence  + one base
+  # after
+  # in case of an insertion or a deletion, additional bases should be included in the comparison if the reference
+  # has a repeat of the mutated sequence at the locus considered
+  if (ref_len==alt_len) {
+    # SNV or MNV
+
+    # In the read sequence does not allow to compare with one base before the alteration, or with one base after the
+    # alteration, then we won't add these bases into the comparison
+    n_match_base_before <- 1
+    n_match_base_after <- 1
+    if (read_index_at_pos==1){
+      n_match_base_before <- 0
+    }
+    if ((read_index_at_pos+alt_len-1)>=read_seq_len) {
+      n_match_base_after <- 0
+    }
+
+    # we fetch one base before, the size of the allele, and one base after
+    fetch_len_ref <- n_match_base_before + alt_len + n_match_base_after
+    fetch_start_ref <- pos - n_match_base_before
+    fetch_end_ref <- fetch_start_ref + fetch_len_ref - 1
+
+    # get sequences of wild-type and mutated ref
+    ref_seq_wt <- get_seq_from_fasta(chr, fetch_start_ref, fetch_end_ref, fasta_fafile)
+    ref_seq_mut <- paste0(substr(ref_seq_wt, 1, n_match_base_before), alt,
+                          substr(ref_seq_wt, nchar(ref_seq_wt) - n_match_base_after + 1, nchar(ref_seq_wt)))
+
+    # if we need more bases than available, cut the sequences to only the maximum comparison possible
+    # for instance
+    # REF: ATTCGAGTAT
+    # At position 9, AT > CC
+    # READ_SEQ: AGTCC
+    # Then,
+    #   read_index_at_pos: 4
+    #   fetch_start_read: 3
+    #   read_seq_len: 5
+    #   fetch_len: 3 (as we can match one base before but can't match any base after)
+    # We want to fetch the bases 3,4,5
+    fetch_start_read <- read_index_at_pos - n_match_base_before
+    fetch_len_read <- min(fetch_len_ref, read_seq_len - fetch_start_read + 1)
+    fetch_end_read <- fetch_start_read + fetch_len_read - 1
+    read_seq <- substr(read_stats$SEQ, fetch_start_read, fetch_end_read)
+
+    # run comparison on maximum size possible
+    compare_len_wt <- min(fetch_len_ref, fetch_len_read)
+    compare_len_mut <- min(fetch_len_ref, fetch_len_read)
+
+    # if we cannot cover completely the allele with the read, we may have an ambiguity
+    incomplete_comparison_mut <- (fetch_len_read < compare_len_mut)
+    compare_len_wt <- min(compare_len_wt, fetch_len_read)
+    compare_len_mut <- min(compare_len_mut, fetch_len_read)
+
+    # for SNV/MNV, the determination of the read status is independent of the value of cigar_free_mode
+    status <- compare_read_to_ref_wt_and_mut(read_seq, ref_seq_wt, ref_seq_mut, compare_len_wt, compare_len_mut)
+
+    if (status=="MUT" && incomplete_comparison_mut){
+      return("AMB")
+    } else {
+      return(status)
+    }
+  } else {
+    # INS or DEL
+
+    # By VCF convention, the ref and alt sequences include one base before the actual mutated sequence
+    # Additionally, we want to systematically include with one base after the actual mutated sequences.
+    # If we cannot cover the base after, then we will call ambiguous if compatible with mutated ref.
+    n_match_base_before <- 1
+    n_match_base_after <- 1
+
+    # identify mutated sequence
+    inserted_seq <- if (alt_len > ref_len) substr(alt, n_match_base_before + 1, alt_len) else ""
+    deleted_seq  <- if (ref_len > alt_len) substr(ref, n_match_base_before + 1, ref_len) else ""
+    motif <- if (inserted_seq != "") inserted_seq else if (deleted_seq != "") deleted_seq
+    motif_len <- nchar(motif)
+
+    # Fetch the maximum number of bases that may be included in the comparison + length of one motif and one base after
+    fetch_len_ref <- read_seq_len + motif_len + n_match_base_after
+    fetch_start_ref <- pos + n_match_base_before - 1
+    fetch_end_ref <- fetch_start_ref + fetch_len_ref - 1
+    ref_seq_wt <- get_seq_from_fasta(chr, fetch_start_ref, fetch_end_ref, fasta_fafile)
+
+    # INS example
+    #   REF: TGAGAT
+    #   MUT: T > TGA
+    #   REF_AFTER_ONE_MOTIF: GAT
+    #
+    # DEL example
+    #   REF: TGAGAGAT
+    #   MUT: TGA > T
+    #   REF_AFTER_ONE_MOTIF: GAGAT
+    ref_seq_after_one_motif <- substr(ref_seq_wt, n_match_base_before + motif_len + n_match_base_after,
+                                      nchar(ref_seq_wt))
+
+    # Identify the number of repeats within the region of the maximum comparison size
+    repeat_count <- 1
+    while (substr(ref_seq_after_one_motif, (repeat_count-1) * motif_len + 1, repeat_count * motif_len) == motif) {
+      repeat_count <- repeat_count + 1
+    }
+
+    # Identify how many additional bases need to be included in the comparison
+    # This number is the number of bases of the motif that match with the reference sequence  after the last repeat
+    # of the motif
+    # As examples,
+    #   - If REF is A A T C A T C A G T and we are looking for the insertion A > AATC
+    #   Here the motif "ATC" is repeated twice. The sequence after the last repeat is AGT. This sequence shares one
+    #   common base with the motif, i.e "A"
+    #
+    #   - If REF is A A T C A T C A T T and we are looking for the insertion A > AATC
+    #   Here the motif "ATC" is repeated twice. The sequence after the last repeat is ATT. This sequence shares two
+    #   common bases with the motif, i.e "AT"
+    ref_seq_after_last_motif <- substr(ref_seq_after_one_motif, (repeat_count-1) * motif_len + n_match_base_after,
+                                       repeat_count * motif_len + n_match_base_after - 1)
+    n_bases_shared_with_motif <- get_number_of_common_first_char(ref_seq_after_last_motif, motif)
+
+    # Compute the size of the comparisons to wild-type ref and mutated ref
+    if (alt_len > ref_len){
+      type <- "I"
+      compare_len_wt <- n_match_base_before + repeat_count * motif_len + n_bases_shared_with_motif + n_match_base_after
+      compare_len_mut <- n_match_base_before + (repeat_count+1) * motif_len + n_bases_shared_with_motif + n_match_base_after
+    } else {
+      type <- "D"
+      compare_len_wt <- n_match_base_before + (repeat_count-1) * motif_len + n_bases_shared_with_motif + n_match_base_after
+      compare_len_mut <- n_match_base_before + (repeat_count-1) * motif_len + n_bases_shared_with_motif + n_match_base_after
+    }
+
+    # Build mutated sequence by inserting or deleting the correct bases
+    # INS example
+    #   REF: TGAGAT
+    #   MUT: T > TGA
+    #   REF_SEQ_MUT: T+GA+GAGAT
+    #
+    # DEL example
+    #   REF: TGAGAGAT
+    #   MUT: TGA > T
+    #   REF_SEQ_MUT: T+""+GAGAT
+    ref_seq_mut <- paste0(
+      substr(ref_seq_wt, 1, n_match_base_before),
+      substr(alt, n_match_base_before + 1, alt_len),
+      substr(ref_seq_wt, ref_len + 1, nchar(ref_seq_wt))
+    )
+
+    # Fetch maximum read sequence available starting from the position needed to cover n_match_base_before
+    fetch_start_read <- read_index_at_pos - (n_match_base_before - 1)
+    fetch_len_read <- read_seq_len - fetch_start_read + 1
+    fetch_end_read <- fetch_start_read + fetch_len_read - 1
+    read_seq <- substr(read_stats$SEQ, fetch_start_read, fetch_end_read)
+
+    # if we cannot cover completely the allele with the read, we may have an ambiguity
+    incomplete_comparison_mut <- (fetch_len_read < compare_len_mut)
+    compare_len_wt <- min(compare_len_wt, fetch_len_read)
+    compare_len_mut <- min(compare_len_mut, fetch_len_read)
+
+    # for the determination of the read status is independent of the value of cigar_free_mode
+    status <- compare_read_to_ref_wt_and_mut(read_seq, ref_seq_wt, ref_seq_mut, compare_len_wt, compare_len_mut)
+
+    if (cigar_free_mode){
+      if (status=="MUT" && incomplete_comparison_mut){
+        return("AMB")
+      } else {
+        return(status)
+      }
+    } else {
+      indel_found_in_cigar <- search_for_indel_in_cigar(pos, ref, alt, read_stats, type)
+      if (indel_found_in_cigar[[1]]) {
+        return("MUT")
+      } else {
+        if (status=="MUT"){
+          if (incomplete_comparison_mut){
+            return(paste("AMB-compatible and", indel_found_in_cigar[[2]]))
+          } else {
+            return(paste("MUT-compatible and", indel_found_in_cigar[[2]]))
+          }
+        } else {
+          return(status)
+        }
+      }
+    }
+  }
+}

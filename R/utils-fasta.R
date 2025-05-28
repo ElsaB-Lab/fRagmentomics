@@ -1,0 +1,103 @@
+#' Retrieve a sequence from a FASTA
+#'
+#' @inheritParams normalize_to_vcf_rep
+#' @param start Start position to be retrieved
+#' @param end End position to be retrieved
+#'
+#' @return A character string representing the single nucleotide at
+#' the specified chromosome and position.
+#'
+#' @importFrom Biostrings getSeq
+#' @importFrom IRanges IRanges
+#' @importFrom GenomicRanges GRanges
+#'
+#' @noRd
+get_seq_from_fasta <- function(chr, start, end, fasta_fafile) {
+  # Fetch a single nucleotide from the FASTA
+  # using the chromosome, and start = end = position
+  ref_seq <- Biostrings::getSeq(
+    x = fasta_fafile,
+    param = GenomicRanges::GRanges(
+      seqnames = chr,
+      ranges = IRanges::IRanges(start = start, end = end)
+    )
+  )
+
+  # Transform fasta_seq into string
+  ref_seq_char <- unname(as.character(ref_seq))
+  return(as.character(ref_seq_char))
+}
+
+
+#' Harmonize Chromosome Notation with FASTA Reference
+#' This function ensures that a given chr notation (e.g., `"1"` or `"chr1"`)
+#' matches the convention used in the provided FASTA.
+#'
+#' @inheritParams normalize_to_vcf_rep
+#' @importFrom Rsamtools scanFaIndex
+#' @importFrom GenomeInfoDb seqnames
+#'
+#' @return String with the chr notation harmonized to match the FASTA reference.
+#'
+#' @noRd
+harmonize_chr_to_fasta <- function(chr, fasta_fafile) {
+  # Extract chromosome names from the FASTA index
+  fasta_index <- scanFaIndex(fasta_fafile) # Get the indexed FASTA sequence info
+  fasta_chromosomes <- seqnames(fasta_index) # Extract chromosome names
+
+  # Determine whether FASTA uses "chr1" or "1"
+  fasta_format <- ifelse(any(grepl("^chr", fasta_chromosomes)), "chr", "no_chr")
+
+  # Harmonize chromosome notation
+  if (fasta_format == "chr" && !grepl("^chr", chr)) {
+    chr <- paste0("chr", chr) # Add "chr" if missing
+  } else if (fasta_format == "no_chr" && grepl("^chr", chr)) {
+    chr <- sub("^chr", "", chr) # Remove "chr" if present
+  }
+
+  chr
+}
+
+
+
+#' Check that the reference allele matches with the FASTA sequence
+#'
+#' This function checks whether the reference allele (`ref`) at a given genomic
+#' position (`pos`) matches the corresponding nucleotide in the provided FASTA
+#' reference genome.
+#'
+#' @inheritParams normalize_to_vcf_rep
+#'
+#' @return Logical `TRUE` if the reference allele matches the FASTA nucleotide,
+#'   otherwise `FALSE` with a warning.
+#'
+#' @importFrom Biostrings getSeq
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
+#'
+#' @noRd
+check_if_ref_matches_fasta <- function(chr, pos, ref, fasta_fafile) {
+  # Fetch the names (i.e., FASTA headers) for each sequence
+  idx <- scanFaIndex(fasta_fafile)
+  seq_names <- as.character(seqnames(idx))
+
+  # Check if the chrom existe in the Fasta
+  if (!chr %in% seq_names) {
+    warning(paste0("Chromosome ", chr, " not found in FASTA."))
+    return(FALSE)
+  }
+
+  # Calculate the end position in the FASTA based on the length of `ref`
+  ref_length <- nchar(ref)
+  end_pos <- pos + ref_length - 1
+
+  # Retrieve the expected reference sequence from FASTA
+  fasta_seq <- get_seq_from_fasta(chr=chr, start=pos, end=end_pos, fasta_fafile=fasta_fafile)
+
+  # Compare the full `ref` to the fetched FASTA sequence
+  if (identical(ref, fasta_seq)) {
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}

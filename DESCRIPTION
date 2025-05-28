@@ -1,17 +1,25 @@
 Package: fRagmentomics
 Title: Compute Fragments Statistics Of Sequencing Experiments
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person("Killian", "Maudet", email = "killian.maudet@gustaveroussy.fr",
 	   role = "aut"),
-    person("Juliette", "Samaniego", email = "juliette.samaniego@gustaveroussy.fr",
-	   role = "aut"),
     person("Yoann", "Pradat", email = "yoann.pradat@gustaveroussy.fr",
 	   role = c("aut", "cre"), comment = c(ORCID = "0000-0002-4647-5779")),
+    person("Juliette", "Samaniego", email = "juliette.samaniego@gustaveroussy.fr",
+	   role = "aut"),
     person("Elsa", "Bernard", email = "elsa.bernard@gustaveroussy.fr",
 	   role = "aut", comment = c(ORCID = "0000-0002-2057-7187"))
   )
-Description: What the package does (one paragraph).
+Description: A user-friendly R package that enables the characterization
+    of each cfDNA fragment overlapping one or multiple mutations of interest,
+    starting from a sequencing file containing aligned reads (BAM file).
+    fRagmentomics supports multiple mutation input formats (e.g., VCF, TSV,
+    or string “chr:pos:ref:alt” representation), accommodates one-based and
+    zero-based genomic conventions, handles mutation representation ambiguities,
+    and accepts any reference file and species in FASTA format. For each cfDNA
+    fragment, fRagmentomics outputs its size, its 3’ and 5’ sequences, and its
+    mutational status.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

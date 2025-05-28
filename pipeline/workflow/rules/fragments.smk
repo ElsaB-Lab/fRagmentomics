@@ -64,5 +64,3 @@ rule fragmentomics:
             n_cores={threads}
         )' >> {log}
         """
-
-
