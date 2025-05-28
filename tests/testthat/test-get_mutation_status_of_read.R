@@ -500,7 +500,7 @@ test_that("get_mutation_status_of_read works", {
     ref               = "GATTGA",
     alt               = "G",
     read_index_at_pos = 25,
-    read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15", POS=1),
+    read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
     cigar_free_mode   = FALSE
   )
@@ -512,7 +512,7 @@ test_that("get_mutation_status_of_read works", {
     ref               = "GATTGA",
     alt               = "G",
     read_index_at_pos = 25,
-    read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15", POS=1),
+    read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
     cigar_free_mode   = TRUE
   )
@@ -527,7 +527,7 @@ test_that("get_mutation_status_of_read works", {
     ref               = "ATTGAA",
     alt               = "A",
     read_index_at_pos = 31,
-    read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15", POS=1),
+    read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
     cigar_free_mode   = FALSE
   )
@@ -539,7 +539,7 @@ test_that("get_mutation_status_of_read works", {
     ref               = "ATTGAA",
     alt               = "A",
     read_index_at_pos = 31,
-    read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15", POS=1),
+    read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
     cigar_free_mode   = TRUE
   )
