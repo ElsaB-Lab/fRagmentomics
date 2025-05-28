@@ -54,6 +54,20 @@ test_that("get_insertion handles VCF-consistent alleles and ambiguity correctly"
   expect_equal(res4$base, "+AT")
   expect_equal(res4$qual, "#")
 
+  # Example 5: Position of interest is not covered
+  res5 <- get_insertion(
+    pos = 30,
+    alt = "CAG",
+    r_pos = 10,
+    r_cigar = "6M2I5M",
+    r_query = "TTCGCCAGGTACCT",
+    r_qual = "FFFFF#GGGGGGGG",
+    pos_after_indel_repetition = 25
+  )
+  expect_equal(res5$base, NA_character_)
+  expect_equal(res5$qual, NA_character_)
+
+
   # --- Group 2: Ambiguity Logic Tests ---
 
   # N1: Ambiguous - Insertion op PRESENT, but read too short

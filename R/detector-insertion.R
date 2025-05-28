@@ -135,17 +135,17 @@ get_insertion <- function(pos, alt, r_pos, r_cigar, r_query, r_qual, pos_after_i
     can_evaluate_ambiguity_rule <- FALSE
   }
 
+  # If the read is NOT ambiguous, then check if it covers the insertion site.
+  if (last_ref_pos_covered_by_read < pos) {
+    # The read does not cover the position of interest.
+    return(list(base = NA_character_, qual = NA_character_))
+  }
+
   if (can_evaluate_ambiguity_rule) {
     if (last_ref_pos_covered_by_read < pos_after_indel_repetition) {
       # The read is too short to make a definitive call, so it is ambiguous.
       return(list(base = "ambiguous", qual = "ambiguous"))
     }
-  }
-
-  # If the read is NOT ambiguous, then check if it covers the insertion site.
-  if (last_ref_pos_covered_by_read < pos) {
-    # The read does not cover the position of interest.
-    return(list(base = NA_character_, qual = NA_character_))
   }
 
   # If the read is long enough and covers the site, return the call

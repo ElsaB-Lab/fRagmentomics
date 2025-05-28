@@ -35,7 +35,7 @@ test_that("get_info_deletion", {
   expect_equal(res3$base, "no_deletion_detected")
   expect_equal(res3$qual, "no_deletion_detected")
 
-  # Example 4: Case where the read doesn't cover the position 'pos'
+  # Example 4: Case where the read doesn't cover the position
   res4 <- get_info_deletion(
     pos = 9,
     ref = "TAT",
