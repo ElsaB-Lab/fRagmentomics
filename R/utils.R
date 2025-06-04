@@ -41,6 +41,7 @@ bitvalues_from_bam_flag <- function(flag, bitnames) {
 }
 
 
+
 #' Function to parse the CIGAR string
 #'
 #' @param cigar a character vector

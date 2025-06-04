@@ -44,6 +44,12 @@ apply_bcftools_norm <- function(chr, pos, ref, alt, fasta, tmp_folder) {
       shQuote(tmp_vcf)
     )
 
+    # Print a message 
+    message(sprintf(
+      "Processing bcftools norm normalisation for variant: %s:%s %s>%s",
+      chr, pos, ref, alt
+    ))
+
     # Execute the command to normalize the VCF file
     exit_status <- tryCatch(
       {

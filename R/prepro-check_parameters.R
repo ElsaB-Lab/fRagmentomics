@@ -18,6 +18,7 @@ check_parameters <- function(
     report_tlen,
     report_softclip,
     report_5p_3p_bases_fragment,
+    cigar_free_mode,
     tmp_folder,
     output_file,
     n_cores) {
@@ -33,6 +34,7 @@ check_parameters <- function(
   check_report_tlen(report_tlen)
   check_report_softclip(report_softclip)
   check_report_bases_fragm_5p_3p(report_5p_3p_bases_fragment)
+  check_cigar_free_mode(cigar_free_mode)
   check_tmp_folder(tmp_folder)
   check_output_file(output_file)
   check_n_cores(n_cores)
@@ -45,9 +47,7 @@ check_parameters <- function(
 #' @noRd
 check_mut <- function(mut) {
   # Check that mut is a single value, whether a filepath or a str representation
-  if (length(mut) == 1) {
-    mut_info <- read_mut(mut)
-  } else {
+  if (length(mut) != 1) {
     stop("Error: The parameter 'mut' should be a single value, not multiple elements.")
   }
 
@@ -222,6 +222,17 @@ check_report_tlen <- function(report_tlen) {
 check_report_softclip <- function(report_softclip) {
   if (!is.logical(report_softclip) || length(report_softclip) != 1) {
     stop("Error: report_softclip must be a single logical value.")
+  }
+}
+
+#' Check if the cigar_free_mode parameter is valid
+#'
+#' @inheritParams check_parameters
+#'
+#' @noRd
+check_cigar_free_mode <- function(cigar_free_mode) {
+  if (!is.logical(cigar_free_mode) || length(cigar_free_mode) != 1) {
+    stop("Error: cigar_free_mode must be a single logical value.")
   }
 }
 

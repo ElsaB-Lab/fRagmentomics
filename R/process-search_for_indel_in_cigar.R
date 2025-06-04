@@ -1,6 +1,6 @@
 #' Get the informations about the presence of a insertion in the read.
 #'
-#' @inheritParams get_alt_basq_mstat_from_read
+#' @inheritParams get_base_basq_mstat_from_read
 #' @param type, choose between "INS" or "DEL"
 #'
 #' @return a boolean indicating TRUE if the insertion was found in the CIGAR a the position of interest, FALSE otherwise

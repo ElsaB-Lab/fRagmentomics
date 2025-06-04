@@ -1,40 +1,41 @@
 #' Get read sequence, read base qualities, and read mutational status
 #'
-#' @inheritParams process_fragment
+#' @inheritParams extract_fragment_features
 #' @param read_stats A list of read-level statistics.
 #'
 #' @return A list containing "alt", "basq", "mstat".
 #'
 #' @keywords internal
-get_alt_basq_mstat_from_read <- function(pos, ref, alt, read_stats, fasta_fafile, cigar_free_mode){
+get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_fafile, cigar_free_mode) {
   # get index in the read sequence aligning with pos
   read_index_at_pos <- get_index_aligning_with_pos(pos, read_stats)
 
-  if (read_index_at_pos==-1){
+  if (read_index_at_pos == -1) {
     # in case the read does not cover the position of interest
-    alt <- NA
+    base <- NA
     basq <- NA
     mstat <- NA
   } else {
     # in case the read covers the position of interest
-    nb_indices_to_report <- get_nb_indices_to_report(ref, alt)
-    read_index_max <- read_index_at_pos+nb_indices_to_report
+    nb_indices_to_report <- nchar(alt) - 1
+    read_index_max <- read_index_at_pos + nb_indices_to_report
 
-    if (read_index_max > nchar(read_stats$SEQ)){
+    # If we can not get back the necessary sequence, add "*" at the end of the sequence
+    if (read_index_max > nchar(read_stats$SEQ)) {
       read_index_max <- nchar(read_stats$SEQ)
       end_tag <- "*"
     } else {
       end_tag <- ""
     }
 
-    alt <- paste0(substr(read_stats$SEQ, read_index_at_pos, read_index_max), end_tag)
+    base <- paste0(substr(read_stats$SEQ, read_index_at_pos, read_index_max), end_tag)
     basq <- paste0(substr(read_stats$QUAL, read_index_at_pos, read_index_max), end_tag)
 
     # get mutation status of the read
-    mstat <- get_mutation_status_of_read(pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile, cigar_free_mode)
+    mstat <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile, cigar_free_mode)
   }
 
-  list(alt=alt, basq=basq, mstat=mstat)
+  list(base = base, basq = basq, mstat = mstat)
 }
 
 
@@ -48,8 +49,7 @@ get_alt_basq_mstat_from_read <- function(pos, ref, alt, read_stats, fasta_fafile
 #' @return  a character describing the mutation status of the read
 #'
 #' @keywords internal
-compare_read_to_ref_wt_and_mut <- function(read_seq, ref_seq_wt, ref_seq_mut, compare_len_wt, compare_len_mut){
-
+compare_read_to_ref_wt_and_mut <- function(read_seq, ref_seq_wt, ref_seq_mut, compare_len_wt, compare_len_mut) {
   # build the sequences to be compared
   ref_seq_wt_sub <- substr(ref_seq_wt, 1, compare_len_wt)
   ref_seq_mut_sub <- substr(ref_seq_mut, 1, compare_len_mut)
@@ -80,9 +80,9 @@ compare_read_to_ref_wt_and_mut <- function(read_seq, ref_seq_wt, ref_seq_mut, co
 #' @return An integer
 #'
 #' @keywords internal
-get_number_of_common_first_char <- function(str_a, str_b){
+get_number_of_common_first_char <- function(str_a, str_b) {
   i <- 0
-  while (substr(str_a, i+1, i+1)==substr(str_b, i+1, i+1)){
+  while (substr(str_a, i + 1, i + 1) == substr(str_b, i + 1, i + 1)) {
     i <- i + 1
   }
 
@@ -94,7 +94,7 @@ get_number_of_common_first_char <- function(str_a, str_b){
 #'
 #' Extracts base, quality, and indel informations based on the mutation type.
 #'
-#' @inheritParams get_alt_basq_mstat_from_read
+#' @inheritParams get_base_basq_mstat_from_read
 #' @return An integer representing the index of the nucleotide in sequence aligning with the position of interest. If
 #' none is found, this integer will be -1.
 #'
@@ -153,25 +153,9 @@ get_index_aligning_with_pos <- function(pos, read_stats) {
   }
 
   # if the read does not cover the position of interest
-  if (ref_pos != pos){
+  if (ref_pos != pos) {
     read_idx <- -1
   }
 
   read_idx
-}
-
-
-#' Get number of indices to be used for reporting
-#'
-#' @inheritParams get_alt_basq_mstat_from_read
-#'
-#' @return A number indicate the number of nucleotides for which stats will be reported
-#'
-#' @keywords internal
-get_nb_indices_to_report <- function(ref, alt){
-  if (nchar(alt)==nchar(ref)){
-    return(nchar(alt))
-  } else {
-    return(nchar(alt)+1)
-  }
 }

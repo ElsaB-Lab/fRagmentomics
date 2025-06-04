@@ -369,7 +369,7 @@ test_that("get_mutation_status_of_read works", {
     fasta_fafile      = fasta_env$fa_obj,
     cigar_free_mode   = FALSE
   )
-  expect_equal(mstat, "AMB not in CIGAR")
+  expect_equal(mstat, "AMB-compatible and MUT not in CIGAR")
 
   mstat <- get_mutation_status_of_read(
     chr               = "chr1",
@@ -397,7 +397,7 @@ test_that("get_mutation_status_of_read works", {
     fasta_fafile      = fasta_env$fa_obj,
     cigar_free_mode   = FALSE
   )
-  expect_equal(mstat, "AMB not in CIGAR")
+  expect_equal(mstat, "AMB-compatible and MUT not in CIGAR")
 
   mstat <- get_mutation_status_of_read(
     chr               = "chr1",
@@ -433,7 +433,7 @@ test_that("get_mutation_status_of_read works", {
     fasta_fafile      = fasta_env$fa_obj,
     cigar_free_mode   = FALSE
   )
-  expect_equal(mstat, "AMB not in CIGAR")
+  expect_equal(mstat, "AMB-compatible and MUT not in CIGAR")
 
   # REF:  ATCGAGGGGT
   # MUT: A > AGG
@@ -472,7 +472,7 @@ test_that("get_mutation_status_of_read works", {
     fasta_fafile      = fasta_env$fa_obj,
     cigar_free_mode   = FALSE
   )
-  expect_equal(mstat, "MUT not in CIGAR")
+  expect_equal(mstat, "MUT-compatible and MUT not in CIGAR")
 
   mstat <- get_mutation_status_of_read(
     chr               = "chr1",
@@ -542,6 +542,20 @@ test_that("get_mutation_status_of_read works", {
     read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
     cigar_free_mode   = TRUE
+  )
+  expect_equal(mstat, "MUT")
+
+
+  # Case 3: Cigar with 2 deletions inside with the same size
+   mstat <- get_mutation_status_of_read(
+    chr               = "chr4",
+    pos               = 30,
+    ref               = "ATTGAA",
+    alt               = "A",
+    read_index_at_pos = 25,
+    read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="1M5D24M5D15M", POS=1),
+    fasta_fafile      = fasta_env$fa_obj,
+    cigar_free_mode   = FALSE
   )
   expect_equal(mstat, "MUT")
 

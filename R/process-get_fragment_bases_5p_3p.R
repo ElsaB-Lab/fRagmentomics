@@ -1,6 +1,6 @@
 #' Extract Fragment Bases and Quality Scores from Read Sequences
 #'
-#' This function extracts a fixed number of bases (`n_bases`)
+#' This function extracts a fixed number of bases ('n_bases')
 #' and their corresponding quality scores from the 5' and 3' ends of reads.
 #'
 #' @param n_bases The number of bases to extract from each end (5' and 3').
@@ -10,10 +10,10 @@
 #' @param qual_3p The quality string corresponding to the 3' read.
 #'
 #' @return A list containing four character elements:
-#'   -fragment_bases_5p: The first `n_bases` nucleotides from the 5' read.
-#'   -fragment_bases_3p: The last `n_bases` nucleotides from the 3' read.
-#'   -fragment_basqs_5p: The first `n_bases` qual chr from the 5' read.
-#'   -fragment_basqs_3p: The last `n_bases` qual chr from the 3' read.
+#'   -fragment_bases_5p: The first 'n_bases' nucleotides from the 5' read.
+#'   -fragment_bases_3p: The last 'n_bases' nucleotides from the 3' read.
+#'   -fragment_basqs_5p: The first 'n_bases' qual chr from the 5' read.
+#'   -fragment_basqs_3p: The last 'n_bases' qual chr from the 3' read.
 #'
 #' @keywords internal
 get_fragment_bases_5p_3p <- function(

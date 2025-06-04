@@ -47,8 +47,8 @@ normalize_to_vcf_rep <- function(
       if (nchar(alt_norm) == 0) {
         anchor_base <- get_seq_from_fasta(
           chr          = chr_norm,
-          pos_start    = pos_norm - 1, # shift one base to the left to find the anchor
-          pos_end      = pos_norm - 1, # shift one base to the left to find the anchor
+          start        = pos_norm - 1, # shift one base to the left to find the anchor
+          end          = pos_norm - 1, # shift one base to the left to find the anchor
           fasta_fafile = fasta_fafile
         )
 
@@ -63,8 +63,8 @@ normalize_to_vcf_rep <- function(
       if (nchar(ref_norm) == 0) {
         anchor_base <- get_seq_from_fasta(
           chr          = chr_norm,
-          pos_start    = pos_norm,
-          pos_end      = pos_norm,
+          start        = pos_norm,
+          end          = pos_norm,
           fasta_fafile = fasta_fafile
         )
 

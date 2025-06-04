@@ -13,18 +13,18 @@
 #' @return A dataframe with the processed fragment information.
 #'
 #' @export
-process_fragment <- function(df_sam,
-                             fragment_name,
-                             sample_id,
-                             chr,
-                             pos,
-                             ref,
-                             alt,
-                             report_tlen,
-                             report_softclip,
-                             report_5p_3p_bases_fragment,
-                             cigar_free_mode,
-                             fasta_fafile) {
+extract_fragment_features <- function(df_sam,
+                                      fragment_name,
+                                      sample_id,
+                                      chr,
+                                      pos,
+                                      ref,
+                                      alt,
+                                      report_tlen,
+                                      report_softclip,
+                                      report_5p_3p_bases_fragment,
+                                      cigar_free_mode,
+                                      fasta_fafile) {
   # Select reads originating from the fragment of interest
   df_fragment_reads <- df_sam[
     df_sam[, 1, drop = TRUE] == fragment_name, ,
@@ -53,6 +53,7 @@ process_fragment <- function(df_sam,
       Fragment_Id = fragment_name,
       Fragment_QC = fragment_qc,
       Fragment_Status = NA,
+      Fragment_Status_Broad = NA,
       Fragment_size = NA,
       Inner_distance = NA,
       Read_5p = NA,
@@ -100,8 +101,8 @@ process_fragment <- function(df_sam,
   # -------------------------------
   # Get read sequence, read base qualities, and read mutation status
   # -------------------------------
-  read_info_1 <- get_alt_basq_mstat_from_read(pos, ref, alt, read_stats_1, fasta_fafile, cigar_free_mode)
-  read_info_2 <- get_alt_basq_mstat_from_read(pos, ref, alt, read_stats_2, fasta_fafile, cigar_free_mode)
+  read_info_1 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_1, fasta_fafile, cigar_free_mode)
+  read_info_2 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_2, fasta_fafile, cigar_free_mode)
 
   # -------------------------------
   # Compute fragment size
@@ -117,7 +118,8 @@ process_fragment <- function(df_sam,
   # -------------------------------
   # Define fragment status
   # -------------------------------
-  fragment_status <- get_fragment_mutation_status(mstat_1=read_info_1$mstat, mstat_2=read_info_2$mstat)
+  fragment_status_broad <- get_fragment_mutation_status_broad(mstat_1 = read_info_1$mstat, mstat_2 = read_info_2$mstat)
+  fragment_status <- get_fragment_mutation_status(fragment_status_broad)
 
   # -------------------------------
   # Define 3' and 5' reads
@@ -141,28 +143,29 @@ process_fragment <- function(df_sam,
   # Build an adaptative dataframe
   # -------------------------------
   final_row_fragment <- list(
-    Chromosome       = chr,
-    Position         = pos,
-    Ref              = ref,
-    Alt              = alt,
-    Fragment_Id      = fragment_name,
-    Fragment_QC      = "OK",
-    Fragment_Status  = fragment_status,
-    Fragment_Size    = absolute_size,
-    Inner_Distance   = inner_distance,
-    Read_5p          = identity_5p,
-    Read_5p_Status   = read_info_5p$mstat,
-    Read_3p_Status   = read_info_3p$mstat,
-    MAPQ_5p          = read_stats_5p$MAPQ,
-    MAPQ_3p          = read_stats_3p$MAPQ,
-    BASE_5p          = read_info_5p$base,
-    BASE_3p          = read_info_3p$base,
-    BASQ_5p          = read_info_5p$basq,
-    BASQ_3p          = read_info_3p$basq,
-    CIGAR_5p         = read_stats_5p$CIGAR,
-    CIGAR_3p         = read_stats_3p$CIGAR,
-    POS_5p           = read_stats_5p$POS,
-    POS_3p           = read_stats_3p$POS
+    Chromosome            = chr,
+    Position              = pos,
+    Ref                   = ref,
+    Alt                   = alt,
+    Fragment_Id           = fragment_name,
+    Fragment_QC           = "OK",
+    Fragment_Status       = fragment_status,
+    Fragment_Status_Broad = fragment_status_broad,
+    Fragment_Size         = absolute_size,
+    Inner_Distance        = inner_distance,
+    Read_5p               = identity_5p,
+    Read_5p_Status        = read_info_5p$mstat,
+    Read_3p_Status        = read_info_3p$mstat,
+    MAPQ_5p               = read_stats_5p$MAPQ,
+    MAPQ_3p               = read_stats_3p$MAPQ,
+    BASE_5p               = read_info_5p$base,
+    BASE_3p               = read_info_3p$base,
+    BASQ_5p               = read_info_5p$basq,
+    BASQ_3p               = read_info_3p$basq,
+    CIGAR_5p              = read_stats_5p$CIGAR,
+    CIGAR_3p              = read_stats_3p$CIGAR,
+    POS_5p                = read_stats_5p$POS,
+    POS_3p                = read_stats_3p$POS
   )
 
   # -------------------------------
@@ -203,9 +206,9 @@ process_fragment <- function(df_sam,
     final_row_fragment$Fragment_Bases_3p <-
       fragment_bases_5p_3p$fragment_bases_3p
     final_row_fragment$Fragment_Basqs_5p <-
-      fragment_bases_5p_3p$fragment_Qbases_5p
+      fragment_bases_5p_3p$fragment_basqs_5p
     final_row_fragment$Fragment_Basqs_3p <-
-      fragment_bases_5p_3p$fragment_Qbases_3p
+      fragment_bases_5p_3p$fragment_basqs_3p
   }
 
   # -------------------------------
@@ -285,4 +288,3 @@ get_read_stats <- function(df_read) {
     read_length = nchar(df_read$SEQ)
   )
 }
-

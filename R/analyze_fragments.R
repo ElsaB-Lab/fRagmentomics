@@ -71,12 +71,17 @@ analyze_fragments <- function(
     report_tlen = FALSE,
     report_softclip = FALSE,
     report_5p_3p_bases_fragment = 5,
-    cigar_free_mode=FALSE,
+    cigar_free_mode = FALSE,
     tmp_folder = tempdir(),
     output_file = NA,
     n_cores = 1) {
-
   # Load inputs, check parameters and normalize ========================================================================
+
+  # Ensure expected parameters are treated as integers (and not double)
+  neg_offset_mate_search <- as.integer(neg_offset_mate_search)
+  pos_offset_mate_search <- as.integer(pos_offset_mate_search)
+  report_5p_3p_bases_fragment <- as.integer(report_5p_3p_bases_fragment)
+  n_cores <- as.integer(n_cores)
 
   # Check if bam and fasta exist
   # Check if fasta is indexed
@@ -92,6 +97,7 @@ analyze_fragments <- function(
     report_tlen,
     report_softclip,
     report_5p_3p_bases_fragment,
+    cigar_free_mode,
     tmp_folder,
     output_file,
     n_cores
@@ -101,26 +107,26 @@ analyze_fragments <- function(
   df_mut_raw <- read_mut(mut)
   df_mut_raw <- remove_bad_mut(df_mut_raw)
 
-  # Normalize mutations
-  df_mut_norm <- normalize_mut(df_mut_raw, fasta, fasta_fafile, one_based)
-
   # Load fasta as FaFile
   fasta_fafile <- Rsamtools::FaFile(fasta)
   open(fasta_fafile)
+
+  # Normalize mutations
+  df_mut_norm <- normalize_mut(df_mut_raw, fasta, fasta_fafile, one_based)
 
   # Run per-mutation analysis ==========================================================================================
   # Initialize parallel cluster
   cl <- setup_parallel_computations(n_cores)
 
   # Create final df
-  df_frag <- data.frame()
+  df_fragments_info_final <- data.frame()
 
   # Loop on each row of the mut_info
   for (i in seq_len(nrow(df_mut_norm))) {
-    chr_norm <- df_mut_norm[i, "CHROM"]
-    pos_norm <- df_mut_norm[i, "POS"]
-    ref_norm <- df_mut_norm[i, "REF"]
-    alt_norm <- df_mut_norm[i, "ALT"]
+    chr_norm <- df_mut_norm[i, "chr"]
+    pos_norm <- df_mut_norm[i, "pos"]
+    ref_norm <- df_mut_norm[i, "ref"]
+    alt_norm <- df_mut_norm[i, "alt"]
 
     # Read and extract bam around the mutation position
     # Return a truncated sam
@@ -148,7 +154,7 @@ analyze_fragments <- function(
       .multicombine = FALSE,
       .packages = "fRagmentomics"
     ) %dopar% {
-      process_fragment(
+      extract_fragment_features(
         df_sam                      = df_sam,
         fragment_name               = fragments_names[j],
         sample_id                   = sample_id,
@@ -170,17 +176,17 @@ analyze_fragments <- function(
     df_fragments_info$VAF <- NA
     if (any(df_fragments_info$Fragment_Status == "MUT")) {
       total_mut <- sum(df_fragments_info$Fragment_Status == "MUT", na.rm = TRUE)
-      total <- nrow(df_fragments_info)
-      total_valid <- total - sum(df_fragments_info$Fragment_Status == "Error_1_read_should_cover_the_position", na.rm = TRUE)
+      total <- sum(df_fragments_info$Fragment_Status == "Non-target MUT", na.rm = TRUE)
 
-      df_fragments_info$VAF <- 100 * total_mut / total_valid
+      df_fragments_info$VAF <- 100 * total_mut / total
     } else {
       df_fragments_info$VAF <- NA
     }
 
     # Fusion into the final df
-    final_df_fragments_info <- rbind(final_df_fragments_info, df_fragments_info)
+    df_fragments_info_final <- rbind(df_fragments_info_final, df_fragments_info)
   }
+  print(colnames(df_fragments_info_final))
 
   # Stop cluster
   parallel::stopCluster(cl)
@@ -189,7 +195,7 @@ analyze_fragments <- function(
   close(fasta_fafile)
 
   # Check if the df post fRagmentomics is not empty
-  if (nrow(final_df_fragments_info) == 0) {
+  if (nrow(df_fragments_info_final) == 0) {
     stop("The final dataframe post fRagmentomics is empty.")
   }
 
@@ -198,7 +204,7 @@ analyze_fragments <- function(
   # -------------------------------
   # Write file
   write.table(
-    final_df_fragments_info,
+    df_fragments_info_final,
     output_file,
     sep = "\t",
     quote = FALSE,
@@ -206,5 +212,5 @@ analyze_fragments <- function(
   )
 
   # Return final dataframe
-  final_df_fragments_info
+  df_fragments_info_final
 }

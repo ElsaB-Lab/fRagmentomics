@@ -12,8 +12,8 @@ test_that("test identify_read_sequence_order function:", {
 
   result1 <- identify_read_sequence_order(df1)
 
-  expect_equal(result1$read1$qname, "readA/1")
-  expect_equal(result1$read2$qname, "readA/2")
+  expect_equal(result1$read_1$qname, "readA/1")
+  expect_equal(result1$read_2$qname, "readA/2")
 
   # identify_read_sequence_order works with read1 and read2 in reverse order
   df2 <- data.frame(
@@ -24,8 +24,8 @@ test_that("test identify_read_sequence_order function:", {
 
   result2 <- identify_read_sequence_order(df2)
 
-  expect_equal(result2$read1$qname, "readA/1")
-  expect_equal(result2$read2$qname, "readA/2")
+  expect_equal(result2$read_1$qname, "readA/1")
+  expect_equal(result2$read_2$qname, "readA/2")
 
   # identify_read_sequence_order throws error on invalid flags
   df3 <- data.frame(

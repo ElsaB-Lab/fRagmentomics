@@ -25,30 +25,6 @@ test_that("apply_bcftools_norm", {
     ignore_attr = TRUE
   )
 
-  # expect_equal(
-  #     apply_bcftools_norm("chr17", 126, "TGTA", "AG", fasta_38),
-  #     data.frame(
-  #     chr = c("chr17", "chr17"),
-  #     pos = c(126, 127),
-  #     ref = c("T", "GTA"),
-  #     alt = c("A", "G"),
-  #     stringsAsFactors = FALSE
-  #     ),
-  #     ignore_attr = TRUE
-  # )
-
-  # expect_equal(
-  #     apply_bcftools_norm("chr17", 125, "GTGT", "GTATCC", fasta_38),
-  #     data.frame(
-  #     chr = c("chr17", "chr17"),
-  #     pos = c(127, 128),
-  #     ref = c("G", "T"),
-  #     alt = c("A", "TCC"),
-  #     stringsAsFactors = FALSE
-  #     ),
-  #     ignore_attr = TRUE
-  # )
-
   expect_equal(
     apply_bcftools_norm("chr17", 126, "TG", "TG", fasta_38, tempdir()),
     data.frame(chr = "chr17", pos = 126, ref = "TG", alt = "TG", stringsAsFactors = FALSE),

@@ -16,6 +16,8 @@ get_mutation_status_of_read(
 )
 }
 \arguments{
+\item{chr}{Character vector representing the chromosome of interest.}
+
 \item{pos}{Numeric value representing the Genomic position of interest.}
 
 \item{ref}{Character vector representing reference base(s).}
