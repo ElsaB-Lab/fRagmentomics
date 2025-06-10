@@ -7,7 +7,7 @@
 #' @return a dataframe with normalized mutations representations containing columns CHROM, POS, REF, ALT
 #'
 #' @keywords internal
-normalize_mut <- function(df_mut, fasta, fasta_fafile, one_based){
+normalize_mut <- function(df_mut, fasta, fasta_fafile, one_based, tmp_folder) {
   df_mut_norm <- data.frame()
 
   for (i in seq_len(nrow(df_mut))) {

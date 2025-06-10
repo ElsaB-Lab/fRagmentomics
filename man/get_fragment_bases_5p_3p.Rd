@@ -19,13 +19,13 @@ get_fragment_bases_5p_3p(n_bases, seq_5p, seq_3p, qual_5p, qual_3p)
 }
 \value{
 A list containing four character elements:
--fragment_bases_5p: The first \code{n_bases} nucleotides from the 5' read.
--fragment_bases_3p: The last \code{n_bases} nucleotides from the 3' read.
--fragment_basqs_5p: The first \code{n_bases} qual chr from the 5' read.
--fragment_basqs_3p: The last \code{n_bases} qual chr from the 3' read.
+-fragment_bases_5p: The first 'n_bases' nucleotides from the 5' read.
+-fragment_bases_3p: The last 'n_bases' nucleotides from the 3' read.
+-fragment_basqs_5p: The first 'n_bases' qual chr from the 5' read.
+-fragment_basqs_3p: The last 'n_bases' qual chr from the 3' read.
 }
 \description{
-This function extracts a fixed number of bases (\code{n_bases})
+This function extracts a fixed number of bases ('n_bases')
 and their corresponding quality scores from the 5' and 3' ends of reads.
 }
 \keyword{internal}

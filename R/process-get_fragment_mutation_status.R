@@ -11,7 +11,7 @@
 get_fragment_mutation_status <- function(fragment_status_broad) {
   if (fragment_status_broad == "ERROR: position not covered") {
     "ERROR: position not covered"
-  } else if (fragment_status_broad == "WT" || fragment_status_broad == "Other MUT" || fragment_status_broad == "WT & Other MUT" ) {
+  } else if (fragment_status_broad == "WT" || fragment_status_broad == "Other MUT" || fragment_status_broad == "WT & Other MUT") {
     "Non-target MUT"
   } else if (fragment_status_broad == "MUT") {
     "MUT"
@@ -32,6 +32,8 @@ get_fragment_mutation_status <- function(fragment_status_broad) {
 #' @param mstat_2 The mutation status of read 2
 #'
 #' @return A character string representing the fragment status:
+#'
+#' @importFrom stats na.omit
 #'
 #' @keywords internal
 get_fragment_mutation_status_broad <- function(mstat_1, mstat_2) {

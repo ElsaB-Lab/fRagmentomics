@@ -4,7 +4,7 @@
 \alias{normalize_mut}
 \title{Check input files for fRagmentomics function}
 \usage{
-normalize_mut(df_mut, fasta, fasta_fafile, one_based)
+normalize_mut(df_mut, fasta, fasta_fafile, one_based, tmp_folder)
 }
 \arguments{
 \item{df_mut}{a dataframe with mutations}
@@ -14,6 +14,8 @@ normalize_mut(df_mut, fasta, fasta_fafile, one_based)
 \item{fasta_fafile}{An open connection to an object of class FaFile}
 
 \item{one_based}{Boolean. TRUE if fasta is in one based. False if in 0 based.}
+
+\item{tmp_folder}{Character vector for the folder temporary path.}
 }
 \value{
 a dataframe with normalized mutations representations containing columns CHROM, POS, REF, ALT

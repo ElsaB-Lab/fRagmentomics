@@ -54,9 +54,11 @@ extract_fragment_features <- function(df_sam,
       Fragment_QC = fragment_qc,
       Fragment_Status = NA,
       Fragment_Status_Broad = NA,
-      Fragment_size = NA,
-      Inner_distance = NA,
+      Fragment_Size = NA,
+      Inner_Distance = NA,
       Read_5p = NA,
+      Read_5p_Status = NA,
+      Read_3p_Status = NA,
       MAPQ_5p = NA,
       MAPQ_3p = NA,
       BASE_5p = NA,
@@ -65,8 +67,8 @@ extract_fragment_features <- function(df_sam,
       BASQ_3p = NA,
       CIGAR_5p = NA,
       CIGAR_3p = NA,
-      Pos_bam_5p = NA,
-      Pos_bam_3p = NA
+      POS_5p = NA,
+      POS_3p = NA
     )
 
     if (!is.na(sample_id)) {
@@ -80,8 +82,8 @@ extract_fragment_features <- function(df_sam,
     if (report_5p_3p_bases_fragment != 0) {
       final_row_fragment$Fragment_bases_5p <- NA
       final_row_fragment$Fragment_bases_3p <- NA
-      final_row_fragment$Fragment_Qbases_5p <- NA
-      final_row_fragment$Fragment_Qbases_3p <- NA
+      final_row_fragment$Fragment_Basqs_5p <- NA
+      final_row_fragment$Fragment_Basqs_3p <- NA
     }
 
     if (report_softclip) {

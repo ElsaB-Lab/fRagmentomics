@@ -112,7 +112,7 @@ analyze_fragments <- function(
   open(fasta_fafile)
 
   # Normalize mutations
-  df_mut_norm <- normalize_mut(df_mut_raw, fasta, fasta_fafile, one_based)
+  df_mut_norm <- normalize_mut(df_mut_raw, fasta, fasta_fafile, one_based, tmp_folder)
 
   # Run per-mutation analysis ==========================================================================================
   # Initialize parallel cluster
