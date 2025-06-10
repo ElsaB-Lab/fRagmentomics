@@ -123,10 +123,10 @@ analyze_fragments <- function(
 
   # Loop on each row of the mut_info
   for (i in seq_len(nrow(df_mut_norm))) {
-    chr_norm <- df_mut_norm[i, "chr"]
-    pos_norm <- df_mut_norm[i, "pos"]
-    ref_norm <- df_mut_norm[i, "ref"]
-    alt_norm <- df_mut_norm[i, "alt"]
+    chr_norm <- df_mut_norm[i, "CHROM"]
+    pos_norm <- df_mut_norm[i, "POS"]
+    ref_norm <- df_mut_norm[i, "REF"]
+    alt_norm <- df_mut_norm[i, "ALT"]
 
     # Read and extract bam around the mutation position
     # Return a truncated sam
@@ -153,7 +153,7 @@ analyze_fragments <- function(
       .inorder = FALSE,
       .multicombine = FALSE,
       .packages = "fRagmentomics"
-    ) %dopar% {
+    ) %do% {
       extract_fragment_features(
         df_sam                      = df_sam,
         fragment_name               = fragments_names[j],

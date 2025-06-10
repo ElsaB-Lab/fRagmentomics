@@ -11,10 +11,10 @@ normalize_mut <- function(df_mut, fasta, fasta_fafile, one_based, tmp_folder) {
   df_mut_norm <- data.frame()
 
   for (i in seq_len(nrow(df_mut))) {
-    chr <- df_mut[i, 1]
-    pos <- df_mut[i, 2]
-    ref <- df_mut[i, 3]
-    alt <- df_mut[i, 4]
+    chr <- df_mut[i, "CHROM"]
+    pos <- df_mut[i, "POS"]
+    ref <- df_mut[i, "REF"]
+    alt <- df_mut[i, "ALT"]
 
     # Normalization user-provided representation into vcf representation
     mut_vcf_norm <- normalize_to_vcf_rep(
