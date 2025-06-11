@@ -13,3 +13,18 @@
 - For indels, if the position (nucleotide before the indel) is the last nucleotide of the read, the read will be considered as covering.
 - No graphic representation
 - No pipeline integration.
+
+# fRagmentomics 0.2.0
+
+- Ambiguous Indel Cases
+  - **Insertions**: An insertion is marked as ambiguous if the read doesn't cover the first nucleotide that breaks the repeated motif.
+  - **Deletions**: A deletion is marked as ambiguous if the read doesn't cover the first nucleotide that breaks the repeated motif minus the length of the deletion.
+
+- **Fragment Status**
+  - If one read in a pair has an ambiguous indel and the other has a different label, the fragment's status is determined by the second label. If both reads are ambiguous, the fragment status is ambiguous.
+
+- **Variant Allele Frequency (VAF)**: The VAF is calculated using the following formula:
+  - VAF = (Number of mutant fragments) / (Total number of fragments covering the position of interest)
+
+- No graphic representation
+- No pipeline integration.
