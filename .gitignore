@@ -1,9 +1,12 @@
 # Project-specific
+*.tar.gz
 devel*
 results*
 workflow/logs*
 workflow/benchmark*
 pipeline/config*/*.tsv
+pipeline/workflow/logs*
+pipeline/workflow/benchmarks*
 resources
 external
 commands.sh
