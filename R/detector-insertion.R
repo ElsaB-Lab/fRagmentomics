@@ -1,34 +1,4 @@
-# Project : ElsaBLab_fRagmentomics
-
-#' Get insertion sequence
-#'
-#' @inheritParams get_insertion
-#' @param alt_len an integer value representing the length of the insertion
-#' @param current_pos an integer value
-#'
-#' @return a character vector representing the insertion sequence
-#'
-#' @noRd
-get_seq_ins <- function(alt_len, current_pos, r_pos, r_cigar, r_query) {
-  # Extraction of the sum of the cigar with the S
-  matches <- gregexpr("^[0-9]+S", r_cigar) # The ^ means start of the chain
-  extracted <- regmatches(r_cigar, matches)[[1]]
-
-  # Put 0 if no soft clipping
-  if (length(extracted) == 0) {
-    start_soft_clip <- 0
-  } else {
-    start_soft_clip <- as.numeric(gsub("S", "", extracted))
-  }
-
-  pos_insertion <- start_soft_clip + current_pos - r_pos
-
-  # Keep the sequence from the beggining of the insertion
-  insertion_seq <- substr(r_query, pos_insertion, pos_insertion + alt_len)
-  insertion_seq
-}
-
-#' Get the informations about the presence of a insertion in the read.
+#' Get the informations about the presence of an insertion in the read.
 #'
 #' @param pos numeric value representing the position of interest
 #' @param alt character vector representing the insertion sequence
@@ -36,58 +6,153 @@ get_seq_ins <- function(alt_len, current_pos, r_pos, r_cigar, r_query) {
 #' @param r_cigar character vector representing the read CIGAR
 #' @param r_query character vector representing the read base sequence
 #' @param r_qual character vector representing the read sequencing qualities
+#' @param pos_after_indel_repetition integer, 1-based genomic position of the
+#'        first reference nucleotide after the (potentially repetitive)
+#'        region involved in the indel. This position is used
+#'        to determine if a read is long enough to be considered
+#'        unambiguous. If the read does not cover sufficiently up to
+#'        this position, it may be marked "ambiguous".
 #'
-#' @return a named list with names `base`,`qual`.
+#' @return a named list with names 'base','qual'.
+#'         'base' can be:
+#'           - 'NA': 'pos' is invalid, or read does not cover 'pos'.
+#'           - '"ambiguous"': Read coverage is insufficient relative to 'pos_after_indel_repetition'
+#'               to make an unambiguous call. This status is assigned if
+#'               'last_ref_pos_covered_by_read < pos_after_indel_repetition'.
+#'               This determination overrides CIGAR-based findings if the read
+#'               is deemed too short by this rule.
+#'           - '"+INSERTED_SEQ"': The specific insertion CIGAR operation was
+#'             detected (e.g., '"+CAG"') and the read is long enough
+#'             to be considered unambiguous.
+#'           - '"no_insertion_detected"': No specific insertion CIGAR operation
+#'             was found and the read is long enough to be considered
+#'             unambiguous (WT).
+#'         'qual' provides:
+#'           - 'NA' if 'base' is 'NA', or if an insertion
+#'             CIGAR operation is found at the very start of the aligned read
+#'             portion (and the call is not "ambiguous").
+#'           - "ambiguous" if base is "ambiguous".
+#'           - The quality score of the read base preceding the insertion.
+#'           - "no_insertion_detected" if base is "no_insertion_detected".
 #'
 #' @keywords internal
-get_insertion <- function(pos, alt, r_pos, r_cigar, r_query, r_qual) {
-  c_base <- "no_insertion_detected"
-  c_qual <- "no_insertion_detected"
-  pos_is_readed <- FALSE
+get_insertion <- function(pos, alt, r_pos, r_cigar, r_query, r_qual, pos_after_indel_repetition) {
+  # Initialize variables
+  c_base_found <- NULL
+  c_qual_found <- NULL
+  insertion_op_found_in_cigar <- FALSE
 
-  # Parse the CIGAR string
+  # Length of the purely inserted sequence
+  insertion_actual_length <- nchar(alt) - 1
+
+  if (insertion_actual_length <= 0) {
+    warning(paste0(
+      "'get_insertion': 'alt' sequence (insertion) has length ", insertion_actual_length,
+      ". Expected a positive length for the inserted sequence. No insertion will be detected."
+    ))
+  }
+
   ops <- parse_cigar(r_cigar)
-  read_cursor <- 0
+  read_cursor <- 0 # 0-based count of consumed read bases
+  current_ref_genome_pos <- r_pos # 1-based current position in the reference
 
-  # Iterating over CIGAR operations
-  current_pos <- r_pos # Current reference position, aligned with the read
   for (i in seq_len(nrow(ops))) {
     op_len <- ops$length[i]
     op_type <- ops$type[i]
 
+    ref_pos_at_start_of_op <- current_ref_genome_pos
+
     if (op_type %in% c("M", "=", "X")) {
-      # M: match or mismatch, D: deletion, N: skip in the ref,
-      # =: perfect match, X: mismatch
-      current_pos <- current_pos + op_len
+      current_ref_genome_pos <- current_ref_genome_pos + op_len
       read_cursor <- read_cursor + op_len
     } else if (op_type %in% c("N", "D")) {
-      current_pos <- current_pos + op_len
+      current_ref_genome_pos <- current_ref_genome_pos + op_len
     } else if (op_type == "I") {
-      # I: insertion (addition in the read compared to the reference)
-      # Position before the insertion
-      if (current_pos - 1 == pos) {
-        ins_seq <- substr(r_query, read_cursor, read_cursor + op_len)
-        if (ins_seq == alt) {
-          c_base <- paste0("+", substring(ins_seq, 2))
-          c_qual <- substr(r_qual, read_cursor, read_cursor)
-          pos_is_readed <- TRUE
-          break
+      # Check if this is the target insertion operation
+      # 'pos' is the 1-based ref coord of base before insertion.
+      # 'current_ref_genome_pos' is the ref coord at which the insertion occurs (i.e., after 'pos').
+      # So, current_ref_genome_pos - 1 should equal 'pos'.
+      if ((ref_pos_at_start_of_op - 1 == pos) &&
+        op_len == insertion_actual_length) {
+        # Extract inserted sequence from r_query.
+        if (read_cursor > 0 &&
+          (substr(r_query, read_cursor, read_cursor) == substr(alt, 1, 1))) {
+          seq_from_read <- substr(r_query, read_cursor, read_cursor + op_len)
+
+          insertion_op_found_in_cigar <- TRUE
+          c_base_found <- paste0("+", substring(seq_from_read, 2))
+
+          # Extract the quality of the inserted sequence
+          c_qual_found <- substr(r_qual, read_cursor, read_cursor)
+        } else if (read_cursor > 0 &&
+          (substr(r_query, read_cursor, read_cursor) != substr(alt, 1, 1))) {
+          insertion_op_found_in_cigar <- TRUE
+          c_base_found <- "no_insertion_detected"
+          c_qual_found <- "no_insertion_detected"
+        } else {
+          insertion_op_found_in_cigar <- TRUE
+          c_base_found <- NA_character_ # Insertion at the  start of the read
+          c_qual_found <- NA_character_
         }
       }
-      read_cursor <- read_cursor + op_len
+      read_cursor <- read_cursor + op_len # 'I' op consumes read bases
     } else if (op_type == "S") {
-      read_cursor <- read_cursor + op_len
-    } else {
-      # H, P: Soft clip, Hard clip, Pad
-      # No advance the reference position and lecture
+      read_cursor <- read_cursor + op_len # 'S' op consumes read bases (soft clip)
+    } else if (op_type %in% c("H", "P")) {
+      # H (Hard clip), P (Padding) - No change to read_cursor for aligned part, no change to ref pos.
+    }
+  } # End of CIGAR processing loop
+
+  last_ref_pos_covered_by_read <- current_ref_genome_pos - 1
+
+  #-------------------------------------------------
+  # Final decision on insertion status
+  #-------------------------------------------------
+  # Handle invalid input.
+  if (pos < 1) {
+    warning(paste0(
+      "'get_insertion': 'pos' (", pos,
+      ") is not a valid 1-based coordinate for the base preceding an insertion. Returning NA."
+    ))
+    return(list(base = NA_character_, qual = NA_character_))
+  }
+
+  # Check for ambiguity, as this overrides all other findings.
+  can_evaluate_ambiguity_rule <- TRUE
+  if (is.null(pos_after_indel_repetition) || is.na(pos_after_indel_repetition) || !is.numeric(pos_after_indel_repetition)) {
+    warning("'get_insertion': 'pos_after_indel_repetition' is missing, NA, or not numeric. Ambiguity rule based on read length cannot be applied.")
+    can_evaluate_ambiguity_rule <- FALSE
+  } else if (pos_after_indel_repetition <= 0) {
+    warning(paste0(
+      "'get_insertion': 'pos_after_indel_repetition' (", pos_after_indel_repetition,
+      ") must be positive for the ambiguity rule. Rule cannot be applied meaningfully."
+    ))
+    can_evaluate_ambiguity_rule <- FALSE
+  }
+
+  # Ambiguity rule is also not meaningful if there's no valid insertion length.
+  if (can_evaluate_ambiguity_rule && insertion_actual_length <= 0) {
+    can_evaluate_ambiguity_rule <- FALSE
+  }
+
+  # If the read is NOT ambiguous, then check if it covers the insertion site.
+  if (last_ref_pos_covered_by_read < pos) {
+    # The read does not cover the position of interest.
+    return(list(base = NA_character_, qual = NA_character_))
+  }
+
+  if (can_evaluate_ambiguity_rule) {
+    if (last_ref_pos_covered_by_read < pos_after_indel_repetition) {
+      # The read is too short to make a definitive call, so it is ambiguous.
+      return(list(base = "ambiguous", qual = "ambiguous"))
     }
   }
 
-  # if the read does not cover the position of interest
-  if (!pos_is_readed && (current_pos - 1) < pos) {
-    c_base <- NA
-    c_qual <- NA
+  # If the read is long enough and covers the site, return the call
+  # based on the CIGAR string analysis performed earlier.
+  if (insertion_op_found_in_cigar) {
+    return(list(base = c_base_found, qual = c_qual_found))
+  } else {
+    return(list(base = "no_insertion_detected", qual = "no_insertion_detected"))
   }
-
-  list(base = c_base, qual = c_qual)
 }

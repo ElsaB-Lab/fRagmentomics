@@ -1,121 +1,127 @@
-test_that("process_fragment_status - SNV with both reads covering", {
+# ======================================================================
+# Tests for SNVs (Single Nucleotide Variants)
+# ======================================================================
+
+test_that("process_fragment_status - SNV both covering", {
   ref <- "C"
   alt <- "A"
 
-  # Example 1: Both reads have the alternative allele -> MUT
-  res1 <- process_fragment_status(ref, alt, "SNV", "A", "A")
-  expect_equal(res1, "MUT")
+  # MUT + MUT -> MUT
+  expect_equal(process_fragment_status(ref, alt, "SNV", "A", "A"), "MUT")
 
-  # Example 2: Both reads have the reference allele -> WT
-  res2 <- process_fragment_status(ref, alt, "SNV", "C", "C")
-  expect_equal(res2, "WT")
+  # WT + WT -> WT
+  expect_equal(process_fragment_status(ref, alt, "SNV", "C", "C"), "WT")
 
-  # Example 3: Only one read has the alternative allele -> WT_but_other_read_mut
-  res3 <- process_fragment_status(ref, alt, "SNV", "A", "C")
-  expect_equal(res3, "WT_but_other_read_mut")
+  # MUT + WT -> WT_but_other_read_mut
+  expect_equal(process_fragment_status(ref, alt, "SNV", "A", "C"), "WT_but_other_read_mut")
+  expect_equal(process_fragment_status(ref, alt, "SNV", "C", "A"), "WT_but_other_read_mut")
 
-  # Example 4: One read is ref the other is not ref and alt
-  res4 <- process_fragment_status(ref, alt, "SNV", "T", "C")
-  expect_equal(res4, "WT_but_other_read_mut_with_other_alt")
+  # WT + other -> WT_but_other_read_mut_with_other_alt
+  expect_equal(process_fragment_status(ref, alt, "SNV", "T", "C"), "WT_but_other_read_mut_with_other_alt")
 
-  # Example 5: One MUT and the other not ref and alt
-  res5 <- process_fragment_status(ref, alt, "SNV", "A", "T")
-  expect_equal(res5, "MUT_but_other_read_mut_with_other_alt")
+  # MUT + other -> MUT_but_other_read_mut_with_other_alt
+  expect_equal(process_fragment_status(ref, alt, "SNV", "A", "T"), "MUT_but_other_read_mut_with_other_alt")
 
-  # Example 6: Both read mut with another alt
-  res6 <- process_fragment_status(ref, alt, "SNV", "T", "T")
-  expect_equal(res6, "Error_both_read_mut_with_other_alt")
+  # other + other -> Error_both_read_mut_with_other_alt
+  expect_equal(process_fragment_status(ref, alt, "SNV", "T", "G"), "Error_both_read_mut_with_other_alt")
 })
 
-test_that("process_fragment_status - SNV with incomplete coverage", {
+test_that("process_fragment_status - SNV one read covering", {
   ref <- "C"
   alt <- "A"
 
-  # Example 1: One read available with the alternative allele -> MUT
-  res1 <- process_fragment_status(ref, alt, "SNV", "A", NA)
-  expect_equal(res1, "MUT")
+  # MUT + NA -> MUT
+  expect_equal(process_fragment_status(ref, alt, "SNV", "A", NA), "MUT")
 
-  # Example 2: One read available without the alternative allele -> WT
-  res2 <- process_fragment_status(ref, alt, "SNV", NA, "C")
-  expect_equal(res2, "WT")
+  # WT + NA -> WT
+  expect_equal(process_fragment_status(ref, alt, "SNV", NA, "C"), "WT")
 
-  # Example 3: One read available diff than ref and alt
-  res3 <- process_fragment_status(ref, alt, "SNV", NA, "T")
-  expect_equal(res3, "Other_MUT")
+  # other + NA -> Other_MUT
+  expect_equal(process_fragment_status(ref, alt, "SNV", NA, "T"), "Other_MUT")
 
-  # Example 4: Both reads missing -> ERROR
-  res4 <- process_fragment_status(ref, alt, "SNV", NA, NA)
-  expect_equal(res4, "Error_1_read_should_cover_the_position")
+  # NA + NA -> Error
+  expect_equal(process_fragment_status(ref, alt, "SNV", NA, NA), "Error_1_read_should_cover_the_position")
 })
 
-test_that("process_fragment_status - Insertion with both reads covering", {
-  # For insertion type, target value is "insertion_detected"
-  ref <- "A"
-  alt <- "ATT"
+# ======================================================================
+# Tests for Indels
+# ======================================================================
 
-  # Example 1: Both reads detect insertion -> MUT
-  res1 <- process_fragment_status(ref, alt, "insertion", "+TT", "+TT")
-  expect_equal(res1, "MUT")
+test_that("process_fragment_status - Indels", {
+  # --- Insertion ---
+  ref_ins <- "A"
+  alt_ins <- "ATT" # Mutation = +TT
 
-  # Example 2: Only one read detects insertion -> WT_but_other_read_mut
-  res2 <- process_fragment_status(ref, alt, "insertion", "+TT", "no_insertion_detected")
-  expect_equal(res2, "WT_but_other_read_mut")
+  # MUT + MUT -> MUT
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "+TT", "+TT"), "MUT")
+  # MUT + WT -> WT_but_other_read_mut
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "+TT", "no_insertion_detected"), "WT_but_other_read_mut")
+  # WT + WT -> WT
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "no_insertion_detected", "no_insertion_detected"), "WT")
+  # MUT + NA -> MUT
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "+TT", NA), "MUT")
+  # WT + NA -> WT
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", NA, "no_insertion_detected"), "WT")
 
-  # Example 3: Neither read detects insertion -> WT
-  res3 <- process_fragment_status(ref, alt, "insertion", "no_insertion_detected", "no_insertion_detected")
-  expect_equal(res3, "WT")
+  # --- Deletion ---
+  ref_del <- "ATT"
+  alt_del <- "A" # Mutation = -TT
 
-  # Example 4: Not supposed to happen because detector-insertion.R only detect the good insertion
-  res4 <- process_fragment_status(ref, alt, "insertion", "+TT", "+CC")
-  expect_equal(res4, "Error_to_detect_ref/alt")
+  # MUT + MUT -> MUT
+  expect_equal(process_fragment_status(ref_del, alt_del, "deletion", "-TT", "-TT"), "MUT")
+  # MUT + WT -> WT_but_other_read_mut
+  expect_equal(process_fragment_status(ref_del, alt_del, "deletion", "-TT", "no_deletion_detected"), "WT_but_other_read_mut")
+  # WT + WT -> WT
+  expect_equal(process_fragment_status(ref_del, alt_del, "deletion", "no_deletion_detected", "no_deletion_detected"), "WT")
+  # MUT + NA -> MUT
+  expect_equal(process_fragment_status(ref_del, alt_del, "deletion", "-TT", NA), "MUT")
+  # WT + NA -> WT
+  expect_equal(process_fragment_status(ref_del, alt_del, "deletion", NA, "no_deletion_detected"), "WT")
 })
 
-test_that("process_fragment_status - Insertion with incomplete coverage", {
-  ref <- "A"
-  alt <- "ATT"
-  # Example 1: One read available and detects insertion -> MUT
-  res1 <- process_fragment_status(ref, alt, "insertion", "+TT", NA)
-  expect_equal(res1, "MUT")
+test_that("process_fragment_status - Indels with 'ambiguous'", {
+  # --- Insertion ---
+  ref_ins <- "A"
+  alt_ins <- "ATT" # Mutation = +TT
 
-  # Example 2: One read available and does not detect insertion -> WT
-  res2 <- process_fragment_status(ref, alt, "insertion", NA, "no_insertion_detected")
-  expect_equal(res2, "WT")
+  # Ambiguous + Ambiguous -> Ambiguous
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "ambiguous", "ambiguous"), "Ambiguous")
+  # Ambiguous + NA -> Ambiguous
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "ambiguous", NA), "Ambiguous")
+  # WT + Ambiguous -> WT
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "no_insertion_detected", "ambiguous"), "WT")
+  # MUT + Ambiguous -> MUT
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "+TT", "ambiguous"), "MUT")
 
-  # Example 3: Both reads missing -> WT
-  res3 <- process_fragment_status(ref, alt, "insertion", NA, NA)
-  expect_equal(res3, "Error_1_read_should_cover_the_position")
+  # --- Deletion ---
+  ref_del <- "ATT"
+  alt_del <- "A" # Mutation = -TT
+
+  # Ambiguous + Ambiguous -> Ambiguous
+  expect_equal(process_fragment_status(ref_del, alt_del, "deletion", "ambiguous", "ambiguous"), "Ambiguous")
+  # Ambiguous + NA -> Ambiguous
+  expect_equal(process_fragment_status(ref_del, alt_del, "deletion", NA, "ambiguous"), "Ambiguous")
+  # WT + Ambiguous -> WT
+  expect_equal(process_fragment_status(ref_del, alt_del, "deletion", "ambiguous", "no_deletion_detected"), "WT")
+  # MUT + Ambiguous -> MUT
+  expect_equal(process_fragment_status(ref_del, alt_del, "deletion", "ambiguous", "-TT"), "MUT")
 })
 
-test_that("process_fragment_status - Deletion with both reads covering", {
-  ref <- "ATT"
-  alt <- "A"
 
-  # Example 1: Both reads detect deletion -> MUT
-  res1 <- process_fragment_status(ref, alt, "deletion", "-TT", "-TT")
-  expect_equal(res1, "MUT")
+test_that("process_fragment_status - Indels with 'other'", {
+  # --- Insertion ---
+  ref_ins <- "A"
+  alt_ins <- "ATT" # Mutation = +TT
 
-  # Example 2: Only one read detects deletion -> WT_but_other_read_mut
-  res2 <- process_fragment_status(ref, alt, "deletion", "-TT", "no_deletion_detected")
-  expect_equal(res2, "WT_but_other_read_mut")
+  # WT + other -> WT_but_other_read_mut_with_other_alt
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "no_insertion_detected", "+GG"), "WT_but_other_read_mut_with_other_alt")
 
-  # Example 3: Neither read detects deletion -> WT
-  res3 <- process_fragment_status(ref, alt, "deletion", "no_deletion_detected", "no_deletion_detected")
-  expect_equal(res3, "WT")
-})
+  # MUT + other -> MUT_but_other_read_mut_with_other_alt
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "+TT", "+GG"), "MUT_but_other_read_mut_with_other_alt")
 
-test_that("process_fragment_status - Deletion with incomplete coverage", {
-  ref <- "ATT"
-  alt <- "A"
+  # other + other -> Error_both_read_mut_with_other_alt
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "+CC", "+GG"), "Error_both_read_mut_with_other_alt")
 
-  # Example 1: One read available and detects deletion -> MUT
-  res1 <- process_fragment_status(ref, alt, "deletion", "-TT", NA)
-  expect_equal(res1, "MUT")
-
-  # Example 2: One read available and does not detect deletion -> WT
-  res2 <- process_fragment_status(ref, alt, "deletion", NA, "no_deletion_detected")
-  expect_equal(res2, "WT")
-
-  # Example 3: Both reads missing -> WT
-  res3 <- process_fragment_status(ref, alt, "deletion", NA, NA)
-  expect_equal(res3, "Error_1_read_should_cover_the_position")
+  # other + NA -> Other_MUT
+  expect_equal(process_fragment_status(ref_ins, alt_ins, "insertion", "+GG", NA), "Other_MUT")
 })

@@ -13,6 +13,7 @@ process_fragment(
   pos,
   ref,
   alt,
+  pos_after_indel_repetition,
   mutation_type,
   report_tlen,
   report_softclip,
@@ -33,6 +34,9 @@ process_fragment(
 \item{ref}{Character vector representing reference base(s).}
 
 \item{alt}{Character vector representing alternative base(s).}
+
+\item{pos_after_indel_repetition}{Integer. The position after the indel
+repetion.}
 
 \item{mutation_type}{In "SNV", "deletion", or "insertion".}
 

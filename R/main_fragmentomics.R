@@ -180,8 +180,29 @@ process_fragmentomics <- function(
     ref_final <- mut_info_final[i, 3]
     alt_final <- mut_info_final[i, 4]
 
+    # Message
+    cat(paste0("Processing ", chr_final, ":", pos_final, " = ", ref_final, " > ", alt_final, "\n"))
+
     # Return the mutation status in SNV, ins, del, MNP
     mutation_type <- define_mutation_status(ref_final, alt_final)
+
+    # Get the position of the nucleotide after a possible repeted sequence
+    pos_after_indel_repetition <- 0
+    if (mutation_type == "deletion" || mutation_type == "insertion") {
+      pos_after_indel_repetition <- get_repetition_seq_info(
+        chr = chr_final,
+        pos = pos_final,
+        ref = ref_final,
+        alt = alt_final,
+        fasta = fasta_loaded,
+        mutation_type
+      )
+
+      # Sanity check to see if pos_after_indel_repetition worked properly
+      if (is.null(pos_after_indel_repetition)) {
+        next
+      }
+    }
 
     # Read and extract bam around the mutation position
     # Return a truncated sam
@@ -217,6 +238,7 @@ process_fragmentomics <- function(
         pos = pos_final,
         ref = ref_final,
         alt = alt_final,
+        pos_after_indel_repetition,
         mutation_type,
         report_tlen,
         report_softclip,

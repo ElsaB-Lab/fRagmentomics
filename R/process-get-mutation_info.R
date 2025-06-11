@@ -20,7 +20,7 @@
 #'  - "no_deletion_detected" or "no_insertion_detected"
 #'
 #' @keywords internal
-get_mutation_info <- function(mutation_type, pos, ref, alt, read_stats) {
+get_mutation_info <- function(mutation_type, pos, ref, alt, read_stats, pos_after_indel_repetition) {
   if (mutation_type == "SNV") {
     return(
       get_base_qual_from_read(
@@ -33,12 +33,13 @@ get_mutation_info <- function(mutation_type, pos, ref, alt, read_stats) {
     )
   } else if (mutation_type == "deletion") {
     return(
-      get_deletion(
+      get_info_deletion(
         pos      = pos,
         ref      = ref,
         r_pos    = read_stats$POS,
         r_cigar  = read_stats$CIGAR,
-        r_qual   = read_stats$QUAL
+        r_qual   = read_stats$QUAL,
+        pos_after_indel_repetition
       )
     )
   } else if (mutation_type == "insertion") {
@@ -49,7 +50,8 @@ get_mutation_info <- function(mutation_type, pos, ref, alt, read_stats) {
         r_pos    = read_stats$POS,
         r_cigar  = read_stats$CIGAR,
         r_query  = read_stats$SEQ,
-        r_qual   = read_stats$QUAL
+        r_qual   = read_stats$QUAL,
+        pos_after_indel_repetition
       )
     )
   } else {

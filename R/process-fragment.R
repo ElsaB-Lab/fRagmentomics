@@ -65,6 +65,8 @@ get_read_stats <- function(df_read) {
 #' @param pos Numeric value representing the Genomic position of interest.
 #' @param ref Character vector representing reference base(s).
 #' @param alt Character vector representing alternative base(s).
+#' @param pos_after_indel_repetition Integer. The position after the indel
+#' repetion.
 #' @param mutation_type In "SNV", "deletion", or "insertion".
 #'
 #' @return A dataframe with the processed fragment information.
@@ -77,6 +79,7 @@ process_fragment <- function(df_sam,
                              pos,
                              ref,
                              alt,
+                             pos_after_indel_repetition,
                              mutation_type,
                              report_tlen,
                              report_softclip,
@@ -154,8 +157,8 @@ process_fragment <- function(df_sam,
   # -------------------------------
   # Retrieve mutation information (a list with base and qual)
   # -------------------------------
-  r_info1 <- get_mutation_info(mutation_type, pos, ref, alt, read1_stats)
-  r_info2 <- get_mutation_info(mutation_type, pos, ref, alt, read2_stats)
+  r_info1 <- get_mutation_info(mutation_type, pos, ref, alt, read1_stats, pos_after_indel_repetition)
+  r_info2 <- get_mutation_info(mutation_type, pos, ref, alt, read2_stats, pos_after_indel_repetition)
 
   # -------------------------------
   # Compute fragment size

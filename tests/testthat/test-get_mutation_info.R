@@ -5,7 +5,8 @@ test_that("get insertion", {
     pos = 15,
     ref = "A",
     alt = "ATT",
-    read_stats <- list(POS = 10, CIGAR = "3S6M2I1M", SEQ = "AAAAAAAAATTA", QUAL = "########I++#")
+    read_stats <- list(POS = 10, CIGAR = "3S6M2I1M", SEQ = "AAAAAAAAATTA", QUAL = "########I++#"),
+    pos_after_indel_repetition = 7
   )
 
   expect_equal(res1$base, "+TT")
@@ -17,7 +18,8 @@ test_that("get insertion", {
     pos = 9,
     ref = "TAT",
     alt = "T",
-    read_stats <- list(POS = 2, CIGAR = "8M2D10M", SEQ = "GGGGGGTATGGGGGGGGG", QUAL = "######+I!#########")
+    read_stats <- list(POS = 2, CIGAR = "8M2D10M", SEQ = "GGGGGGTATGGGGGGGGG", QUAL = "######+I!#########"),
+    pos_after_indel_repetition = 9
   )
 
   expect_equal(res2$base, "-AT")
@@ -32,7 +34,8 @@ test_that("get insertion", {
     read_stats <- list(
       POS = 1, CIGAR = "5S5D90M", SEQ = "CTGCCGGAACATTGGGAACCACCCCACTATGTCTAAAAGTGTTTCTTTAATCCAAATCCTCAACCCCCAATTTCCCTTCCACCCGCATAAGTTGCTGTGT",
       QUAL = ",,F,,F:,,,,,,FF,,FF,:F,,,,,,,:,,:,FFF,:::FF,,,,,,F,F,F:,:,,,F,,,F,,FFF,FF,F,F,FF,:,,F,,:F,,,,,,:,,F,"
-    )
+    ),
+    pos_after_indel_repetition = 0
   )
 
   expect_setequal(res3$base, "A")
@@ -47,7 +50,8 @@ test_that("get insertion", {
     read_stats <- list(
       POS = 1, CIGAR = "5S5D90M", SEQ = "CTGCCGGAACATTGGGAACCACCCCACTATGTCTAAAAGTGTTTCTTTAATCCAAATCCTCAACCC",
       QUAL = ",,F,,F:,,,,,,FF,,FF,:F,,,,,,,:,,:,FFF,:::FF,,,,,,F,F,F:,:,,,F,,,F,,FFF,FF,F,F,FF,:,,F,,:F,,,,,,:,,F,"
-    )
+    ),
+    pos_after_indel_repetition = 0
   )
 
   expect_setequal(res4$base, "Error: mutation_type not defined properly")

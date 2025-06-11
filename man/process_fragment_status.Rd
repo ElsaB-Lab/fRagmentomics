@@ -4,8 +4,8 @@
 \alias{process_fragment_status}
 \title{Process Fragment Status
 This function determines the mutation status of a DNA fragment based on
-the mutation type and read information. It supports (SNV), insertions,
-and deletions.}
+the mutation type and read information. It supports single nucleotide variants (SNV),
+insertions, and deletions, including an "ambiguous" status for indels.}
 \usage{
 process_fragment_status(ref, alt, mutation_type, r_info_base1, r_info_base2)
 }
@@ -17,30 +17,26 @@ process_fragment_status(ref, alt, mutation_type, r_info_base1, r_info_base2)
 \item{mutation_type}{In "SNV", "deletion", or "insertion".}
 
 \item{r_info_base1}{A character string or NA indicating the base or
-mutation detection status from the first read.}
+mutation detection status from the first read. Can be "ambiguous".}
 
 \item{r_info_base2}{A character string or NA indicating the base or
-mutation detection status from the second read.}
+mutation detection status from the second read. Can be "ambiguous".}
 }
 \value{
 A character string representing the fragment status:
--"MUT": Both reads support the mutation /
-(or at least one read supports it when coverage is incomplete).
--"WT_but_other_read_mut": Both reads cover the position but only
-one supports the mutation.
--"WT_but_other_read_mut_with_other_alt": Both reads cover the position
-but one support a mutation that is not alt.
--"MUT_but_other_read_mut_with_other_alt": Both reads cover the position
-but one is not ref or alt.
--"Error_both_read_mut_with_other_alt": Both reads cover the position
-but both are not ref or alt.
--"Other_MUT": One read is covering and it's not ref or alt
--"WT": Neither read supports the mutation.
+-"MUT": Both reads support the mutation, or one read is MUT and the other is Ambiguous or NA.
+-"WT": Both reads are wild-type, or one is WT and the other is Ambiguous or NA.
+-"Ambiguous": Both reads are ambiguous, or one is ambiguous and the other is NA.
+-"WT_but_other_read_mut": Both reads cover the position but only one supports the mutation.
+-"WT_but_other_read_mut_with_other_alt": Both reads cover the position but one supports a mutation that is not alt.
+-"MUT_but_other_read_mut_with_other_alt": Both reads cover the position but one is not ref or alt.
+-"Error_both_read_mut_with_other_alt": Both reads cover the position but both are not ref or alt.
+-"Other_MUT": One read is covering and it's not ref or alt.
 }
 \description{
 Process Fragment Status
 This function determines the mutation status of a DNA fragment based on
-the mutation type and read information. It supports (SNV), insertions,
-and deletions.
+the mutation type and read information. It supports single nucleotide variants (SNV),
+insertions, and deletions, including an "ambiguous" status for indels.
 }
 \keyword{internal}
