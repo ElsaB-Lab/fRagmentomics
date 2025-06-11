@@ -1,9 +1,0 @@
-name: cfdna_snakemake
-channels:
-  - defaults
-  - bioconda
-  - conda-forge
-dependencies:
-  - snakemake
-  - pandas
-  - mamba
