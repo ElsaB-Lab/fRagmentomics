@@ -14,7 +14,7 @@
 - No graphic representation
 - No pipeline integration.
 
-# fRagmentomics 0.2.0
+# fRagmentomics 0.1.1
 
 - Ambiguous Indel Cases
   - **Insertions**: An insertion is marked as ambiguous if the read doesn't cover the first nucleotide that breaks the repeated motif.
