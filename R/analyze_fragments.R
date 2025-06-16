@@ -123,10 +123,10 @@ analyze_fragments <- function(
 
   # Loop on each row of the mut_info
   for (i in seq_len(nrow(df_mut_norm))) {
-    chr_norm <- df_mut_norm[i, "CHROM"]
-    pos_norm <- df_mut_norm[i, "POS"]
-    ref_norm <- df_mut_norm[i, "REF"]
-    alt_norm <- df_mut_norm[i, "ALT"]
+    chr_norm <- df_mut_norm[i, "chr"]
+    pos_norm <- df_mut_norm[i, "pos"]
+    ref_norm <- df_mut_norm[i, "ref"]
+    alt_norm <- df_mut_norm[i, "alt"]
 
     # Read and extract bam around the mutation position
     # Return a truncated sam
@@ -186,7 +186,6 @@ analyze_fragments <- function(
     # Fusion into the final df
     df_fragments_info_final <- rbind(df_fragments_info_final, df_fragments_info)
   }
-  print(colnames(df_fragments_info_final))
 
   # Stop cluster
   parallel::stopCluster(cl)

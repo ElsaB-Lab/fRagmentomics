@@ -1,12 +1,12 @@
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 [![codecov](https://codecov.io/gh/ElsaB-Lab/fRagmentomics/graph/badge.svg?token=OMTSCRO7LJ)](https://codecov.io/gh/ElsaB-Lab/fRagmentomics)
 
 # fRagmentomics
 
-**fRagmentomics** is an R package designed to integrate cell-free DNA (cfDNA) fragment features with mutational status to support the interpretation of liquid biopsies.  
+**fRagmentomics** is an R package designed to integrate cell-free DNA (cfDNA) fragment features with mutational status to support the interpretation of liquid biopsies.
 The goal of fRagmentomics is to generate a customizable dataframe that includes the fragment characteristics you wish to analyze (e.g., fragment size, end sequences, soft-clipped bases).
 
-Feature selection is based on the study by Wong *et al.* (2024):  
+Feature selection is based on the study by Wong *et al.* (2024):
 **"Cell-free DNA from germline TP53 mutation carriers reflect cancer-like fragmentation patterns"**, *Nature Communications*.
 
 ---
