@@ -44,12 +44,12 @@ test_that("analyze_fragments works", {
     }
 
     # Check that we have the expected columns
-    expected_cols <- c("Chromosome", "Position", "Ref", "Alt", "Fragment_Id", "Fragment_QC",                  
-    "Fragment_Status", "Fragment_Status_Broad", "Fragment_Size", "Inner_Distance", "Read_5p", 
-    "Read_5p_Status", "Read_3p_Status", "MAPQ_5p", "MAPQ_3p", "BASE_5p", "BASE_3p", "BASQ_5p",   
-    "BASQ_3p", "CIGAR_5p", "CIGAR_3p", "POS_5p", "POS_3p", "TLEN", "Fragment_Bases_5p",   
-    "Fragment_Bases_3p", "Fragment_Basqs_5p", "Fragment_Basqs_3p", "Nb_fragment_bases_softclip_5p",
-    "Nb_fragment_bases_softclip_3p", "VAF")
+    expected_cols <- c("Chromosome", "Position", "Ref", "Alt", "Fragment_Id", "Fragment_QC",
+    "Fragment_Status", "Fragment_Status_Broad", "Fragment_Size", "Inner_Distance", "Read_5p",
+    "Read_5p_Status", "Read_3p_Status", "MAPQ_5p", "MAPQ_3p", "BASE_5p", "BASE_3p", "BASQ_5p",
+    "BASQ_3p", "CIGAR_5p", "CIGAR_3p", "POS_5p", "POS_3p", "TLEN", "Fragment_Bases_5p",
+    "Fragment_Bases_3p", "Fragment_Basqs_5p", "Fragment_Basqs_3p", "Nb_Fragment_Bases_Softclip_5p",
+    "Nb_Fragment_Bases_Softclip_3p", "VAF")
 
     expect_true(
         all(expected_cols %in% colnames(res1)),

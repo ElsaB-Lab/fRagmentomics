@@ -80,15 +80,15 @@ extract_fragment_features <- function(df_sam,
     }
 
     if (report_5p_3p_bases_fragment != 0) {
-      final_row_fragment$Fragment_bases_5p <- NA
-      final_row_fragment$Fragment_bases_3p <- NA
+      final_row_fragment$Fragment_Bases_5p <- NA
+      final_row_fragment$Fragment_Bases_3p <- NA
       final_row_fragment$Fragment_Basqs_5p <- NA
       final_row_fragment$Fragment_Basqs_3p <- NA
     }
 
     if (report_softclip) {
-      final_row_fragment$Nb_fragment_bases_softclip_5p <- NA
-      final_row_fragment$Nb_fragment_bases_softclip_3p <- NA
+      final_row_fragment$Nb_Fragment_Bases_Softclip_5p <- NA
+      final_row_fragment$Nb_Fragment_Bases_Softclip_3p <- NA
     }
 
     result_df <- as.data.frame(final_row_fragment)
@@ -224,9 +224,9 @@ extract_fragment_features <- function(df_sam,
       read_stats_3p$CIGAR
     )
 
-    final_row_fragment$Nb_fragment_bases_softclip_5p <-
+    final_row_fragment$Nb_Fragment_Bases_Softclip_5p <-
       fragment_bases_softclip_5p_3p$nb_softclip_5p
-    final_row_fragment$Nb_fragment_bases_softclip_3p <-
+    final_row_fragment$Nb_Fragment_Bases_Softclip_3p <-
       fragment_bases_softclip_5p_3p$nb_softclip_3p
   }
 

@@ -170,17 +170,22 @@ analyze_fragments <- function(
       )
     }
 
-    # -------------------------------
     # Calculate VAF of the fragment
-    # -------------------------------
-    df_fragments_info$VAF <- NA
-    if (any(df_fragments_info$Fragment_Status == "MUT")) {
+    if (any(df_fragments_info$Fragment_Status == "MUT", na.rm=TRUE)) {
       total_mut <- sum(df_fragments_info$Fragment_Status == "MUT", na.rm = TRUE)
       total <- sum(df_fragments_info$Fragment_Status == "Non-target MUT", na.rm = TRUE)
 
-      df_fragments_info$VAF <- 100 * total_mut / total
+      if (total+total_mut==0){
+        df_fragments_info$VAF <- 0
+      } else {
+        df_fragments_info$VAF <- 100 * total_mut / (total+total_mut)
+      }
     } else {
-      df_fragments_info$VAF <- NA
+      if (all(is.na(df_fragments_info$Fragment_Status == "MUT"), na.rm=TRUE)){
+        df_fragments_info$VAF <- NA
+      } else {
+        df_fragments_info$VAF <- 0
+      }
     }
 
     # Fusion into the final df
