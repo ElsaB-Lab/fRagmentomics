@@ -55,5 +55,16 @@ normalize_mut <- function(df_mut, fasta, fasta_fafile, one_based, tmp_folder) {
     df_mut_norm <- rbind(df_mut_norm, mut_bcftools_norm)
   }
 
+  # rename if necessary
+  rename_map <- c(chr = "CHROM", pos = "POS", ref = "REF", alt = "ALT")
+  for (i in seq_along(rename_map)) {
+    old_name <- rename_map[i]
+    new_name <- names(rename_map)[i]
+    if (old_name %in% colnames(df_mut_norm)) {
+      colnames(df_mut_norm)[colnames(df_mut_norm) == old_name] <- new_name
+    }
+  }
+
   df_mut_norm
 }
+

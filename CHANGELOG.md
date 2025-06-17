@@ -1,3 +1,26 @@
+# fRagmentomics 0.2.2
+
+- Correct mutation read status to handle incidental mutations arising from hard/soft-clipping.
+- Correct get_index_aligning_with_pos to return -2 when the at the position of interest the read bears a deletion.
+- Implement more verbose mutation statuses
+    - "MUT but potentially larger MNV"
+    - "OTH (DEL)" if the read bears a deletion at the position of interest and we are looking for a SNV/MNV
+    - "OTH (DEL) for indel case - Need review" if the read bears a deletion at the position of interest for an INDE:.
+- Rename `cigar_free_mode` to `cigar_free_indel`. This option, when activated, serves to search for an INDEL if it is
+  not found by the function `search_for_indel_in_cigar`.
+- Update how `BASE_5p` and `BASE_3p` are reported.  The idea is to report the bases aligning with pos, [inserted bases],
+  pos+1, [inserted bases], ..., pos+nchar(alt) and stop reporting bases once we reach nchar(alt).
+- Implement final Fragment_Status_Simple and Fragment_Status_Detail values.
+- No graphic representation
+- No pipeline integration.
+
+# fRagmentomics 0.2.1
+
+- Correct VAF calculation
+- Harmonize column names to first-letter upper case and underscores.
+- No graphic representation
+- No pipeline integration.
+
 # fRagmentomics 0.2.0
 
 - Implement an alternative algorithm for determining the mutation status of a fragment. This algorithm relies on the

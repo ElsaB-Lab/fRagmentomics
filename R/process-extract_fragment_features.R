@@ -23,7 +23,7 @@ extract_fragment_features <- function(df_sam,
                                       report_tlen,
                                       report_softclip,
                                       report_5p_3p_bases_fragment,
-                                      cigar_free_mode,
+                                      cigar_free_indel_match,
                                       fasta_fafile) {
   # Select reads originating from the fragment of interest
   df_fragment_reads <- df_sam[
@@ -36,39 +36,48 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   fragment_qc <- ""
   if (!all(df_fragment_reads[, 3] == chr)) {
-    fragment_qc <- paste(fragment_qc, "& Read(s) from another chromosome
-    than", chr)
+    qc <- paste("Read(s) from another chromosome than", chr)
+    if (fragment_qc==""){
+      fragment_qc <- qc
+    } else {
+      fragment_qc <- paste(c(fragment_qc, qc), collapse=" & ")
+    }
   }
   if (nrow(df_fragment_reads) != 2) {
-    fragment_qc <- paste(fragment_qc, "&", nrow(df_fragment_reads), "read(s)")
+    qc <- paste("Fragment has", nrow(df_fragment_reads), "read(s)")
+    if (fragment_qc==""){
+      fragment_qc <- qc
+    } else {
+      fragment_qc <- paste(c(fragment_qc, qc), collapse=" & ")
+    }
   }
 
   # If the fragment fails QC, return a dataframe with NAs
   if (fragment_qc != "") {
     final_row_fragment <- list(
-      Chromosome = chr,
-      Position = pos,
-      Ref = ref,
-      Alt = alt,
-      Fragment_Id = fragment_name,
-      Fragment_QC = fragment_qc,
-      Fragment_Status = NA,
-      Fragment_Status_Broad = NA,
-      Fragment_Size = NA,
-      Inner_Distance = NA,
-      Read_5p = NA,
-      Read_5p_Status = NA,
-      Read_3p_Status = NA,
-      MAPQ_5p = NA,
-      MAPQ_3p = NA,
-      BASE_5p = NA,
-      BASE_3p = NA,
-      BASQ_5p = NA,
-      BASQ_3p = NA,
-      CIGAR_5p = NA,
-      CIGAR_3p = NA,
-      POS_5p = NA,
-      POS_3p = NA
+      Chromosome             = chr,
+      Position               = pos,
+      Ref                    = ref,
+      Alt                    = alt,
+      Fragment_Id            = fragment_name,
+      Fragment_QC            = fragment_qc,
+      Fragment_Status_Simple = NA,
+      Fragment_Status_Detail = NA,
+      Fragment_Size          = NA,
+      Inner_Distance         = NA,
+      Read_5p                = NA,
+      Read_5p_Status         = NA,
+      Read_3p_Status         = NA,
+      MAPQ_5p                = NA,
+      MAPQ_3p                = NA,
+      BASE_5p                = NA,
+      BASE_3p                = NA,
+      BASQ_5p                = NA,
+      BASQ_3p                = NA,
+      CIGAR_5p               = NA,
+      CIGAR_3p               = NA,
+      POS_5p                 = NA,
+      POS_3p                 = NA
     )
 
     if (!is.na(sample_id)) {
@@ -103,8 +112,8 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   # Get read sequence, read base qualities, and read mutation status
   # -------------------------------
-  read_info_1 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_1, fasta_fafile, cigar_free_mode)
-  read_info_2 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_2, fasta_fafile, cigar_free_mode)
+  read_info_1 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_1, fasta_fafile, cigar_free_indel_match)
+  read_info_2 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_2, fasta_fafile, cigar_free_indel_match)
 
   # -------------------------------
   # Compute fragment size
@@ -120,8 +129,7 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   # Define fragment status
   # -------------------------------
-  fragment_status_broad <- get_fragment_mutation_status_broad(mstat_1 = read_info_1$mstat, mstat_2 = read_info_2$mstat)
-  fragment_status <- get_fragment_mutation_status(fragment_status_broad)
+  fstats <- get_fragment_mutation_statuses(mstat_1 = read_info_1$mstat, mstat_2 = read_info_2$mstat)
 
   # -------------------------------
   # Define 3' and 5' reads
@@ -145,29 +153,29 @@ extract_fragment_features <- function(df_sam,
   # Build an adaptative dataframe
   # -------------------------------
   final_row_fragment <- list(
-    Chromosome            = chr,
-    Position              = pos,
-    Ref                   = ref,
-    Alt                   = alt,
-    Fragment_Id           = fragment_name,
-    Fragment_QC           = "OK",
-    Fragment_Status       = fragment_status,
-    Fragment_Status_Broad = fragment_status_broad,
-    Fragment_Size         = absolute_size,
-    Inner_Distance        = inner_distance,
-    Read_5p               = identity_5p,
-    Read_5p_Status        = read_info_5p$mstat,
-    Read_3p_Status        = read_info_3p$mstat,
-    MAPQ_5p               = read_stats_5p$MAPQ,
-    MAPQ_3p               = read_stats_3p$MAPQ,
-    BASE_5p               = read_info_5p$base,
-    BASE_3p               = read_info_3p$base,
-    BASQ_5p               = read_info_5p$basq,
-    BASQ_3p               = read_info_3p$basq,
-    CIGAR_5p              = read_stats_5p$CIGAR,
-    CIGAR_3p              = read_stats_3p$CIGAR,
-    POS_5p                = read_stats_5p$POS,
-    POS_3p                = read_stats_3p$POS
+    Chromosome             = chr,
+    Position               = pos,
+    Ref                    = ref,
+    Alt                    = alt,
+    Fragment_Id            = fragment_name,
+    Fragment_QC            = "OK",
+    Fragment_Status_Simple = fstats$Simple,
+    Fragment_Status_Detail = fstats$Detail,
+    Fragment_Size          = absolute_size,
+    Inner_Distance         = inner_distance,
+    Read_5p                = identity_5p,
+    Read_5p_Status         = read_info_5p$mstat,
+    Read_3p_Status         = read_info_3p$mstat,
+    MAPQ_5p                = read_stats_5p$MAPQ,
+    MAPQ_3p                = read_stats_3p$MAPQ,
+    BASE_5p                = read_info_5p$base,
+    BASE_3p                = read_info_3p$base,
+    BASQ_5p                = read_info_5p$basq,
+    BASQ_3p                = read_info_3p$basq,
+    CIGAR_5p               = read_stats_5p$CIGAR,
+    CIGAR_3p               = read_stats_3p$CIGAR,
+    POS_5p                 = read_stats_5p$POS,
+    POS_3p                 = read_stats_3p$POS
   )
 
   # -------------------------------

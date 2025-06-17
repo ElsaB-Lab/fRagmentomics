@@ -3,36 +3,81 @@
 #' @inheritParams extract_fragment_features
 #' @param read_stats A list of read-level statistics.
 #'
-#' @return A list containing "alt", "basq", "mstat".
+#' @return A list containing "base", "basq", "mstat".
 #'
 #' @keywords internal
-get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_fafile, cigar_free_mode) {
+get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_fafile, cigar_free_indel_match) {
   # get index in the read sequence aligning with pos
   read_index_at_pos <- get_index_aligning_with_pos(pos, read_stats)
 
   if (read_index_at_pos == -1) {
     # in case the read does not cover the position of interest
+    mstat <- NA
     base <- NA
     basq <- NA
-    mstat <- NA
   } else {
-    # in case the read covers the position of interest
-    nb_indices_to_report <- nchar(alt) - 1
-    read_index_max <- read_index_at_pos + nb_indices_to_report
-
-    # If we can not get back the necessary sequence, add "*" at the end of the sequence
-    if (read_index_max > nchar(read_stats$SEQ)) {
-      read_index_max <- nchar(read_stats$SEQ)
-      end_tag <- "*"
+    # mutation status
+    if (read_index_at_pos == -2 && nchar(ref)==nchar(alt)) {
+      # in case the read contains a deletion at the position of interest and we are looking for a SNV or MNV,
+      # then the read contains another event than the one we are looking for
+      mstat <- "OTH (DEL)"
+    } else if (read_index_at_pos == -2 && nchar(ref)!=nchar(alt)) {
+      mstat <- "OTH (DEL) for indel case - Need review"
     } else {
-      end_tag <- ""
+      # get mutation status of the read
+
+      if (nchar(ref)==nchar(alt)) {
+        # SNV or MNV
+        mstat_small <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
+                                                   cigar_free_indel_match, n_match_base_before=0, n_match_base_after=0)
+        mstat_large <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
+                                                  cigar_free_indel_match, n_match_base_before=1, n_match_base_after=1)
+        if (mstat_small=="MUT") {
+          if (mstat_large=="OTH"){
+            mstat <- "MUT but potentially larger MNV"
+          } else if (mstat_large=="MUT") {
+            mstat <- "MUT"
+          } else {
+            stop(paste("If the mutation status on the alt sequence is 'MUT', then the mutation status on extended",
+                       "sequence cannot be", paste0("'", mstat_large, "'"), "for",
+                       paste0(chr, ":", pos, ":", ref, ">", alt)))
+          }
+        } else {
+          mstat <- mstat_small
+        }
+      } else {
+        # By VCF convention, the ref and alt sequences include one base before the actual mutated sequence
+        # Additionally, we want to systematically include with one base after the actual mutated sequences.
+        # If we cannot cover the base after, then we will call ambiguous if compatible with mutated ref.
+        mstat <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
+                                             cigar_free_indel_match, n_match_base_before=1, n_match_base_after=1)
+      }
     }
 
-    base <- paste0(substr(read_stats$SEQ, read_index_at_pos, read_index_max), end_tag)
-    basq <- paste0(substr(read_stats$QUAL, read_index_at_pos, read_index_max), end_tag)
+    # get bases to report. The idea is to report the bases aligning with pos, [inserted bases], pos+1, [inserted bases],
+    # ..., pos+nchar(alt) and stop reporting bases once we reach nchar(alt)
 
-    # get mutation status of the read
-    mstat <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile, cigar_free_mode)
+    # initialize
+    shift <- 0
+    if (read_index_at_pos==-2){
+      base <- "-"
+      basq <- ""
+    } else {
+      base <- substr(read_stats$SEQ, read_index_at_pos, read_index_at_pos)
+      basq <- substr(read_stats$QUAL, read_index_at_pos, read_index_at_pos)
+    }
+
+    # iterate
+    while (nchar(base)<nchar(alt)){
+      shift <- shift+1
+      info_at_pos <- get_base_basq_from_read_at_pos(pos+shift, pos, read_stats)
+      max_new <- min(nchar(alt)-nchar(base), nchar(info_at_pos$base))
+      base <- paste0(base, substr(info_at_pos$base, 1, max_new))
+      basq <- paste0(basq, substr(info_at_pos$basq, 1, max_new))
+      if (info_at_pos$base=="*"){
+        break
+      }
+    }
   }
 
   list(base = base, basq = basq, mstat = mstat)
@@ -68,7 +113,7 @@ compare_read_to_ref_wt_and_mut <- function(read_seq, ref_seq_wt, ref_seq_mut, co
   } else if (match_ref_mut) {
     return("MUT")
   } else {
-    return("Other MUT")
+    return("OTH")
   }
 }
 
@@ -96,7 +141,8 @@ get_number_of_common_first_char <- function(str_a, str_b) {
 #'
 #' @inheritParams get_base_basq_mstat_from_read
 #' @return An integer representing the index of the nucleotide in sequence aligning with the position of interest. If
-#' none is found, this integer will be -1.
+#' the read does not cover the position of interest, this integer is -1. If the read contains a deletion or skipping at
+#' the position of interest, this integer is -2.
 #'
 #' @keywords internal
 get_index_aligning_with_pos <- function(pos, read_stats) {
@@ -113,8 +159,8 @@ get_index_aligning_with_pos <- function(pos, read_stats) {
   cigar_operations <- data.frame(operations, consumes_seq, consumes_ref)
 
   # cursors and index to be incremented
-  ref_pos <- read_pos
-  read_idx <- 1
+  ref_pos <- read_pos-1
+  read_idx <- 0
 
   while (nchar(read_cigar) > 0 && ref_pos < pos) {
     # get current cigar operation and number of associated bases
@@ -129,14 +175,14 @@ get_index_aligning_with_pos <- function(pos, read_stats) {
     consumes_seq <- cigar_operations[cigar_operations$op == read_cigar_op, "consumes_seq"]
     consumes_ref <- cigar_operations[cigar_operations$op == read_cigar_op, "consumes_ref"]
 
-    # execute read_cigar operation along the reference
-    if (consumes_ref == "yes") {
-      ref_pos <- ref_pos + 1
-    }
-
     # execute read_cigar operation along the sequence
     if (consumes_seq == "yes") {
       read_idx <- read_idx + 1
+    }
+
+    # execute read_cigar operation along the reference
+    if (consumes_ref == "yes") {
+      ref_pos <- ref_pos + 1
     }
 
     # update cigar
@@ -152,10 +198,42 @@ get_index_aligning_with_pos <- function(pos, read_stats) {
     }
   }
 
-  # if the read does not cover the position of interest
-  if (ref_pos != pos) {
+  if (ref_pos == pos && read_idx > 0){
+    # if we have reached a deleted or skipped base, the read does not cover the position of interest
+    if (read_cigar_op %in% c("D", "N")){
+      read_idx <- -2
+    }
+  } else {
+    # if the read does not cover the position of interest (including soft- or hard-clipped)
     read_idx <- -1
   }
 
   read_idx
+}
+
+
+#' Get the element in the sequence and quality aligning with the position of interest.
+#'
+#' Extracts base, quality, and indel informations based on the mutation type.
+#'
+#' @inheritParams get_base_basq_mstat_from_read
+#' @param pos_cur current position request
+#' @param pos_pre previous position request
+#' @return A list with the base and the quality of the read aligning with the position provided. If the read contains a
+#' deletion, base is set to '-' and the quality to an empty string.
+#'
+#' @keywords internal
+get_base_basq_from_read_at_pos <- function(pos_cur, pos_pre, read_stats){
+  read_index_at_pos_cur <- get_index_aligning_with_pos(pos_cur, read_stats)
+  read_index_at_pos_pre <- get_index_aligning_with_pos(pos_pre, read_stats)
+
+  if (read_index_at_pos_cur==-1){
+    return(list(base="*", basq="*"))
+  } else if (read_index_at_pos_cur==-2){
+    return(list(base="-", basq=""))
+  } else {
+    base <- substr(read_stats$SEQ, read_index_at_pos_pre+1, read_index_at_pos_cur)
+    basq <- substr(read_stats$QUAL, read_index_at_pos_pre+1, read_index_at_pos_cur)
+    return(list(base=base, basq=basq))
+  }
 }

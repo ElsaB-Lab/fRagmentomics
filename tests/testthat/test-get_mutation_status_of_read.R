@@ -9,26 +9,30 @@ test_that("get_mutation_status_of_read works", {
   # MUT: A > AGT
   # READ: AGTCC
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGTCC", CIGAR="5M", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ = "AGTCC", CIGAR = "5M", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "WT")
 
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGTCC", CIGAR="5M", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = TRUE
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ = "AGTCC", CIGAR = "5M", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "WT")
 
@@ -36,27 +40,31 @@ test_that("get_mutation_status_of_read works", {
   # MUT: A > AGT
   # READ: AGTGTC
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGTGTC", CIGAR="1M2I3M", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ = "AGTGTC", CIGAR = "1M2I3M", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
 
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGTGTC", CIGAR="1M2I3M", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = TRUE
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ = "AGTGTC", CIGAR = "1M2I3M", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
@@ -65,106 +73,122 @@ test_that("get_mutation_status_of_read works", {
   # MUT: A > AGT
   # READ: AGTGT
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGTGT", CIGAR="1M2I2M", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ = "AGTGT", CIGAR = "1M2I2M", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGTGT", CIGAR="3M2I", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
-  )
-  expect_equal(mstat, "AMB-compatible and MUT not in CIGAR")
-
-  mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGTGT", CIGAR="3M2I", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = TRUE
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ = "AGTGT", CIGAR = "3M2I", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "AMB")
+
+  mstat <- get_mutation_status_of_read(
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ = "AGTGT", CIGAR = "3M2I", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
+  )
+  expect_equal(mstat, "AMB by cigar-free search and MUT not found in CIGAR")
 
   # REF: AGTCCC
   # MUT: A > AGT
   # READ: AGT
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGT", CIGAR="3M", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ = "AGT", CIGAR = "3M", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "AMB")
 
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGT", CIGAR="1M2I", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ      = "AGT", CIGAR = "1M2I", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGT", CIGAR="3M", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = TRUE
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ = "AGT", CIGAR = "3M", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "AMB")
+  expect_equal(mstat, "AMB by cigar-free search and MUT not found in CIGAR")
 
   # REF: AGTCCC
   # MUT: A > AGT
   # READ: AGTGAC
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGTGAC", CIGAR="3M2I1M", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ = "AGTGAC", CIGAR = "3M2I1M", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "Other MUT")
+  expect_equal(mstat, "WT")
 
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 500,
-    ref               = "A",
-    alt               = "AGT",
-    read_index_at_pos = 1,
-    read_stats        = list(SEQ="AGTGAC", CIGAR="3M2I1M", POS=500),
-    fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = TRUE
+    chr                    = "chr1",
+    pos                    = 500,
+    ref                    = "A",
+    alt                    = "AGT",
+    read_index_at_pos      = 1,
+    read_stats             = list(SEQ = "AGTGAC", CIGAR = "3M2I1M", POS = 500),
+    fasta_fafile           = fasta_fafile,
+    cigar_free_indel_match = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "Other MUT")
+  expect_equal(mstat, "OTH")
 
   # INSERTIONS REPEAT ================================================================================================
 
@@ -179,7 +203,9 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 1,
     read_stats        = list(SEQ="TCCCTC", CIGAR="6M", POS=502),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = TRUE
+    cigar_free_indel_match = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "WT")
 
@@ -191,7 +217,9 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 1,
     read_stats        = list(SEQ="TCCCTC", CIGAR="6M", POS=502),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "WT")
 
@@ -206,7 +234,9 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 2,
     read_stats        = list(SEQ="GTCCCCT", CIGAR="2M1I4M", POS=501),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
@@ -218,9 +248,11 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 2,
     read_stats        = list(SEQ="GTCCCCT", CIGAR="3M1I3M", POS=501),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "MUT-compatible and MUT not in CIGAR")
+  expect_equal(mstat, "MUT by cigar-free search and MUT not found in CIGAR")
 
 
   # DELETION NO REPEAT =============================================================================================
@@ -236,7 +268,9 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 3,
     read_stats        = list(SEQ="AAGCCC", CIGAR="3M1D3M", POS=499),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
@@ -251,9 +285,11 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 3,
     read_stats        = list(SEQ="AAGCC", CIGAR="3M2D2M", POS=499),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "MUT-compatible and other MUT found in CIGAR")
+  expect_equal(mstat, "OTH")
 
   mstat <- get_mutation_status_of_read(
     chr               = "chr1",
@@ -263,9 +299,11 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 3,
     read_stats        = list(SEQ="AAGCC", CIGAR="3M2D2M", POS=499),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = TRUE
+    cigar_free_indel_match = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "MUT")
+  expect_equal(mstat, "MUT by cigar-free search and other MUT found in CIGAR")
 
 
   # REF TGGGAAGTCCCT (495-506)
@@ -279,9 +317,11 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 3,
     read_stats        = list(SEQ="AAGCCT", CIGAR="3M2D3M", POS=499),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "MUT-compatible and other MUT found in CIGAR")
+  expect_equal(mstat, "OTH")
 
   mstat <- get_mutation_status_of_read(
     chr               = "chr1",
@@ -291,23 +331,27 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 3,
     read_stats        = list(SEQ="AAGCCT", CIGAR="3M2D3M", POS=499),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = TRUE
+    cigar_free_indel_match   = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "MUT")
+  expect_equal(mstat, "MUT by cigar-free search and other MUT found in CIGAR")
 
 
   # REF TGGGAAGTCCCT (495-506)
-  # MUT: AG > G (500)
+  # MUT: AG > A (500)
   # READ: AATCC
   mstat <- get_mutation_status_of_read(
     chr               = "chr1",
     pos               = 500,
     ref               = "AG",
-    alt               = "G",
+    alt               = "A",
     read_index_at_pos = 2,
     read_stats        = list(SEQ="AATCC", CIGAR="2M1D3M", POS=499),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match   = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
@@ -315,29 +359,33 @@ test_that("get_mutation_status_of_read works", {
     chr               = "chr1",
     pos               = 500,
     ref               = "AG",
-    alt               = "G",
+    alt               = "A",
     read_index_at_pos = 2,
     read_stats        = list(SEQ="AATCC", CIGAR="2M1D3M", POS=499),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = TRUE
+    cigar_free_indel_match   = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
 
   # REF TGGGAAGTCCCT (495-506)
-  # MUT: AG > G (500)
+  # MUT: AG > A (500)
   # READ: AACCCT
   mstat <- get_mutation_status_of_read(
     chr               = "chr1",
     pos               = 500,
     ref               = "AG",
-    alt               = "G",
+    alt               = "A",
     read_index_at_pos = 2,
     read_stats        = list(SEQ="AACCCT", CIGAR="2M2D4M", POS=499),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match   = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "Other MUT")
+  expect_equal(mstat, "OTH")
 
   mstat <- get_mutation_status_of_read(
     chr               = "chr1",
@@ -347,9 +395,11 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 2,
     read_stats        = list(SEQ="AACCCT", CIGAR="2M2D4M", POS=499),
     fasta_fafile      = fasta_fafile,
-    cigar_free_mode   = TRUE
+    cigar_free_indel_match   = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "Other MUT")
+  expect_equal(mstat, "OTH")
 
 
   # COMPLEX CASES ======================================================================================================
@@ -360,16 +410,18 @@ test_that("get_mutation_status_of_read works", {
   # MUT: A > AGG
   # READ: ATCGAGGGGG
   mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 5,
-    ref               = "A",
-    alt               = "AGG",
-    read_index_at_pos = 5,
-    read_stats        = list(SEQ="ATCGAGGGGG", CIGAR="11M", POS=1),
-    fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = FALSE
+    chr                    = "chr1",
+    pos                    = 5,
+    ref                    = "A",
+    alt                    = "AGG",
+    read_index_at_pos      = 5,
+    read_stats             = list(SEQ          = "ATCGAGGGGG", CIGAR = "11M", POS = 1),
+    fasta_fafile           = fasta_env$fa_obj,
+    cigar_free_indel_match = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "AMB-compatible and MUT not in CIGAR")
+  expect_equal(mstat, "AMB")
 
   mstat <- get_mutation_status_of_read(
     chr               = "chr1",
@@ -379,9 +431,11 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 5,
     read_stats        = list(SEQ="ATCGAGGGGG", CIGAR="11M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = TRUE
+    cigar_free_indel_match   = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "AMB")
+  expect_equal(mstat, "AMB by cigar-free search and MUT not found in CIGAR")
 
 
   # REF:  ATCGAGGGGT
@@ -395,19 +449,9 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 5,
     read_stats        = list(SEQ="ATCGAGGGGGG", CIGAR="12M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = FALSE
-  )
-  expect_equal(mstat, "AMB-compatible and MUT not in CIGAR")
-
-  mstat <- get_mutation_status_of_read(
-    chr               = "chr1",
-    pos               = 5,
-    ref               = "A",
-    alt               = "AGG",
-    read_index_at_pos = 5,
-    read_stats        = list(SEQ="ATCGAGGGGGG", CIGAR="12M", POS=1),
-    fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = TRUE
+    cigar_free_indel_match   = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "AMB")
 
@@ -417,9 +461,25 @@ test_that("get_mutation_status_of_read works", {
     ref               = "A",
     alt               = "AGG",
     read_index_at_pos = 5,
+    read_stats        = list(SEQ="ATCGAGGGGGG", CIGAR="12M", POS=1),
+    fasta_fafile      = fasta_env$fa_obj,
+    cigar_free_indel_match   = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
+  )
+  expect_equal(mstat, "AMB by cigar-free search and MUT not found in CIGAR")
+
+  mstat <- get_mutation_status_of_read(
+    chr               = "chr1",
+    pos               = 5,
+    ref               = "A",
+    alt               = "AGG",
+    read_index_at_pos = 5,
     read_stats        = list(SEQ="ATCGAGGGGGG", CIGAR="5M2I4M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match   = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
@@ -431,9 +491,11 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 5,
     read_stats        = list(SEQ="ATCGAGGGGGG", CIGAR="7M2I2M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match   = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "AMB-compatible and MUT not in CIGAR")
+  expect_equal(mstat, "AMB")
 
   # REF:  ATCGAGGGGT
   # MUT: A > AGG
@@ -446,7 +508,9 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 5,
     read_stats        = list(SEQ="ATCGAGGGGGGT", CIGAR="5M2I5M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match   = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
@@ -458,7 +522,9 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 5,
     read_stats        = list(SEQ="ATCGAGGGGGGT", CIGAR="5M2I5M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = TRUE
+    cigar_free_indel_match   = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
@@ -470,9 +536,11 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 5,
     read_stats        = list(SEQ="ATCGAGGGGGGT", CIGAR="7M2I3M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match   = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "MUT-compatible and MUT not in CIGAR")
+  expect_equal(mstat, "WT")
 
   mstat <- get_mutation_status_of_read(
     chr               = "chr1",
@@ -482,9 +550,11 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 5,
     read_stats        = list(SEQ="ATCGAGGGGGGT", CIGAR="7M2I3M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = TRUE
+    cigar_free_indel_match   = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "MUT")
+  expect_equal(mstat, "MUT by cigar-free search and MUT not found in CIGAR")
 
   cleanup_test_fasta(fasta_env)
 
@@ -502,7 +572,9 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 25,
     read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match   = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
@@ -514,7 +586,9 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 25,
     read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = TRUE
+    cigar_free_indel_match   = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 
@@ -529,9 +603,11 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 31,
     read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match   = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "MUT-compatible and MUT not in CIGAR")
+  expect_equal(mstat, "WT")
 
   mstat <- get_mutation_status_of_read(
     chr               = "chr4",
@@ -541,9 +617,11 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 31,
     read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="25M5D15M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = TRUE
+    cigar_free_indel_match   = TRUE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
-  expect_equal(mstat, "MUT")
+  expect_equal(mstat, "MUT by cigar-free search and MUT not found in CIGAR")
 
 
   # Case 3: Cigar with 2 deletions inside with the same size
@@ -555,7 +633,9 @@ test_that("get_mutation_status_of_read works", {
     read_index_at_pos = 25,
     read_stats        = list(SEQ="ACAGCACTATCTGAAACCAGGATGGATTGAAGGCCCCTCG", CIGAR="1M5D24M5D15M", POS=1),
     fasta_fafile      = fasta_env$fa_obj,
-    cigar_free_mode   = FALSE
+    cigar_free_indel_match   = FALSE,
+    n_match_base_before    = 1,
+    n_match_base_after     = 1
   )
   expect_equal(mstat, "MUT")
 

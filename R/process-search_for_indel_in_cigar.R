@@ -3,7 +3,8 @@
 #' @inheritParams get_base_basq_mstat_from_read
 #' @param type, choose between "INS" or "DEL"
 #'
-#' @return a boolean indicating TRUE if the insertion was found in the CIGAR a the position of interest, FALSE otherwise
+#' @return a list with two booleans. The first boolean indicate if the INDEL searched was found. The second boolean
+#' indicate if another INDEL (different size and/or different sequence) was found.
 #'
 #' @keywords internal
 search_for_indel_in_cigar <- function(pos, ref, alt, read_stats, type) {
@@ -39,13 +40,13 @@ search_for_indel_in_cigar <- function(pos, ref, alt, read_stats, type) {
           # which is included in the 'alt' sequence and the comparison below will not hold.
           return(list(TRUE, NULL))
         } else {
-          return(list(FALSE, "other MUT found in CIGAR"))
+          return(list(FALSE, TRUE))
         }
       } else if (op_type=="D" && ref_pos - 1 == pos){
         if (op_len==nchar(ref)-1){
           return(list(TRUE, NULL))
         } else {
-          return(list(FALSE, "other MUT found in CIGAR"))
+          return(list(FALSE, TRUE))
         }
       }
     }
@@ -65,5 +66,5 @@ search_for_indel_in_cigar <- function(pos, ref, alt, read_stats, type) {
     }
   }
 
-  return(list(FALSE, "MUT not in CIGAR"))
+  return(list(FALSE, FALSE))
 }

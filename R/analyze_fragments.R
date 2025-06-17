@@ -38,9 +38,9 @@ setup_parallel_computations <- function(n_cores) {
 #'  bases at the fragment extremities in the output.
 #' @param report_5p_3p_bases_fragment Integer. Whether to include N fragment
 #'  extremity bases in the output.
-#' @param cigar_free_mode Boolean. If activated, the information from the CIGAR is disregarded when determining the
-#'  mutation status of a read. Instead the mutation status is determined by comparing the sequence of the read to the
-#'  sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
+#' @param cigar_free_indel_match Boolean. If activated, the information from the CIGAR is disregarded when determining the
+#'  mutation status of a read for indel. Instead the mutation status is determined by comparing the sequence of the read
+#'  to the sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
 #'  genotyping of reads compared to the information provided by the CIGAR for indels. On the other hand, when
 #'  activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
 #'  indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.
@@ -71,7 +71,7 @@ analyze_fragments <- function(
     report_tlen = FALSE,
     report_softclip = FALSE,
     report_5p_3p_bases_fragment = 5,
-    cigar_free_mode = FALSE,
+    cigar_free_indel_match = FALSE,
     tmp_folder = tempdir(),
     output_file = NA,
     n_cores = 1) {
@@ -97,7 +97,7 @@ analyze_fragments <- function(
     report_tlen,
     report_softclip,
     report_5p_3p_bases_fragment,
-    cigar_free_mode,
+    cigar_free_indel_match,
     tmp_folder,
     output_file,
     n_cores
@@ -165,23 +165,23 @@ analyze_fragments <- function(
         report_tlen                 = report_tlen,
         report_softclip             = report_softclip,
         report_5p_3p_bases_fragment = report_5p_3p_bases_fragment,
-        cigar_free_mode             = cigar_free_mode,
+        cigar_free_indel_match      = cigar_free_indel_match,
         fasta_fafile                = fasta_fafile
       )
     }
 
     # Calculate VAF of the fragment
-    if (any(df_fragments_info$Fragment_Status == "MUT", na.rm=TRUE)) {
-      total_mut <- sum(df_fragments_info$Fragment_Status == "MUT", na.rm = TRUE)
-      total <- sum(df_fragments_info$Fragment_Status == "Non-target MUT", na.rm = TRUE)
+    if (any(df_fragments_info$Fragment_Status_Simple == "MUT", na.rm=TRUE)) {
+      total_mut <- sum(df_fragments_info$Fragment_Status_Simple == "MUT", na.rm = TRUE)
+      total_non_target_mut <- sum(df_fragments_info$Fragment_Status_Simple == "NON-TARGET MUT", na.rm = TRUE)
 
-      if (total+total_mut==0){
+      if (total_mut+total_non_target_mut==0){
         df_fragments_info$VAF <- 0
       } else {
-        df_fragments_info$VAF <- 100 * total_mut / (total+total_mut)
+        df_fragments_info$VAF <- 100 * total_mut / (total_mut+total_non_target_mut)
       }
     } else {
-      if (all(is.na(df_fragments_info$Fragment_Status == "MUT"), na.rm=TRUE)){
+      if (all(is.na(df_fragments_info$Fragment_Status_Simple == "MUT"), na.rm=TRUE)){
         df_fragments_info$VAF <- NA
       } else {
         df_fragments_info$VAF <- 0

@@ -9,9 +9,12 @@
 #'
 #' @inheritParams get_base_basq_mstat_from_read
 #' @param read_index_at_pos An integer representing the index of the nucleotide in sequence aligning with the position of interest.
+#' @param n_match_base_before Number of bases to be matched before the alt allele in the sequences comparison
+#' @param n_match_base_after Number of bases to be matched after the last alt allele in the sequences comparison
 #'
 #' @keywords internal
-get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile, cigar_free_mode = F) {
+get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
+                                        cigar_free_indel_match, n_match_base_before=0, n_match_base_after=0) {
   ref_len <- nchar(ref)
   alt_len <- nchar(alt)
   read_seq_len <- nchar(read_stats$SEQ)
@@ -24,10 +27,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
   if (ref_len == alt_len) {
     # SNV or MNV
 
-    # If the read sequence does not allow to compare with one base before the alteration, or with one base after the
+    # If the read sequence does not allow to compare with base(s) before the alteration, or with base(s) after the
     # alteration, then we won't add these bases into the comparison
-    n_match_base_before <- 1
-    n_match_base_after <- 1
     if (read_index_at_pos == 1) {
       n_match_base_before <- 0
     }
@@ -72,7 +73,7 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     compare_len_wt <- min(compare_len_wt, fetch_len_read)
     compare_len_mut <- min(compare_len_mut, fetch_len_read)
 
-    # for SNV/MNV, the determination of the read status is independent of the value of cigar_free_mode
+    # determine the read mutation status
     status <- compare_read_to_ref_wt_and_mut(read_seq, ref_seq_wt, ref_seq_mut, compare_len_wt, compare_len_mut)
 
     if (status == "MUT" && incomplete_comparison_mut) {
@@ -83,12 +84,6 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
   } else {
     # INS or DEL
 
-    # By VCF convention, the ref and alt sequences include one base before the actual mutated sequence
-    # Additionally, we want to systematically include with one base after the actual mutated sequences.
-    # If we cannot cover the base after, then we will call ambiguous if compatible with mutated ref.
-    n_match_base_before <- 1
-    n_match_base_after <- 1
-
     # identify mutated sequence
     inserted_seq <- if (alt_len > ref_len) substr(alt, n_match_base_before + 1, alt_len) else ""
     deleted_seq <- if (ref_len > alt_len) substr(ref, n_match_base_before + 1, ref_len) else ""
@@ -97,7 +92,7 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
 
     # Fetch the maximum number of bases that may be included in the comparison + length of one motif and one base after
     fetch_len_ref <- read_seq_len + motif_len + n_match_base_after
-    fetch_start_ref <- pos + n_match_base_before - 1
+    fetch_start_ref <- pos - (n_match_base_before - 1)
     fetch_end_ref <- fetch_start_ref + fetch_len_ref - 1
     ref_seq_wt <- get_seq_from_fasta(chr, fetch_start_ref, fetch_end_ref, fasta_fafile)
 
@@ -176,28 +171,39 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     compare_len_wt <- min(compare_len_wt, fetch_len_read)
     compare_len_mut <- min(compare_len_mut, fetch_len_read)
 
-    # for the determination of the read status is independent of the value of cigar_free_mode
-    status <- compare_read_to_ref_wt_and_mut(read_seq, ref_seq_wt, ref_seq_mut, compare_len_wt, compare_len_mut)
+    # determine the read mutation status
+    status_cigar_free <- compare_read_to_ref_wt_and_mut(read_seq, ref_seq_wt, ref_seq_mut, compare_len_wt, compare_len_mut)
+    indel_search <- search_for_indel_in_cigar(pos, ref, alt, read_stats, type)
+    indel_found_in_cigar <- indel_search[[1]]
+    other_found_in_cigar <- indel_search[[2]]
 
-    if (cigar_free_mode) {
-      if (status == "MUT" && incomplete_comparison_mut) {
-        return("AMB")
-      } else {
-        return(status)
-      }
+    if (indel_found_in_cigar) {
+      return("MUT")
     } else {
-      indel_found_in_cigar <- search_for_indel_in_cigar(pos, ref, alt, read_stats, type)
-      if (indel_found_in_cigar[[1]]) {
-        return("MUT")
-      } else {
-        if (status == "MUT") {
-          if (incomplete_comparison_mut) {
-            return(paste("AMB-compatible and", indel_found_in_cigar[[2]]))
+      if (cigar_free_indel_match){
+        # set to ambiguous when the comparison is incomplete
+        if (status_cigar_free=="MUT" && incomplete_comparison_mut) {
+          status_cigar_free <- "AMB"
+        }
+
+        # print special messages for cases where the indel is not found in the CIGAR but where the comparison to
+        # wild-type and mutated reference sequence reveals the mutation is potentially present
+        if (status_cigar_free %in% c("AMB", "MUT")){
+          if (other_found_in_cigar){
+            return(paste(status_cigar_free, "by cigar-free search and other MUT found in CIGAR"))
           } else {
-            return(paste("MUT-compatible and", indel_found_in_cigar[[2]]))
+            return(paste(status_cigar_free, "by cigar-free search and MUT not found in CIGAR"))
           }
         } else {
-          return(status)
+          return(status_cigar_free)
+        }
+      } else {
+        if (other_found_in_cigar) {
+            return("OTH")
+        } else if (incomplete_comparison_mut && status_cigar_free %in% c("MUT", "AMB")){
+          return("AMB")
+        } else {
+          return("WT")
         }
       }
     }

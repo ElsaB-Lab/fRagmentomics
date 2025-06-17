@@ -67,7 +67,7 @@ test_that("check_parameters", {
     report_tlen = FALSE,
     report_softclip = FALSE,
     report_5p_3p_bases_fragment = 5L,
-    cigar_free_mode = FALSE,
+    cigar_free_indel_match = FALSE,
     tmp_folder = tempdir(),
     output_file = "./test.tsv",
     n_cores = 1L
@@ -90,7 +90,7 @@ test_that("check_parameters", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_mode = valid_params$cigar_free_mode,
+      cigar_free_indel_match = valid_params$cigar_free_indel_match,
       tmp_folder = valid_params$tmp_folder,
       output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
@@ -114,7 +114,7 @@ test_that("check_parameters", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_mode = valid_params$cigar_free_mode,
+      cigar_free_indel_match = valid_params$cigar_free_indel_match,
       tmp_folder = valid_params$tmp_folder,
       output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
@@ -140,7 +140,7 @@ test_that("check_parameters", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_mode = valid_params$cigar_free_mode,
+      cigar_free_indel_match = valid_params$cigar_free_indel_match,
       tmp_folder = valid_params$tmp_folder,
       output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
@@ -166,7 +166,7 @@ test_that("check_parameters", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_mode = valid_params$cigar_free_mode,
+      cigar_free_indel_match = valid_params$cigar_free_indel_match,
       tmp_folder = valid_params$tmp_folder,
       output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
@@ -195,7 +195,7 @@ test_that("check_parameters", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_mode = valid_params$cigar_free_mode,
+      cigar_free_indel_match = valid_params$cigar_free_indel_match,
       tmp_folder = valid_params$tmp_folder,
       output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
@@ -223,7 +223,7 @@ test_that("check_parameters", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_mode = valid_params$cigar_free_mode,
+      cigar_free_indel_match = valid_params$cigar_free_indel_match,
       tmp_folder = valid_params$tmp_folder,
       output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
@@ -260,7 +260,7 @@ test_that("check_parameters individual parameter validations", {
   expect_error(check_one_based("TRUE"), "must be a single logical")
   expect_error(check_report_tlen(1L), "must be a single logical")
   expect_error(check_report_softclip(NULL), "must be a single logical")
-  expect_error(check_cigar_free_mode(NULL), "must be a single logical")
+  expect_error(check_cigar_free_indel_match(NULL), "must be a single logical")
 
   # Report 5p/3p bases
   expect_error(check_report_bases_fragm_5p_3p(5), "must be integer")

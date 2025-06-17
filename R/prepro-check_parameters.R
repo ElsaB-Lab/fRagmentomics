@@ -18,7 +18,7 @@ check_parameters <- function(
     report_tlen,
     report_softclip,
     report_5p_3p_bases_fragment,
-    cigar_free_mode,
+    cigar_free_indel_match,
     tmp_folder,
     output_file,
     n_cores) {
@@ -34,7 +34,7 @@ check_parameters <- function(
   check_report_tlen(report_tlen)
   check_report_softclip(report_softclip)
   check_report_bases_fragm_5p_3p(report_5p_3p_bases_fragment)
-  check_cigar_free_mode(cigar_free_mode)
+  check_cigar_free_indel_match(cigar_free_indel_match)
   check_tmp_folder(tmp_folder)
   check_output_file(output_file)
   check_n_cores(n_cores)
@@ -225,14 +225,14 @@ check_report_softclip <- function(report_softclip) {
   }
 }
 
-#' Check if the cigar_free_mode parameter is valid
+#' Check if the cigar_free_indel_match parameter is valid
 #'
 #' @inheritParams check_parameters
 #'
 #' @noRd
-check_cigar_free_mode <- function(cigar_free_mode) {
-  if (!is.logical(cigar_free_mode) || length(cigar_free_mode) != 1) {
-    stop("Error: cigar_free_mode must be a single logical value.")
+check_cigar_free_indel_match <- function(cigar_free_indel_match) {
+  if (!is.logical(cigar_free_indel_match) || length(cigar_free_indel_match) != 1) {
+    stop("Error: cigar_free_indel_match must be a single logical value.")
   }
 }
 
