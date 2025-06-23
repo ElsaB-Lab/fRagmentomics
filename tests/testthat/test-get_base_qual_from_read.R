@@ -82,11 +82,11 @@ test_that("get base and qual from read", {
   pos7 <- 50
   r_cigar7 <- "49M1I50M"
   r_query7 <- "CTGCCGGAACATTGGGAACCACCCCACTATGTCTAAAAGTGTTTCTTTAATCCAAATCCTCAACCCCCAATTTCCCTTCCACCCGCATAAGTTGCTGTGT"
-  r_qual7 <- ",,F,,F:,,,,,,FF,,FF,:F,,,,,,,:,,:,FFF,:::FF,,,,,,F,F,F:,:,,,F,,,F,,FFF,FF,F,F,FF,:,,F,,:F,,,,,,:,,F,"
+  r_qual7 <- ",,F,,F:,,,,,,FF,,FF,:F,,,,,,,:,,:,FFF,:::FF,,,,,,F!F,F:,:,,,F,,,F,,FFF,FF,F,F,FF,:,,F,,:F,,,,,,:,,F,"
   base_qual7 <- get_base_qual_from_read(pos = pos7, r_pos = r_pos7, r_cigar = r_cigar7, r_query = r_query7, r_qual = r_qual7)
 
   expect_setequal(base_qual7$base, "T")
-  expect_setequal(base_qual7$qual, ",")
+  expect_setequal(base_qual7$qual, "!")
 
   # example 8
   r_pos8 <- 1
@@ -110,4 +110,26 @@ test_that("get base and qual from read", {
 
   expect_setequal(base_qual9$base, "T")
   expect_setequal(base_qual9$qual, ",")
+
+  # example 10 -> Issue when the mutation is the first base of the soft clipping
+  r_pos10 <- 6
+  pos10 <- 9
+  r_cigar10 <- "5S3M3S"
+  r_query10 <- "ATCGAATCGTX"
+  r_qual10 <- "FFFFFFFF!FX"
+  base_qual10 <- get_base_qual_from_read(pos = pos10, r_pos = r_pos10, r_cigar = r_cigar10, r_query = r_query10, r_qual = r_qual10)
+
+  expect_setequal(base_qual10$base, NA)
+  expect_setequal(base_qual10$qual, NA)
+
+  # example 10 -> Test if SNV on the last position before softclipping
+  r_pos11 <- 6
+  pos11 <- 8
+  r_cigar11 <- "5S3M3S"
+  r_query11 <- "ATCGAATCGTX"
+  r_qual11 <- "FFFFFFF!FFX"
+  base_qual11 <- get_base_qual_from_read(pos = pos11, r_pos = r_pos11, r_cigar = r_cigar11, r_query = r_query11, r_qual = r_qual11)
+
+  expect_setequal(base_qual11$base, "C")
+  expect_setequal(base_qual11$qual, "!")
 })
