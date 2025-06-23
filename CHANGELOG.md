@@ -1,3 +1,10 @@
+# fRagmentomics 0.2.3
+
+- Replaced per-fragment requests to FASTA by one large per-mutation request to FASTA. On five test files, runtime speed
+  was increase by 1.5x to 2x.
+- No graphic representation
+- No pipeline integration.
+
 # fRagmentomics 0.2.2
 
 - Correct mutation read status to handle incidental mutations arising from hard/soft-clipping.
