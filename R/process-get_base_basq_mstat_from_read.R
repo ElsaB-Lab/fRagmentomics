@@ -6,7 +6,8 @@
 #' @return A list containing "base", "basq", "mstat".
 #'
 #' @keywords internal
-get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_fafile, cigar_free_indel_match) {
+get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_fafile=NULL, fasta_seq=NULL,
+                                          cigar_free_indel_match=FALSE) {
   # get index in the read sequence aligning with pos
   read_index_at_pos <- get_index_aligning_with_pos(pos, read_stats)
 
@@ -29,9 +30,11 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
       if (nchar(ref)==nchar(alt)) {
         # SNV or MNV
         mstat_small <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
-                                                   cigar_free_indel_match, n_match_base_before=0, n_match_base_after=0)
-        mstat_large <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
-                                                  cigar_free_indel_match, n_match_base_before=1, n_match_base_after=1)
+                                                   fasta_seq, cigar_free_indel_match,
+                                                   n_match_base_before=0, n_match_base_after=0)
+        mstat_large <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos,
+                                                   fasta_fafile, fasta_seq, cigar_free_indel_match,
+                                                   n_match_base_before=1, n_match_base_after=1)
         if (mstat_small=="MUT") {
           if (mstat_large=="OTH"){
             mstat <- "MUT but potentially larger MNV"
@@ -50,7 +53,8 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
         # Additionally, we want to systematically include with one base after the actual mutated sequences.
         # If we cannot cover the base after, then we will call ambiguous if compatible with mutated ref.
         mstat <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
-                                             cigar_free_indel_match, n_match_base_before=1, n_match_base_after=1)
+                                             fasta_seq, cigar_free_indel_match,
+                                             n_match_base_before=1, n_match_base_after=1)
       }
     }
 

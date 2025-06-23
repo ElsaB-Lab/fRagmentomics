@@ -1,7 +1,7 @@
 test_that("analyze_fragments works", {
-    mut_test <- system.file("testdata/mutations/", "mutations_cfdna-test-01_chr1_27433000_27434000.tsv", package = "fRagmentomics")
-    bam_test <- system.file("testdata/bam/", "cfdna-test-01_chr1_27433000_27434000.bam", package = "fRagmentomics")
-    fasta_test <- system.file("testdata/fasta/hg19/", "hg19_chr1_27433000_27434000.fa", package = "fRagmentomics")
+    mut_test <- system.file("testdata/mutations/", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv", package = "fRagmentomics")
+    bam_test <- system.file("testdata/bam/", "cfdna-test-01_chr1_27433000_27435000.bam", package = "fRagmentomics")
+    fasta_test <- system.file("testdata/fasta/hg19/", "hg19_chr1_27433000_27435000.fa", package = "fRagmentomics")
 
     # Read the mutation file
     mutation_file_expected <- read.table(

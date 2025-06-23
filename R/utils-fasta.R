@@ -3,6 +3,7 @@
 #' @inheritParams normalize_to_vcf_rep
 #' @param start Start position to be retrieved
 #' @param end End position to be retrieved
+#' @param fasta_seq A list with the fasta sequence between two positions.
 #'
 #' @return A character string representing the single nucleotide at
 #' the specified chromosome and position.
@@ -12,16 +13,32 @@
 #' @importFrom GenomicRanges GRanges
 #'
 #' @noRd
-get_seq_from_fasta <- function(chr, start, end, fasta_fafile) {
-  # Fetch a single nucleotide from the FASTA
-  # using the chromosome, and start = end = position
-  ref_seq <- Biostrings::getSeq(
-    x = fasta_fafile,
-    param = GenomicRanges::GRanges(
-      seqnames = chr,
-      ranges = IRanges::IRanges(start = start, end = end)
+get_seq_from_fasta <- function(chr, start, end, fasta_fafile=NULL, fasta_seq=NULL) {
+  if (!is.null(fasta_seq)){
+    f_chr <- fasta_seq$chr
+    f_start <- fasta_seq$start
+    f_end <- fasta_seq$end
+    f_seq <- fasta_seq$seq
+    if (f_chr != chr){
+      stop(paste("The requested reference sequence chromosome", chr, "does not match the available",
+                 "reference sequence chromosome", f_chr))
+    }
+    if (start < f_start || end > f_end){
+      stop(paste("The requested reference sequence", paste0(start, ":", end), "does not fit into the available",
+                 "reference sequence", paste0(f_start, ":", f_end)))
+    }
+    ref_seq <- substr(f_seq, start-f_start+1, end-start+1)
+  } else {
+    # Fetch a single nucleotide from the FASTA
+    # using the chromosome, and start = end = position
+    ref_seq <- Biostrings::getSeq(
+      x = fasta_fafile,
+      param = GenomicRanges::GRanges(
+        seqnames = chr,
+        ranges = IRanges::IRanges(start = start, end = end)
+      )
     )
-  )
+  }
 
   # Transform fasta_seq into string
   ref_seq_char <- unname(as.character(ref_seq))

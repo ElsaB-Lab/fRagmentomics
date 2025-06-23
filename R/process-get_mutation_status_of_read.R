@@ -13,8 +13,9 @@
 #' @param n_match_base_after Number of bases to be matched after the last alt allele in the sequences comparison
 #'
 #' @keywords internal
-get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
-                                        cigar_free_indel_match, n_match_base_before=0, n_match_base_after=0) {
+get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile=NULL,
+                                        fasta_seq=NULL, cigar_free_indel_match=FALSE, n_match_base_before=0,
+                                        n_match_base_after=0) {
   ref_len <- nchar(ref)
   alt_len <- nchar(alt)
   read_seq_len <- nchar(read_stats$SEQ)
@@ -42,10 +43,10 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     fetch_end_ref <- fetch_start_ref + fetch_len_ref - 1
 
     # get sequences of wild-type and mutated ref
-    ref_seq_wt <- get_seq_from_fasta(chr, fetch_start_ref, fetch_end_ref, fasta_fafile)
+    ref_seq_wt <- get_seq_from_fasta(chr, fetch_start_ref, fetch_end_ref, fasta_fafile, fasta_seq)
     ref_seq_mut <- paste0(
-      substr(ref_seq_wt, 1, n_match_base_before), alt,
-      substr(ref_seq_wt, nchar(ref_seq_wt) - n_match_base_after + 1, nchar(ref_seq_wt))
+                          substr(ref_seq_wt, 1, n_match_base_before), alt,
+                          substr(ref_seq_wt, nchar(ref_seq_wt) - n_match_base_after + 1, nchar(ref_seq_wt))
     )
 
     # if we need more bases than available, cut the sequences to only the maximum comparison possible
@@ -85,8 +86,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     # INS or DEL
 
     # identify mutated sequence
-    inserted_seq <- if (alt_len > ref_len) substr(alt, n_match_base_before + 1, alt_len) else ""
-    deleted_seq <- if (ref_len > alt_len) substr(ref, n_match_base_before + 1, ref_len) else ""
+    inserted_seq <- if (alt_len > ref_len) substr(alt, 2, alt_len) else ""
+    deleted_seq <- if (ref_len > alt_len) substr(ref, 2, ref_len) else ""
     motif <- if (inserted_seq != "") inserted_seq else if (deleted_seq != "") deleted_seq
     motif_len <- nchar(motif)
 
@@ -94,7 +95,7 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     fetch_len_ref <- read_seq_len + motif_len + n_match_base_after
     fetch_start_ref <- pos - (n_match_base_before - 1)
     fetch_end_ref <- fetch_start_ref + fetch_len_ref - 1
-    ref_seq_wt <- get_seq_from_fasta(chr, fetch_start_ref, fetch_end_ref, fasta_fafile)
+    ref_seq_wt <- get_seq_from_fasta(chr, fetch_start_ref, fetch_end_ref, fasta_fafile, fasta_seq)
 
     # INS example
     #   REF: TGAGAT
@@ -106,8 +107,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     #   MUT: TGA > T
     #   REF_AFTER_ONE_MOTIF: GAGAT
     ref_seq_after_one_motif <- substr(
-      ref_seq_wt, n_match_base_before + motif_len + n_match_base_after,
-      nchar(ref_seq_wt)
+                                      ref_seq_wt, n_match_base_before + motif_len + n_match_base_after,
+                                      nchar(ref_seq_wt)
     )
 
     # Identify the number of repeats within the region of the maximum comparison size
@@ -128,8 +129,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     #   Here the motif "ATC" is repeated twice. The sequence after the last repeat is ATT. This sequence shares two
     #   common bases with the motif, i.e "AT"
     ref_seq_after_last_motif <- substr(
-      ref_seq_after_one_motif, (repeat_count - 1) * motif_len + n_match_base_after,
-      repeat_count * motif_len + n_match_base_after - 1
+                                       ref_seq_after_one_motif, (repeat_count - 1) * motif_len + n_match_base_after,
+                                       repeat_count * motif_len + n_match_base_after - 1
     )
     n_bases_shared_with_motif <- get_number_of_common_first_char(ref_seq_after_last_motif, motif)
 
@@ -155,8 +156,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     #   MUT: TGA > T
     #   REF_SEQ_MUT: T+""+GAGAT
     ref_seq_mut <- paste0(
-      substr(ref_seq_wt, 1, n_match_base_before),
-      substr(alt, n_match_base_before + 1, alt_len),
+                          substr(ref_seq_wt, 1, n_match_base_before),
+                          substr(alt, n_match_base_before + 1, alt_len),
       substr(ref_seq_wt, ref_len + 1, nchar(ref_seq_wt))
     )
 

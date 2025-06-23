@@ -9,6 +9,7 @@
 #' @param ref Character vector representing reference base(s).
 #' @param alt Character vector representing alternative base(s).
 #' @param fasta_fafile An open connection to an object of class FaFile
+#' @param fasta_seq A list with the fasta sequence between two positions.
 #'
 #' @return A dataframe with the processed fragment information.
 #'
@@ -24,7 +25,8 @@ extract_fragment_features <- function(df_sam,
                                       report_softclip,
                                       report_5p_3p_bases_fragment,
                                       cigar_free_indel_match,
-                                      fasta_fafile) {
+                                      fasta_fafile=NULL,
+                                      fasta_seq=NULL) {
   # Select reads originating from the fragment of interest
   df_fragment_reads <- df_sam[
     df_sam[, 1, drop = TRUE] == fragment_name, ,
@@ -112,8 +114,10 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   # Get read sequence, read base qualities, and read mutation status
   # -------------------------------
-  read_info_1 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_1, fasta_fafile, cigar_free_indel_match)
-  read_info_2 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_2, fasta_fafile, cigar_free_indel_match)
+  read_info_1 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_1, fasta_fafile, fasta_seq,
+                                               cigar_free_indel_match)
+  read_info_2 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_2, fasta_fafile, fasta_seq,
+                                               cigar_free_indel_match)
 
   # -------------------------------
   # Compute fragment size

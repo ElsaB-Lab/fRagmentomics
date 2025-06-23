@@ -140,6 +140,29 @@ analyze_fragments <- function(
       flag_remove
     )
 
+    # Make one large request to FASTA to avoid doing time-consuming requests to FASTA for each fragment
+    # Calculations below serve to ensure we extract just enough reference sequence for all the per-fragment
+    # requests
+    if (nchar(ref_norm)==nchar(alt_norm)){
+      motif_len <- nchar(alt_norm)
+    } else {
+      motif_len <- max(nchar(ref_norm)-1, nchar(alt_norm)-1)
+    }
+
+    max_read_seq_len <- max(nchar(df_sam$SEQ))
+    min_read_pos <- min(df_sam[df_sam$RNAME==chr_norm, "POS"])
+    max_read_pos <- max(df_sam[df_sam$RNAME==chr_norm, "POS"])
+    max_fetch_len_ref <- max_read_seq_len + motif_len
+
+    # -1 for the max value of n_match_base_before used later in the code
+    min_fetch_pos <- min_read_pos - 1
+    # +1 is the max value of n_match_base_after used later in the code
+    max_fetch_pos <- max_read_pos + max_read_seq_len + motif_len + 1
+
+    # get sequence from fasta
+    fetch_seq <- get_seq_from_fasta(chr_norm, min_fetch_pos, max_fetch_pos, fasta_fafile)
+    fasta_seq <- list(chr=chr_norm, start=min_fetch_pos, end=max_fetch_pos, seq=fetch_seq)
+
     # Process fragmentomics on truncated bam and the mutation
     # Extract unique fragment names
     fragments_names <- unique(df_sam[, 1, drop = TRUE])
@@ -166,7 +189,7 @@ analyze_fragments <- function(
         report_softclip             = report_softclip,
         report_5p_3p_bases_fragment = report_5p_3p_bases_fragment,
         cigar_free_indel_match      = cigar_free_indel_match,
-        fasta_fafile                = fasta_fafile
+        fasta_seq                   = fasta_seq
       )
     }
 
