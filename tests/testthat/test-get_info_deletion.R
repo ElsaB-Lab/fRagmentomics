@@ -35,8 +35,8 @@ test_that("get_info_deletion", {
   expect_equal(res3$base, "no_deletion_detected")
   expect_equal(res3$qual, "no_deletion_detected")
 
-  # Example 4: Case where the read doesn't cover the position
-  res4 <- get_info_deletion(
+  # Example 4a: Case where the read doesn't cover the position (too high)
+  res4a <- get_info_deletion(
     pos = 9,
     ref = "TAT",
     r_pos = 1,
@@ -44,8 +44,20 @@ test_that("get_info_deletion", {
     r_qual = "########",
     pos_after_indel_repetition = 11 # Value doesn't matter here
   )
-  expect_equal(res4$base, NA_character_)
-  expect_equal(res4$qual, NA_character_)
+  expect_equal(res4a$base, NA_character_)
+  expect_equal(res4a$qual, NA_character_)
+
+  # Example 4b: Case where the read doesn't cover the position (too short)
+  res4b <- get_info_deletion(
+    pos = 7,
+    ref = "TAT",
+    r_pos = 10,
+    r_cigar = "8M", # Covers 1+8-1=8. pos is 9. Fails coverage check.
+    r_qual = "########",
+    pos_after_indel_repetition = 11 # Value doesn't matter here
+  )
+  expect_equal(res4b$base, NA_character_)
+  expect_equal(res4b$qual, NA_character_)
 
   # Example 5: Read covers up to 'pos', no deletion op, but now can be ambiguous or not.
   # Test 5a: Becomes ambiguous if threshold is higher
@@ -84,6 +96,7 @@ test_that("get_info_deletion", {
   )
   expect_equal(res6$base, "-AT")
   expect_equal(res6$qual, "G")
+
 
 
   # Ambiguity logic tests

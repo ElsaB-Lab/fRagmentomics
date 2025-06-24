@@ -92,7 +92,7 @@ get_info_deletion <- function(pos, ref, r_pos, r_cigar, r_qual, pos_after_indel_
   }
 
   # Check if the read covers the indel position.
-  if (last_ref_pos_covered_by_read < pos) {
+  if (last_ref_pos_covered_by_read < pos || r_pos > pos) {
     # The read does not cover the position of interest.
     return(list(base = NA_character_, qual = NA_character_))
   }

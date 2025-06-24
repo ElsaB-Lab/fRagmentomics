@@ -136,7 +136,7 @@ get_insertion <- function(pos, alt, r_pos, r_cigar, r_query, r_qual, pos_after_i
   }
 
   # If the read is NOT ambiguous, then check if it covers the insertion site.
-  if (last_ref_pos_covered_by_read < pos) {
+  if (last_ref_pos_covered_by_read < pos || r_pos > pos) {
     # The read does not cover the position of interest.
     return(list(base = NA_character_, qual = NA_character_))
   }
