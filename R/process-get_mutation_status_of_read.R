@@ -91,8 +91,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     motif <- if (inserted_seq != "") inserted_seq else if (deleted_seq != "") deleted_seq
     motif_len <- nchar(motif)
 
-    # Fetch the maximum number of bases that may be included in the comparison + length of one motif and one base after
-    fetch_len_ref <- read_seq_len + motif_len + n_match_base_after
+    # Fetch the maximum number of bases that may be included in the comparison
+    fetch_len_ref <- n_match_base_before-1 + read_seq_len - (read_index_at_pos-1) + motif_len + n_match_base_after
     fetch_start_ref <- pos - (n_match_base_before - 1)
     fetch_end_ref <- fetch_start_ref + fetch_len_ref - 1
     ref_seq_wt <- get_seq_from_fasta(chr, fetch_start_ref, fetch_end_ref, fasta_fafile, fasta_seq)

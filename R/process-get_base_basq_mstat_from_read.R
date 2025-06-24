@@ -18,12 +18,10 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
     basq <- NA
   } else {
     # mutation status
-    if (read_index_at_pos == -2 && nchar(ref)==nchar(alt)) {
-      # in case the read contains a deletion at the position of interest and we are looking for a SNV or MNV,
-      # then the read contains another event than the one we are looking for
-      mstat <- "OTH (DEL)"
-    } else if (read_index_at_pos == -2 && nchar(ref)!=nchar(alt)) {
-      mstat <- "OTH (DEL) for indel case - Need review"
+    if (read_index_at_pos == -2) {
+      # in case the read contains a deletion at the position of interest then the read contains another event than the
+      # one we are looking for
+      mstat <- "OTH"
     } else {
       # get mutation status of the read
 
@@ -37,7 +35,7 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
                                                    n_match_base_before=1, n_match_base_after=1)
         if (mstat_small=="MUT") {
           if (mstat_large=="OTH"){
-            mstat <- "MUT but potentially larger MNV"
+            mstat <- "MUT but potentially larger MUT"
           } else if (mstat_large=="MUT") {
             mstat <- "MUT"
           } else {

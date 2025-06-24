@@ -27,7 +27,7 @@ get_seq_from_fasta <- function(chr, start, end, fasta_fafile=NULL, fasta_seq=NUL
       stop(paste("The requested reference sequence", paste0(start, ":", end), "does not fit into the available",
                  "reference sequence", paste0(f_start, ":", f_end)))
     }
-    ref_seq <- substr(f_seq, start-f_start+1, end-start+1)
+    ref_seq <- substr(f_seq, start-f_start+1, end-f_start+1)
   } else {
     # Fetch a single nucleotide from the FASTA
     # using the chromosome, and start = end = position
