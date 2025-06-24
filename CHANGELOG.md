@@ -1,3 +1,9 @@
+# fRagmentomics 0.2.4
+
+- Correct bugs from misfetch of ref and rename MUT but potentially larger MNV and bugs for ambiguous cases
+- No graphic representation
+- No pipeline integration.
+
 # fRagmentomics 0.2.3
 
 - Replaced per-fragment requests to FASTA by one large per-mutation request to FASTA. On five test files, runtime speed
