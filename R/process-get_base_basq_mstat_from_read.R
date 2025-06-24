@@ -6,8 +6,8 @@
 #' @return A list containing "base", "basq", "mstat".
 #'
 #' @keywords internal
-get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_fafile=NULL, fasta_seq=NULL,
-                                          cigar_free_indel_match=FALSE) {
+get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_fafile = NULL, fasta_seq = NULL,
+                                          cigar_free_indel_match = FALSE) {
   # get index in the read sequence aligning with pos
   read_index_at_pos <- get_index_aligning_with_pos(pos, read_stats)
 
@@ -25,11 +25,11 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
     } else {
       # get mutation status of the read
 
-      if (nchar(ref)==nchar(alt)) {
+      if (nchar(ref) == nchar(alt)) {
         # SNV or MNV
         mstat_small <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
-                                                   fasta_seq, cigar_free_indel_match,
-                                                   n_match_base_before=0, n_match_base_after=0)
+                                                   fasta_seq, cigar_free_indel_match, n_match_base_before = 0,
+                                                   n_match_base_after = 0)
         mstat_large <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos,
                                                    fasta_fafile, fasta_seq, cigar_free_indel_match,
                                                    n_match_base_before=1, n_match_base_after=1)
@@ -39,9 +39,11 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
           } else if (mstat_large=="MUT") {
             mstat <- "MUT"
           } else {
-            stop(paste("If the mutation status on the alt sequence is 'MUT', then the mutation status on extended",
-                       "sequence cannot be", paste0("'", mstat_large, "'"), "for",
-                       paste0(chr, ":", pos, ":", ref, ">", alt)))
+            stop(paste(
+              "If the mutation status on the alt sequence is 'MUT', then the mutation status on extended",
+              "sequence cannot be", paste0("'", mstat_large, "'"), "for",
+              paste0(chr, ":", pos, ":", ref, ">", alt)
+            ))
           }
         } else {
           mstat <- mstat_small
@@ -51,8 +53,9 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
         # Additionally, we want to systematically include with one base after the actual mutated sequences.
         # If we cannot cover the base after, then we will call ambiguous if compatible with mutated ref.
         mstat <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
-                                             fasta_seq, cigar_free_indel_match,
-                                             n_match_base_before=1, n_match_base_after=1)
+          fasta_seq, cigar_free_indel_match,
+          n_match_base_before = 1, n_match_base_after = 1
+        )
       }
     }
 
@@ -61,7 +64,7 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
 
     # initialize
     shift <- 0
-    if (read_index_at_pos==-2){
+    if (read_index_at_pos == -2) {
       base <- "-"
       basq <- ""
     } else {
@@ -70,13 +73,13 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
     }
 
     # iterate
-    while (nchar(base)<nchar(alt)){
-      shift <- shift+1
-      info_at_pos <- get_base_basq_from_read_at_pos(pos+shift, pos, read_stats)
-      max_new <- min(nchar(alt)-nchar(base), nchar(info_at_pos$base))
+    while (nchar(base) < nchar(alt)) {
+      shift <- shift + 1
+      info_at_pos <- get_base_basq_from_read_at_pos(pos + shift, pos, read_stats)
+      max_new <- min(nchar(alt) - nchar(base), nchar(info_at_pos$base))
       base <- paste0(base, substr(info_at_pos$base, 1, max_new))
       basq <- paste0(basq, substr(info_at_pos$basq, 1, max_new))
-      if (info_at_pos$base=="*"){
+      if (info_at_pos$base == "*") {
         break
       }
     }
@@ -151,66 +154,62 @@ get_index_aligning_with_pos <- function(pos, read_stats) {
   # get POS, CIGAR, SEQ, and QUAL from the read
   read_pos <- read_stats$POS
   read_cigar <- read_stats$CIGAR
-  read_seq <- read_stats$SEQ
-  read_qual <- read_stats$QUAL
 
   # table of operations-cursor movement
   operations <- c("M", "I", "D", "N", "S", "H", "P", "=", "X")
-  consumes_seq <- c("yes", "yes", "no", "no", "yes", "no", "no", "yes", "yes")
-  consumes_ref <- c("yes", "no", "yes", "yes", "no", "no", "no", "yes", "yes")
+  consumes_seq <- c(TRUE, TRUE, FALSE, FALSE, TRUE, FALSE, FALSE, TRUE, TRUE)
+  consumes_ref <- c(TRUE, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, TRUE, TRUE)
   cigar_operations <- data.frame(operations, consumes_seq, consumes_ref)
 
-  # cursors and index to be incremented
-  ref_pos <- read_pos-1
-  read_idx <- 0
+  # Cursors to track our position along the reference and the read
+  # ref_pos starts at the read's starting position (1-based)
+  # read_idx starts at the first base of the query sequence (1-based)
+  ref_pos <- read_pos
+  read_idx <- 1
 
-  while (nchar(read_cigar) > 0 && ref_pos < pos) {
+  while (nchar(read_cigar) > 0) {
     # get current cigar operation and number of associated bases
-    read_cigar_nb <- str_extract(read_cigar, "^[\\d]+")
-    read_cigar_nb <- as.numeric(read_cigar_nb)
+    read_cigar_nb_str <- str_extract(read_cigar, "^[\\d]+")
+    read_cigar_nb <- as.numeric(read_cigar_nb_str)
     read_cigar_op <- str_extract(read_cigar, "(?<=[\\d])[MIDNSHP=X]")
 
     # get reduced cigar without the current operation
-    read_cigar_trimmed <- gsub(paste0("^", read_cigar_nb, read_cigar_op), "", read_cigar)
+    read_cigar <- gsub(paste0("^", read_cigar_nb_str, read_cigar_op), "", read_cigar)
 
-    # execute cigar operation to move cursors
-    consumes_seq <- cigar_operations[cigar_operations$op == read_cigar_op, "consumes_seq"]
-    consumes_ref <- cigar_operations[cigar_operations$op == read_cigar_op, "consumes_ref"]
+    # get properties of the current operation
+    op_consumes <- cigar_operations[cigar_operations$operations == read_cigar_op, ]
+    consumes_seq <- op_consumes$consumes_seq
+    consumes_ref <- op_consumes$consumes_ref
 
-    # execute read_cigar operation along the sequence
-    if (consumes_seq == "yes") {
-      read_idx <- read_idx + 1
+    # Calculate how much this entire block moves the cursors
+    ref_move <- if (consumes_ref) read_cigar_nb else 0
+    seq_move <- if (consumes_seq) read_cigar_nb else 0
+
+    # Check if the target position falls within the genomic block
+    # covered by this operation. This only applies to ops that consume the reference.
+    if (consumes_ref) {
+      if (pos >= ref_pos && pos < (ref_pos + ref_move)) {
+        # The position of interest is within this block.
+        if (read_cigar_op %in% c("M", "=", "X")) {
+          # The position is a match/mismatch. Find the exact index in the read.
+          offset <- pos - ref_pos
+          return(read_idx + offset)
+        } else if (read_cigar_op %in% c("D", "N")) {
+          # The position is a deletion or a skipped region in the read.
+          # As per original logic, return -2.
+          return(-2)
+        }
+      }
     }
 
-    # execute read_cigar operation along the reference
-    if (consumes_ref == "yes") {
-      ref_pos <- ref_pos + 1
-    }
-
-    # update cigar
-    read_cigar_nb_new <- read_cigar_nb - 1
-
-    if (read_cigar_nb_new == 0) {
-      # if we reach the end of a sequence of identical operations
-      read_cigar <- read_cigar_trimmed
-    } else {
-      # otherwise, simply decrement by one the number of operations
-      read_cigar_nb_new <- as.character(read_cigar_nb_new)
-      read_cigar <- paste0(read_cigar_nb_new, read_cigar_op, read_cigar_trimmed)
-    }
+    # If the position was not in the current block, update the cursors
+    # to point to the beginning of the next block.
+    ref_pos <- ref_pos + ref_move
+    read_idx <- read_idx + seq_move
   }
 
-  if (ref_pos == pos && read_idx > 0){
-    # if we have reached a deleted or skipped base, the read does not cover the position of interest
-    if (read_cigar_op %in% c("D", "N")){
-      read_idx <- -2
-    }
-  } else {
-    # if the read does not cover the position of interest (including soft- or hard-clipped)
-    read_idx <- -1
-  }
-
-  read_idx
+  # if the loop finishes, the read did not cover the position of interest
+  return(-1)
 }
 
 
@@ -225,17 +224,17 @@ get_index_aligning_with_pos <- function(pos, read_stats) {
 #' deletion, base is set to '-' and the quality to an empty string.
 #'
 #' @keywords internal
-get_base_basq_from_read_at_pos <- function(pos_cur, pos_pre, read_stats){
+get_base_basq_from_read_at_pos <- function(pos_cur, pos_pre, read_stats) {
   read_index_at_pos_cur <- get_index_aligning_with_pos(pos_cur, read_stats)
   read_index_at_pos_pre <- get_index_aligning_with_pos(pos_pre, read_stats)
 
-  if (read_index_at_pos_cur==-1){
-    return(list(base="*", basq="*"))
-  } else if (read_index_at_pos_cur==-2){
-    return(list(base="-", basq=""))
+  if (read_index_at_pos_cur == -1) {
+    return(list(base = "*", basq = "*"))
+  } else if (read_index_at_pos_cur == -2) {
+    return(list(base = "-", basq = ""))
   } else {
-    base <- substr(read_stats$SEQ, read_index_at_pos_pre+1, read_index_at_pos_cur)
-    basq <- substr(read_stats$QUAL, read_index_at_pos_pre+1, read_index_at_pos_cur)
-    return(list(base=base, basq=basq))
+    base <- substr(read_stats$SEQ, read_index_at_pos_pre + 1, read_index_at_pos_cur)
+    basq <- substr(read_stats$QUAL, read_index_at_pos_pre + 1, read_index_at_pos_cur)
+    return(list(base = base, basq = basq))
   }
 }
