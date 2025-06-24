@@ -125,5 +125,43 @@ test_that("get_base_basq_mstat_from_read works", {
   )
   expect_equal(read_info, list(base = "-", basq = "", mstat = "OTH (DEL)"))
 
+  # SNV case in the border of an indel
+  read_info <- get_base_basq_mstat_from_read(
+    chr = "chr1",
+    pos = 4,
+    ref = "G",
+    alt = "T",
+    read_stats = list(SEQ = "ATAGGGG", QUAL = "#!#####", CIGAR = "1M2D6M", POS = 1),
+    fasta_fafile = fasta_env$fa_obj,
+    cigar_free_indel_match = FALSE
+  )
+  expect_equal(read_info, list(base = "T", basq = "!", mstat = "MUT but potentially larger MNV"))
+
+  # SNV case at the beginning of the read
+  read_info <- get_base_basq_mstat_from_read(
+    chr = "chr1",
+    pos = 1,
+    ref = "A",
+    alt = "T",
+    read_stats = list(SEQ = "TTCGTGG", QUAL = "!######", CIGAR = "1M2D6M", POS = 1),
+    fasta_fafile = fasta_env$fa_obj,
+    cigar_free_indel_match = FALSE
+  )
+  expect_equal(read_info, list(base = "T", basq = "!", mstat = "MUT"))
+
+  # SNV case in the border of an indel (ins) and last nucleotide
+  read_info <- get_base_basq_mstat_from_read(
+    chr = "chr1",
+    pos = 5,
+    ref = "A",
+    alt = "G",
+    read_stats = list(SEQ = "ATCGTTG", QUAL = "######!", CIGAR = "4M2I1M", POS = 1),
+    fasta_fafile = fasta_env$fa_obj,
+    cigar_free_indel_match = FALSE
+  )
+  expect_equal(read_info, list(base = "G", basq = "!", mstat = "MUT but potentially larger MNV"))
+
+  # "ATCGAGGGGTCCAACCAAGGA"
+
   cleanup_test_fasta(fasta_env)
 })
