@@ -1,3 +1,9 @@
+# fRagmentomics 0.1.3
+
+- Fix bug in indel detection when the position of interest is less than the alignment's starting position.
+
+- No graphic representation
+
 # fRagmentomics 0.1.2
 
 - Manage SNV detection when the position of the mutation is the first base of the soflclipped sequence at the end of the read. Upgrade the SNV detection to make it faster (block by block).
