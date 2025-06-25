@@ -13,11 +13,13 @@
 #' @param n_match_base_after Number of bases to be matched after the last alt allele in the sequences comparison
 #'
 #' @keywords internal
-get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile=NULL,
-                                        fasta_seq=NULL, cigar_free_indel_match=FALSE, n_match_base_before=0,
-                                        n_match_base_after=0) {
+get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile = NULL,
+                                        fasta_seq = NULL, cigar_free_indel_match = FALSE, n_match_base_before = 0,
+                                        n_match_base_after = 0) {
   ref_len <- nchar(ref)
   alt_len <- nchar(alt)
+
+  read_seq_len_without_softclipping <- calculate_len_without_end_softclip(read_stats$CIGAR, read_stats$SEQ)
   read_seq_len <- nchar(read_stats$SEQ)
 
   # first identify the minimum number of bases that should be considered in the comparison
@@ -45,8 +47,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     # get sequences of wild-type and mutated ref
     ref_seq_wt <- get_seq_from_fasta(chr, fetch_start_ref, fetch_end_ref, fasta_fafile, fasta_seq)
     ref_seq_mut <- paste0(
-                          substr(ref_seq_wt, 1, n_match_base_before), alt,
-                          substr(ref_seq_wt, nchar(ref_seq_wt) - n_match_base_after + 1, nchar(ref_seq_wt))
+      substr(ref_seq_wt, 1, n_match_base_before), alt,
+      substr(ref_seq_wt, nchar(ref_seq_wt) - n_match_base_after + 1, nchar(ref_seq_wt))
     )
 
     # if we need more bases than available, cut the sequences to only the maximum comparison possible
@@ -92,7 +94,7 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     motif_len <- nchar(motif)
 
     # Fetch the maximum number of bases that may be included in the comparison
-    fetch_len_ref <- n_match_base_before-1 + read_seq_len - (read_index_at_pos-1) + motif_len + n_match_base_after
+    fetch_len_ref <- n_match_base_before - 1 + read_seq_len - (read_index_at_pos - 1) + motif_len + n_match_base_after
     fetch_start_ref <- pos - (n_match_base_before - 1)
     fetch_end_ref <- fetch_start_ref + fetch_len_ref - 1
     ref_seq_wt <- get_seq_from_fasta(chr, fetch_start_ref, fetch_end_ref, fasta_fafile, fasta_seq)
@@ -107,8 +109,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     #   MUT: TGA > T
     #   REF_AFTER_ONE_MOTIF: GAGAT
     ref_seq_after_one_motif <- substr(
-                                      ref_seq_wt, n_match_base_before + motif_len + n_match_base_after,
-                                      nchar(ref_seq_wt)
+      ref_seq_wt, n_match_base_before + motif_len + n_match_base_after,
+      nchar(ref_seq_wt)
     )
 
     # Identify the number of repeats within the region of the maximum comparison size
@@ -129,8 +131,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     #   Here the motif "ATC" is repeated twice. The sequence after the last repeat is ATT. This sequence shares two
     #   common bases with the motif, i.e "AT"
     ref_seq_after_last_motif <- substr(
-                                       ref_seq_after_one_motif, (repeat_count - 1) * motif_len + n_match_base_after,
-                                       repeat_count * motif_len + n_match_base_after - 1
+      ref_seq_after_one_motif, (repeat_count - 1) * motif_len + n_match_base_after,
+      repeat_count * motif_len + n_match_base_after - 1
     )
     n_bases_shared_with_motif <- get_number_of_common_first_char(ref_seq_after_last_motif, motif)
 
@@ -156,14 +158,14 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     #   MUT: TGA > T
     #   REF_SEQ_MUT: T+""+GAGAT
     ref_seq_mut <- paste0(
-                          substr(ref_seq_wt, 1, n_match_base_before),
-                          substr(alt, n_match_base_before + 1, alt_len),
+      substr(ref_seq_wt, 1, n_match_base_before),
+      substr(alt, n_match_base_before + 1, alt_len),
       substr(ref_seq_wt, ref_len + 1, nchar(ref_seq_wt))
     )
 
     # Fetch maximum read sequence available starting from the position needed to cover n_match_base_before
     fetch_start_read <- read_index_at_pos - (n_match_base_before - 1)
-    fetch_len_read <- read_seq_len - fetch_start_read + 1
+    fetch_len_read <- read_seq_len_without_softclipping - fetch_start_read + 1
     fetch_end_read <- fetch_start_read + fetch_len_read - 1
     read_seq <- substr(read_stats$SEQ, fetch_start_read, fetch_end_read)
 
@@ -181,16 +183,16 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     if (indel_found_in_cigar) {
       return("MUT")
     } else {
-      if (cigar_free_indel_match){
+      if (cigar_free_indel_match) {
         # set to ambiguous when the comparison is incomplete
-        if (status_cigar_free=="MUT" && incomplete_comparison_mut) {
+        if (status_cigar_free == "MUT" && incomplete_comparison_mut) {
           status_cigar_free <- "AMB"
         }
 
         # print special messages for cases where the indel is not found in the CIGAR but where the comparison to
         # wild-type and mutated reference sequence reveals the mutation is potentially present
-        if (status_cigar_free %in% c("AMB", "MUT")){
-          if (other_found_in_cigar){
+        if (status_cigar_free %in% c("AMB", "MUT")) {
+          if (other_found_in_cigar) {
             return(paste(status_cigar_free, "by cigar-free search and other MUT found in CIGAR"))
           } else {
             return(paste(status_cigar_free, "by cigar-free search and MUT not found in CIGAR"))
@@ -200,8 +202,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
         }
       } else {
         if (other_found_in_cigar) {
-            return("OTH")
-        } else if (incomplete_comparison_mut && status_cigar_free %in% c("MUT", "AMB")){
+          return("OTH")
+        } else if (incomplete_comparison_mut && status_cigar_free %in% c("MUT", "AMB")) {
           return("AMB")
         } else {
           return("WT")
