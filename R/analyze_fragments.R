@@ -1,20 +1,3 @@
-#' Setup parallel computations
-#'
-#' @param n_cores Number of cores to use for parallel processing.
-#'
-#' @return A parallel cluster object.
-#'
-#' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
-#'
-#' @noRd
-setup_parallel_computations <- function(n_cores) {
-  cl <- parallel::makeCluster(n_cores)
-  doSNOW::registerDoSNOW(cl)
-  cl
-}
-
-
 #' @title Analyze fragments
 #'
 #' @param mut Path to a .vcf or .tsv file or string representation chr:pos:ref:alt of a mutation.
@@ -51,11 +34,10 @@ setup_parallel_computations <- function(n_cores) {
 #' @return A dataframe containing extracted fragment-level information.
 #'
 #' @importFrom Rsamtools FaFile
-#' @importFrom foreach foreach
-#' @importFrom foreach %dopar%
-#' @importFrom foreach %do%
-#' @importFrom parallel stopCluster
-#' @importFrom utils write.table txtProgressBar setTxtProgressBar
+#' @importFrom utils write.table
+#' @importFrom future plan multisession
+#' @importFrom future.apply future_lapply
+#' @importFrom progressr with_progress progressor
 #'
 #' @export
 analyze_fragments <- function(
@@ -110,13 +92,17 @@ analyze_fragments <- function(
   # Load fasta as FaFile
   fasta_fafile <- Rsamtools::FaFile(fasta)
   open(fasta_fafile)
+  # Close fasta_fafile at the end of the function
+  on.exit(close(fasta_fafile), add = TRUE)
 
   # Normalize mutations
   df_mut_norm <- normalize_mut(df_mut_raw, fasta, fasta_fafile, one_based, tmp_folder)
 
   # Run per-mutation analysis ==========================================================================================
   # Initialize parallel cluster
-  cl <- setup_parallel_computations(n_cores)
+  future::plan(future::multisession, workers = n_cores)
+  # on.exit() close the parallelisation at the end
+  on.exit(future::plan("sequential"), add = TRUE)
 
   # Create final df
   df_fragments_info_final <- data.frame()
@@ -168,35 +154,38 @@ analyze_fragments <- function(
     fragments_names <- unique(df_sam[, 1, drop = TRUE])
     n_fragments <- length(fragments_names)
 
-    # Setup progress bar for the foreach loop
-    pb <- utils::txtProgressBar(max = n_fragments, style = 3)
-    progress <- function(n) utils::setTxtProgressBar(pb, n)
-    opts <- list(progress = progress)
+    progressr::with_progress({
+      # Creation of a progressor to show the progression
+      p <- progressr::progressor(steps = n_fragments)
 
-    j <- NULL # to avoid "no visible binding for global variable" in R CMD check
-    # Parallel execution
-    df_fragments_info <- foreach::foreach(
-      j = 1:n_fragments,
-      .combine = rbind,
-      .inorder = FALSE,
-      .multicombine = FALSE,
-      .export = c("extract_fragment_features")
-    ) %dopar% {
-      extract_fragment_features(
-        df_sam                      = df_sam,
-        fragment_name               = fragments_names[j],
-        sample_id                   = sample_id,
-        chr                         = chr_norm,
-        pos                         = pos_norm,
-        ref                         = ref_norm,
-        alt                         = alt_norm,
-        report_tlen                 = report_tlen,
-        report_softclip             = report_softclip,
-        report_5p_3p_bases_fragment = report_5p_3p_bases_fragment,
-        cigar_free_indel_match      = cigar_free_indel_match,
-        fasta_seq                   = fasta_seq
+      # future_lapply is the equivalent of lapply in parallele (manage the necessary export)
+      results_list <- future.apply::future_lapply(
+      fragments_names,
+        function(fragment_name) {
+          # Tell progressor a step is done
+          p()
+          
+          # Le corps de la boucle est le même qu'avant
+          extract_fragment_features(
+            df_sam                      = df_sam,
+            fragment_name               = fragment_name,
+            sample_id                   = sample_id,
+            chr                         = chr_norm,
+            pos                         = pos_norm,
+            ref                         = ref_norm,
+            alt                         = alt_norm,
+            report_tlen                 = report_tlen,
+            report_softclip             = report_softclip,
+            report_5p_3p_bases_fragment = report_5p_3p_bases_fragment,
+            cigar_free_indel_match      = cigar_free_indel_match,
+            fasta_seq                   = fasta_seq
+          )
+        }
       )
-    }
+    })
+
+    # future_lapply return a list. Combine in one dataframe.
+    df_fragments_info <- do.call(rbind, results_list)
 
     # Calculate VAF of the fragment
     if (any(df_fragments_info$Fragment_Status_Simple == "MUT", na.rm = TRUE)) {
@@ -219,12 +208,6 @@ analyze_fragments <- function(
     # Fusion into the final df
     df_fragments_info_final <- rbind(df_fragments_info_final, df_fragments_info)
   }
-
-  # Stop cluster
-  parallel::stopCluster(cl)
-
-  # Close fasta
-  close(fasta_fafile)
 
   # Check if the df post fRagmentomics is not empty
   if (nrow(df_fragments_info_final) == 0) {
