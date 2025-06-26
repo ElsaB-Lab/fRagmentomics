@@ -29,8 +29,6 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports:
-    doParallel,
-    foreach,
     parallel,
     readr,
     stringr,
@@ -39,4 +37,6 @@ Imports:
     Biostrings,
     IRanges,
     GenomeInfoDb,
-    doSNOW
+    future,
+    progressr,
+    future.apply
