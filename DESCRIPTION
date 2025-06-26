@@ -38,4 +38,5 @@ Imports:
     GenomicRanges,
     Biostrings,
     IRanges,
-    GenomeInfoDb
+    GenomeInfoDb,
+    doSNOW

@@ -17,10 +17,10 @@ analyze_fragments(
   report_tlen = FALSE,
   report_softclip = FALSE,
   report_5p_3p_bases_fragment = 5,
-  cigar_free_mode = FALSE,
+  cigar_free_indel_match = FALSE,
   tmp_folder = tempdir(),
   output_file = NA,
-  n_cores = 1
+  n_cores = 8
 )
 }
 \arguments{
@@ -57,9 +57,9 @@ bases at the fragment extremities in the output.}
 \item{report_5p_3p_bases_fragment}{Integer. Whether to include N fragment
 extremity bases in the output.}
 
-\item{cigar_free_mode}{Boolean. If activated, the information from the CIGAR is disregarded when determining the
-mutation status of a read. Instead the mutation status is determined by comparing the sequence of the read to the
-sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
+\item{cigar_free_indel_match}{Boolean. If activated, the information from the CIGAR is disregarded when determining the
+mutation status of a read for indel. Instead the mutation status is determined by comparing the sequence of the read
+to the sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
 genotyping of reads compared to the information provided by the CIGAR for indels. On the other hand, when
 activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
 indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.}

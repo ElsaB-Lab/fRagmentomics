@@ -67,7 +67,8 @@ parse_cigar <- function(cigar) {
 #'
 #' @return The length of the sequence after subtracting the number of bases
 #'         that are soft-clipped at the end of the read.
-
+#'
+#' @noRd
 calculate_len_without_end_softclip <- function(cigar, seq) {
   read_len <- nchar(seq)
   softclip_len <- 0

@@ -11,8 +11,11 @@ get_mutation_status_of_read(
   alt,
   read_stats,
   read_index_at_pos,
-  fasta_fafile,
-  cigar_free_mode = F
+  fasta_fafile = NULL,
+  fasta_seq = NULL,
+  cigar_free_indel_match = FALSE,
+  n_match_base_before = 1,
+  n_match_base_after = 1
 )
 }
 \arguments{
@@ -30,12 +33,18 @@ get_mutation_status_of_read(
 
 \item{fasta_fafile}{An open connection to an object of class FaFile}
 
-\item{cigar_free_mode}{Boolean. If activated, the information from the CIGAR is disregarded when determining the
-mutation status of a read. Instead the mutation status is determined by comparing the sequence of the read to the
-sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
+\item{fasta_seq}{A list with the fasta sequence between two positions.}
+
+\item{cigar_free_indel_match}{Boolean. If activated, the information from the CIGAR is disregarded when determining the
+mutation status of a read for indel. Instead the mutation status is determined by comparing the sequence of the read
+to the sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
 genotyping of reads compared to the information provided by the CIGAR for indels. On the other hand, when
 activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
 indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.}
+
+\item{n_match_base_before}{Number of bases to be matched before the alt allele in the sequences comparison}
+
+\item{n_match_base_after}{Number of bases to be matched after the last alt allele in the sequences comparison}
 }
 \description{
 The algorithm to determine if a read supports the mutation of interest is quite intuitive but requires careful

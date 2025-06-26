@@ -16,8 +16,9 @@ extract_fragment_features(
   report_tlen,
   report_softclip,
   report_5p_3p_bases_fragment,
-  cigar_free_mode,
-  fasta_fafile
+  cigar_free_indel_match,
+  fasta_fafile = NULL,
+  fasta_seq = NULL
 )
 }
 \arguments{
@@ -44,14 +45,16 @@ bases at the fragment extremities in the output.}
 \item{report_5p_3p_bases_fragment}{Integer. Whether to include N fragment
 extremity bases in the output.}
 
-\item{cigar_free_mode}{Boolean. If activated, the information from the CIGAR is disregarded when determining the
-mutation status of a read. Instead the mutation status is determined by comparing the sequence of the read to the
-sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
+\item{cigar_free_indel_match}{Boolean. If activated, the information from the CIGAR is disregarded when determining the
+mutation status of a read for indel. Instead the mutation status is determined by comparing the sequence of the read
+to the sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
 genotyping of reads compared to the information provided by the CIGAR for indels. On the other hand, when
 activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
 indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.}
 
 \item{fasta_fafile}{An open connection to an object of class FaFile}
+
+\item{fasta_seq}{A list with the fasta sequence between two positions.}
 }
 \value{
 A dataframe with the processed fragment information.
@@ -60,3 +63,4 @@ A dataframe with the processed fragment information.
 Process a single sequencing fragment
 Extracts and processes relevant data from a sequencing fragment.
 }
+\keyword{internal}

@@ -13,7 +13,7 @@
 #'
 #' @return A dataframe with the processed fragment information.
 #'
-#' @export
+#' @keywords internal
 extract_fragment_features <- function(df_sam,
                                       fragment_name,
                                       sample_id,
@@ -25,8 +25,8 @@ extract_fragment_features <- function(df_sam,
                                       report_softclip,
                                       report_5p_3p_bases_fragment,
                                       cigar_free_indel_match,
-                                      fasta_fafile=NULL,
-                                      fasta_seq=NULL) {
+                                      fasta_fafile = NULL,
+                                      fasta_seq = NULL) {
   # Select reads originating from the fragment of interest
   df_fragment_reads <- df_sam[
     df_sam[, 1, drop = TRUE] == fragment_name, ,
@@ -39,18 +39,18 @@ extract_fragment_features <- function(df_sam,
   fragment_qc <- ""
   if (!all(df_fragment_reads[, 3] == chr)) {
     qc <- paste("Read(s) from another chromosome than", chr)
-    if (fragment_qc==""){
+    if (fragment_qc == "") {
       fragment_qc <- qc
     } else {
-      fragment_qc <- paste(c(fragment_qc, qc), collapse=" & ")
+      fragment_qc <- paste(c(fragment_qc, qc), collapse = " & ")
     }
   }
   if (nrow(df_fragment_reads) != 2) {
     qc <- paste("Fragment has", nrow(df_fragment_reads), "read(s)")
-    if (fragment_qc==""){
+    if (fragment_qc == "") {
       fragment_qc <- qc
     } else {
-      fragment_qc <- paste(c(fragment_qc, qc), collapse=" & ")
+      fragment_qc <- paste(c(fragment_qc, qc), collapse = " & ")
     }
   }
 
@@ -114,10 +114,14 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   # Get read sequence, read base qualities, and read mutation status
   # -------------------------------
-  read_info_1 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_1, fasta_fafile, fasta_seq,
-                                               cigar_free_indel_match)
-  read_info_2 <- get_base_basq_mstat_from_read(chr, pos, ref, alt, read_stats_2, fasta_fafile, fasta_seq,
-                                               cigar_free_indel_match)
+  read_info_1 <- get_base_basq_mstat_from_read(
+    chr, pos, ref, alt, read_stats_1, fasta_fafile, fasta_seq,
+    cigar_free_indel_match
+  )
+  read_info_2 <- get_base_basq_mstat_from_read(
+    chr, pos, ref, alt, read_stats_2, fasta_fafile, fasta_seq,
+    cigar_free_indel_match
+  )
 
   # -------------------------------
   # Compute fragment size

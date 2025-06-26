@@ -5,12 +5,12 @@
 #' @return A parallel cluster object.
 #'
 #' @importFrom parallel makeCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 #'
 #' @noRd
 setup_parallel_computations <- function(n_cores) {
   cl <- parallel::makeCluster(n_cores)
-  doParallel::registerDoParallel(cl)
+  doSNOW::registerDoSNOW(cl)
   cl
 }
 
@@ -55,7 +55,7 @@ setup_parallel_computations <- function(n_cores) {
 #' @importFrom foreach %dopar%
 #' @importFrom foreach %do%
 #' @importFrom parallel stopCluster
-#' @importFrom utils write.table
+#' @importFrom utils write.table txtProgressBar setTxtProgressBar
 #'
 #' @export
 analyze_fragments <- function(
@@ -74,7 +74,7 @@ analyze_fragments <- function(
     cigar_free_indel_match = FALSE,
     tmp_folder = tempdir(),
     output_file = NA,
-    n_cores = 1) {
+    n_cores = 8) {
   # Load inputs, check parameters and normalize ========================================================================
 
   # Ensure expected parameters are treated as integers (and not double)
@@ -143,15 +143,15 @@ analyze_fragments <- function(
     # Make one large request to FASTA to avoid doing time-consuming requests to FASTA for each fragment
     # Calculations below serve to ensure we extract just enough reference sequence for all the per-fragment
     # requests
-    if (nchar(ref_norm)==nchar(alt_norm)){
+    if (nchar(ref_norm) == nchar(alt_norm)) {
       motif_len <- nchar(alt_norm)
     } else {
-      motif_len <- max(nchar(ref_norm)-1, nchar(alt_norm)-1)
+      motif_len <- max(nchar(ref_norm) - 1, nchar(alt_norm) - 1)
     }
 
     max_read_seq_len <- max(nchar(df_sam$SEQ))
-    min_read_pos <- min(df_sam[df_sam$RNAME==chr_norm, "POS"])
-    max_read_pos <- max(df_sam[df_sam$RNAME==chr_norm, "POS"])
+    min_read_pos <- min(df_sam[df_sam$RNAME == chr_norm, "POS"])
+    max_read_pos <- max(df_sam[df_sam$RNAME == chr_norm, "POS"])
     max_fetch_len_ref <- max_read_seq_len + motif_len
 
     # -1 for the max value of n_match_base_before used later in the code
@@ -161,12 +161,17 @@ analyze_fragments <- function(
 
     # get sequence from fasta
     fetch_seq <- get_seq_from_fasta(chr_norm, min_fetch_pos, max_fetch_pos, fasta_fafile)
-    fasta_seq <- list(chr=chr_norm, start=min_fetch_pos, end=max_fetch_pos, seq=fetch_seq)
+    fasta_seq <- list(chr = chr_norm, start = min_fetch_pos, end = max_fetch_pos, seq = fetch_seq)
 
     # Process fragmentomics on truncated bam and the mutation
     # Extract unique fragment names
     fragments_names <- unique(df_sam[, 1, drop = TRUE])
     n_fragments <- length(fragments_names)
+
+    # Setup progress bar for the foreach loop
+    pb <- utils::txtProgressBar(max = n_fragments, style = 3)
+    progress <- function(n) utils::setTxtProgressBar(pb, n)
+    opts <- list(progress = progress)
 
     j <- NULL # to avoid "no visible binding for global variable" in R CMD check
     # Parallel execution
@@ -175,8 +180,8 @@ analyze_fragments <- function(
       .combine = rbind,
       .inorder = FALSE,
       .multicombine = FALSE,
-      .packages = "fRagmentomics"
-    ) %do% {
+      .export = c("extract_fragment_features")
+    ) %dopar% {
       extract_fragment_features(
         df_sam                      = df_sam,
         fragment_name               = fragments_names[j],
@@ -194,17 +199,17 @@ analyze_fragments <- function(
     }
 
     # Calculate VAF of the fragment
-    if (any(df_fragments_info$Fragment_Status_Simple == "MUT", na.rm=TRUE)) {
+    if (any(df_fragments_info$Fragment_Status_Simple == "MUT", na.rm = TRUE)) {
       total_mut <- sum(df_fragments_info$Fragment_Status_Simple == "MUT", na.rm = TRUE)
       total_non_target_mut <- sum(df_fragments_info$Fragment_Status_Simple == "NON-TARGET MUT", na.rm = TRUE)
 
-      if (total_mut+total_non_target_mut==0){
+      if (total_mut + total_non_target_mut == 0) {
         df_fragments_info$VAF <- 0
       } else {
-        df_fragments_info$VAF <- 100 * total_mut / (total_mut+total_non_target_mut)
+        df_fragments_info$VAF <- 100 * total_mut / (total_mut + total_non_target_mut)
       }
     } else {
-      if (all(is.na(df_fragments_info$Fragment_Status_Simple == "MUT"), na.rm=TRUE)){
+      if (all(is.na(df_fragments_info$Fragment_Status_Simple == "MUT"), na.rm = TRUE)) {
         df_fragments_info$VAF <- NA
       } else {
         df_fragments_info$VAF <- 0

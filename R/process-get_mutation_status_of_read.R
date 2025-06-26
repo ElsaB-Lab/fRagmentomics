@@ -14,12 +14,11 @@
 #'
 #' @keywords internal
 get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile = NULL,
-                                        fasta_seq = NULL, cigar_free_indel_match = FALSE, n_match_base_before = 0,
-                                        n_match_base_after = 0) {
+                                        fasta_seq = NULL, cigar_free_indel_match = FALSE, n_match_base_before = 1,
+                                        n_match_base_after = 1) {
   ref_len <- nchar(ref)
   alt_len <- nchar(alt)
 
-  read_seq_len_without_softclipping <- calculate_len_without_end_softclip(read_stats$CIGAR, read_stats$SEQ)
   read_seq_len <- nchar(read_stats$SEQ)
 
   # first identify the minimum number of bases that should be considered in the comparison
@@ -68,8 +67,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     read_seq <- substr(read_stats$SEQ, fetch_start_read, fetch_end_read)
 
     # run comparison on maximum size possible
-    compare_len_wt <- min(fetch_len_ref, fetch_len_read)
-    compare_len_mut <- min(fetch_len_ref, fetch_len_read)
+    compare_len_wt <- n_match_base_before + alt_len + n_match_base_after
+    compare_len_mut <- n_match_base_before + alt_len + n_match_base_after
 
     # if we cannot cover completely the allele with the read, we may have an ambiguity
     incomplete_comparison_mut <- (fetch_len_read < compare_len_mut)
@@ -165,7 +164,7 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
 
     # Fetch maximum read sequence available starting from the position needed to cover n_match_base_before
     fetch_start_read <- read_index_at_pos - (n_match_base_before - 1)
-    fetch_len_read <- read_seq_len_without_softclipping - fetch_start_read + 1
+    fetch_len_read <- read_seq_len - fetch_start_read + 1
     fetch_end_read <- fetch_start_read + fetch_len_read - 1
     read_seq <- substr(read_stats$SEQ, fetch_start_read, fetch_end_read)
 

@@ -639,14 +639,29 @@ test_that("get_mutation_status_of_read works", {
   )
   expect_equal(mstat, "MUT")
 
-  # Case 4: Ambiguous when the position is before softclippin
+  # Case 4: Ambiguous when the position is before softclipping
   mstat <- get_mutation_status_of_read(
     chr = "chr4",
     pos = 21,
     ref = "GAT",
     alt = "G",
     read_index_at_pos = 21,
-    read_stats = list(SEQ = "ACAGCACTATCTGAAACCAGGGGATTGAATT", CIGAR = "21M10S", POS = 1),
+    read_stats = list(SEQ = "ACAGCACTATCTGAAACCAGG", CIGAR = "21M10S", POS = 1),
+    fasta_fafile = fasta_env$fa_obj,
+    cigar_free_indel_match = FALSE,
+    n_match_base_before = 1,
+    n_match_base_after = 1
+  )
+  expect_equal(mstat, "AMB")
+
+  # Case 5: MNV when a part is in soft clipping
+  mstat <- get_mutation_status_of_read(
+    chr = "chr4",
+    pos = 20,
+    ref = "GGA",
+    alt = "CCC",
+    read_index_at_pos = 20,
+    read_stats = list(SEQ = "ACAGCACTATCTGAAACCACC", CIGAR = "21M10S", POS = 1),
     fasta_fafile = fasta_env$fa_obj,
     cigar_free_indel_match = FALSE,
     n_match_base_before = 1,

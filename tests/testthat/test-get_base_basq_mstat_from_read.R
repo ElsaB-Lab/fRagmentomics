@@ -112,6 +112,42 @@ test_that("get_base_basq_mstat_from_read works", {
   )
   expect_equal(read_info, list(base = "CC", basq = "##", mstat = "MUT but potentially larger MUT"))
 
+  # MNV case where a part of the MNV is in softclipped bases
+  read_info <- get_base_basq_mstat_from_read(
+    chr = "chr1",
+    pos = 6,
+    ref = "GG",
+    alt = "CC",
+    read_stats = list(SEQ = "ATCGACCGGT", QUAL = "#A!$Q###A!", CIGAR = "6M4S", POS = 1),
+    fasta_fafile = fasta_env$fa_obj,
+    cigar_free_indel_match = FALSE
+  )
+  expect_equal(read_info, list(base = "C*", basq = "#*", mstat = "AMB"))
+
+  # Del case Ambiguous when the position is before softclipping
+  read_info <- get_base_basq_mstat_from_read(
+    chr = "chr1",
+    pos = 5,
+    ref = "AGGGG",
+    alt = "A",
+    read_stats = list(SEQ = "ATCGATCCAA", QUAL = "#A!$Q###A!", CIGAR = "5M5S", POS = 1),
+    fasta_fafile = fasta_env$fa_obj,
+    cigar_free_indel_match = FALSE
+  )
+  expect_equal(read_info, list(base = "A", basq = "Q", mstat = "AMB"))
+  # ATCGAGGGGTCCAACCAAGGA
+
+  # Ins case Ambiguous when the position is before softclipping
+  read_info <- get_base_basq_mstat_from_read(
+    chr = "chr1",
+    pos = 6,
+    ref = "G",
+    alt = "GTCA",
+    read_stats = list(SEQ = "ATCGAGTCAG", QUAL = "#A!$Q###A!", CIGAR = "7M3S", POS = 1),
+    fasta_fafile = fasta_env$fa_obj,
+    cigar_free_indel_match = FALSE
+  )
+  expect_equal(read_info, list(base = "GT*", basq = "##*", mstat = "AMB"))
 
   # SNV in DEL case
   read_info <- get_base_basq_mstat_from_read(

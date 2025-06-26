@@ -18,7 +18,8 @@ search_for_indel_in_cigar(pos, ref, alt, read_stats, type)
 \item{type, }{choose between "INS" or "DEL"}
 }
 \value{
-a boolean indicating TRUE if the insertion was found in the CIGAR a the position of interest, FALSE otherwise
+a list with two booleans. The first boolean indicate if the INDEL searched was found. The second boolean
+indicate if another INDEL (different size and/or different sequence) was found.
 }
 \description{
 Get the informations about the presence of a insertion in the read.

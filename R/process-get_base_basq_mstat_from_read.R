@@ -8,6 +8,10 @@
 #' @keywords internal
 get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_fafile = NULL, fasta_seq = NULL,
                                           cigar_free_indel_match = FALSE) {
+  # Modify the sequence to remove the softclipped part at the end
+  read_seq_len_without_softclipping <- calculate_len_without_end_softclip(read_stats$CIGAR, read_stats$SEQ)
+  read_stats$SEQ <- substr(read_stats$SEQ, 1, read_seq_len_without_softclipping)
+
   # get index in the read sequence aligning with pos
   read_index_at_pos <- get_index_aligning_with_pos(pos, read_stats)
 
@@ -28,15 +32,18 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
       if (nchar(ref) == nchar(alt)) {
         # SNV or MNV
         mstat_small <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
-                                                   fasta_seq, cigar_free_indel_match, n_match_base_before = 0,
-                                                   n_match_base_after = 0)
+          fasta_seq, cigar_free_indel_match,
+          n_match_base_before = 0,
+          n_match_base_after = 0
+        )
         mstat_large <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos,
-                                                   fasta_fafile, fasta_seq, cigar_free_indel_match,
-                                                   n_match_base_before=1, n_match_base_after=1)
-        if (mstat_small=="MUT") {
-          if (mstat_large=="OTH"){
+          fasta_fafile, fasta_seq, cigar_free_indel_match,
+          n_match_base_before = 1, n_match_base_after = 1
+        )
+        if (mstat_small == "MUT") {
+          if (mstat_large == "OTH") {
             mstat <- "MUT but potentially larger MUT"
-          } else if (mstat_large=="MUT") {
+          } else if (mstat_large == "MUT") {
             mstat <- "MUT"
           } else {
             stop(paste(
