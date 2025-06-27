@@ -1,6 +1,7 @@
 # fRagmentomics 0.2.5
 
 - Remove the soft clipping from the sequence for the comparison with the WT and MUT references. Avoid cases where a mutation is at the end of the read, just before the soft-clipped bases. Previously, the classification was WT; it is now AMB.
+- Adding the parallelisation and a progress bar.
 - No graphic representation
 - No pipeline integration.
 
@@ -22,9 +23,9 @@
 - Correct mutation read status to handle incidental mutations arising from hard/soft-clipping.
 - Correct get_index_aligning_with_pos to return -2 when the at the position of interest the read bears a deletion.
 - Implement more verbose mutation statuses
-    - "MUT but potentially larger MNV"
-    - "OTH (DEL)" if the read bears a deletion at the position of interest and we are looking for a SNV/MNV
-    - "OTH (DEL) for indel case - Need review" if the read bears a deletion at the position of interest for an INDE:.
+  - "MUT but potentially larger MNV"
+  - "OTH (DEL)" if the read bears a deletion at the position of interest and we are looking for a SNV/MNV
+  - "OTH (DEL) for indel case - Need review" if the read bears a deletion at the position of interest for an INDE:.
 - Rename `cigar_free_mode` to `cigar_free_indel`. This option, when activated, serves to search for an INDEL if it is
   not found by the function `search_for_indel_in_cigar`.
 - Update how `BASE_5p` and `BASE_3p` are reported.  The idea is to report the bases aligning with pos, [inserted bases],
