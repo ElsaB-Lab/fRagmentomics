@@ -45,7 +45,7 @@ setup_parallel_computations <- function(n_cores) {
 #'  activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
 #'  indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.
 #' @param tmp_folder Character vector for the folder temporary path.
-#' @param output_file Character vector for the output file path. Mandatory.
+#' @param output_file Character vector for the output file path.
 #' @param n_cores Number of cores for parallel computation.
 #'
 #' @return A dataframe containing extracted fragment-level information.
@@ -232,16 +232,18 @@ analyze_fragments <- function(
   }
 
   # -------------------------------
-  # Write output file
+  # Write output file if output directory specified
   # -------------------------------
-  # Write file
-  write.table(
-    df_fragments_info_final,
-    output_file,
-    sep = "\t",
-    quote = FALSE,
-    row.names = FALSE
-  )
+  if (!(is.na(output_file) || output_file == "")) {
+    # Write file
+    write.table(
+      df_fragments_info_final,
+      output_file,
+      sep = "\t",
+      quote = FALSE,
+      row.names = FALSE
+    )
+  }
 
   # Return final dataframe
   df_fragments_info_final

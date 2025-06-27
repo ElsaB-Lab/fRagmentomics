@@ -262,10 +262,15 @@ check_tmp_folder <- function(tmp_folder) {
 #'
 #' @noRd
 check_output_file <- function(output_file) {
-  if (!is.character(output_file) || length(output_file) != 1 || is.na(output_file) || output_file == "") {
-    stop("Error: 'output_file' must be a non-empty single character string.")
+  if (is.na(output_file) || output_file == "") {
+    return(invisible(NULL))
   }
 
+  if (!is.character(output_file) || length(output_file) != 1) {
+    stop("Error: 'output_file' must be a single character string even empty (or NA).")
+  }
+
+  # Create folder if necessary
   output_dir <- dirname(output_file)
 
   if (!dir.exists(output_dir)) {

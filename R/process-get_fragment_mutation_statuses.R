@@ -18,12 +18,13 @@
 #'
 #' @importFrom stats na.omit
 #'
-#' @export
+#' @keywords internal
 get_fragment_mutation_statuses <- function(mstat_1, mstat_2) {
-
   # Internal helper to clean status for logical comparisons (removes extra detail)
   clean_status <- function(s) {
-    if (is.na(s)) return(NA_character_)
+    if (is.na(s)) {
+      return(NA_character_)
+    }
     s_cleaned <- sub("(:.*|\\s.*)", "", s)
     return(s_cleaned)
   }

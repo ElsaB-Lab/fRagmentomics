@@ -270,9 +270,9 @@ test_that("check_parameters individual parameter validations", {
   expect_error(check_tmp_folder(TRUE), "must be a single character")
 
   # Output file
-  expect_error(check_output_file(NA), "must be a non-empty single character string")
-  expect_error(check_output_file(""), "must be a non-empty single character string")
-  expect_error(check_output_file(42), "must be a non-empty single character string")
+  expect_silent(check_output_file(NA))
+  expect_silent(check_output_file(""))
+  expect_error(check_output_file(42), "must be a single character string even empty")
 
   # n_cores
   expect_error(check_n_cores(2), "must be integer")
