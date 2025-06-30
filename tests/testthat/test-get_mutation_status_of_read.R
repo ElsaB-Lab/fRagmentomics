@@ -669,5 +669,20 @@ test_that("get_mutation_status_of_read works", {
   )
   expect_equal(mstat, "AMB")
 
+  # Case 6: Other Mut in the condition of AMB
+  mstat <- get_mutation_status_of_read(
+    chr = "chr4",
+    pos = 19,
+    ref = "AG",
+    alt = "A",
+    read_index_at_pos = 19,
+    read_stats = list(SEQ = "ACAGCACTATCTGAAACCAC", CIGAR = "20M", POS = 1),
+    fasta_fafile = fasta_env$fa_obj,
+    cigar_free_indel_match = FALSE,
+    n_match_base_before = 1,
+    n_match_base_after = 1
+  )
+  expect_equal(mstat, "OTH")
+
   cleanup_test_fasta(fasta_env)
 })

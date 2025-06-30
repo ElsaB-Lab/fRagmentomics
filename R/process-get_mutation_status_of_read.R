@@ -202,6 +202,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
       } else {
         if (other_found_in_cigar) {
           return("OTH")
+        } else if (incomplete_comparison_mut && status_cigar_free == "OTH") {
+          return("OTH")
         } else if (incomplete_comparison_mut && status_cigar_free %in% c("MUT", "AMB")) {
           return("AMB")
         } else {
