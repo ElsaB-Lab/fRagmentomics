@@ -10,6 +10,7 @@
 #' @param alt Character vector representing alternative base(s).
 #' @param fasta_fafile An open connection to an object of class FaFile
 #' @param fasta_seq A list with the fasta sequence between two positions.
+#' @param df_mut_raw_info A df with one line containing the initial mutation information.
 #'
 #' @return A dataframe with the processed fragment information.
 #'
@@ -26,7 +27,16 @@ extract_fragment_features <- function(df_sam,
                                       report_5p_3p_bases_fragment,
                                       cigar_free_indel_match,
                                       fasta_fafile = NULL,
-                                      fasta_seq = NULL) {
+                                      fasta_seq = NULL,
+                                      df_mut_raw_info) {
+  # Extract initial mutation informations
+  initial_mutation_info_string <- paste0(
+    df_mut_raw_info$CHROM[1], ":",
+    df_mut_raw_info$POS[1], ":",
+    df_mut_raw_info$REF[1], "-",
+    df_mut_raw_info$ALT[1]
+  )
+
   # Select reads originating from the fragment of interest
   df_fragment_reads <- df_sam[
     df_sam[, 1, drop = TRUE] == fragment_name, ,
@@ -61,6 +71,7 @@ extract_fragment_features <- function(df_sam,
       Position               = pos,
       Ref                    = ref,
       Alt                    = alt,
+      Input_Mutation         = initial_mutation_info_string,
       Fragment_Id            = fragment_name,
       Fragment_QC            = fragment_qc,
       Fragment_Status_Simple = NA,
@@ -165,6 +176,7 @@ extract_fragment_features <- function(df_sam,
     Position               = pos,
     Ref                    = ref,
     Alt                    = alt,
+    Input_Mutation         = initial_mutation_info_string,
     Fragment_Id            = fragment_name,
     Fragment_QC            = "OK",
     Fragment_Status_Simple = fstats$Simple,

@@ -2,6 +2,7 @@
 
 - Remove the soft clipping from the sequence for the comparison with the WT and MUT references. Avoid cases where a mutation is at the end of the read, just before the soft-clipped bases. Previously, the classification was WT; it is now AMB.
 - Added the parallelisation and a progress bar.
+- Added a column "Input_Mutation" corresponding to mutation informations before the normalisation.
 - No graphic representation
 - No pipeline integration.
 

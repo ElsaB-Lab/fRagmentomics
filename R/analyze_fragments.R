@@ -109,6 +109,8 @@ analyze_fragments <- function(
 
   # Loop on each row of the mut_info
   for (i in seq_len(nrow(df_mut_norm))) {
+    df_mut_raw_info <- df_mut_raw[i, ]
+
     chr_norm <- df_mut_norm[i, "chr"]
     pos_norm <- df_mut_norm[i, "pos"]
     ref_norm <- df_mut_norm[i, "ref"]
@@ -160,11 +162,11 @@ analyze_fragments <- function(
 
       # future_lapply is the equivalent of lapply in parallele (manage the necessary export)
       results_list <- future.apply::future_lapply(
-      fragments_names,
+        fragments_names,
         function(fragment_name) {
           # Tell progressor a step is done
           p()
-          
+
           # Le corps de la boucle est le même qu'avant
           extract_fragment_features(
             df_sam                      = df_sam,
@@ -178,7 +180,8 @@ analyze_fragments <- function(
             report_softclip             = report_softclip,
             report_5p_3p_bases_fragment = report_5p_3p_bases_fragment,
             cigar_free_indel_match      = cigar_free_indel_match,
-            fasta_seq                   = fasta_seq
+            fasta_seq                   = fasta_seq,
+            df_mut_raw_info             = df_mut_raw_info
           )
         }
       )
