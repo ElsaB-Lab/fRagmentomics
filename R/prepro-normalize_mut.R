@@ -16,6 +16,14 @@ normalize_mut <- function(df_mut, fasta, fasta_fafile, one_based, tmp_folder) {
     ref <- df_mut[i, "REF"]
     alt <- df_mut[i, "ALT"]
 
+    # Extract initial mutation informations
+    input_mutation_info <- paste0(
+      chr, ":",
+      pos, ":",
+      ref, "-",
+      alt
+    )
+
     # Normalization user-provided representation into vcf representation
     mut_vcf_norm <- normalize_to_vcf_rep(
       chr = chr,
@@ -51,6 +59,9 @@ normalize_mut <- function(df_mut, fasta, fasta_fafile, one_based, tmp_folder) {
       next
     }
 
+    # Add the original mutation info string as a new column
+    mut_bcftools_norm$input_mutation_info <- input_mutation_info
+
     # Append to the final dataframe
     df_mut_norm <- rbind(df_mut_norm, mut_bcftools_norm)
   }
@@ -67,4 +78,3 @@ normalize_mut <- function(df_mut, fasta, fasta_fafile, one_based, tmp_folder) {
 
   df_mut_norm
 }
-

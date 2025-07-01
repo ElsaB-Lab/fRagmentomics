@@ -109,12 +109,11 @@ analyze_fragments <- function(
 
   # Loop on each row of the mut_info
   for (i in seq_len(nrow(df_mut_norm))) {
-    df_mut_raw_info <- df_mut_raw[i, ]
-
     chr_norm <- df_mut_norm[i, "chr"]
     pos_norm <- df_mut_norm[i, "pos"]
     ref_norm <- df_mut_norm[i, "ref"]
     alt_norm <- df_mut_norm[i, "alt"]
+    input_mutation_info <- df_mut_norm[i, "input_mutation_info"]
 
     # Read and extract bam around the mutation position
     # Return a truncated sam
@@ -181,7 +180,7 @@ analyze_fragments <- function(
             report_5p_3p_bases_fragment = report_5p_3p_bases_fragment,
             cigar_free_indel_match      = cigar_free_indel_match,
             fasta_seq                   = fasta_seq,
-            df_mut_raw_info             = df_mut_raw_info
+            input_mutation_info         = input_mutation_info
           )
         }
       )
