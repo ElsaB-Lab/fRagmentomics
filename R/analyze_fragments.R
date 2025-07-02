@@ -55,7 +55,6 @@ analyze_fragments <- function(
       isMateMinusStrand = NA,
       isFirstMateRead = NA,
       isSecondMateRead = NA,
-      isNotPrimaryRead = NA,
       isSecondaryAlignment = FALSE,
       isSupplementaryAlignment = FALSE,
       isNotPassingQualityControls = NA,

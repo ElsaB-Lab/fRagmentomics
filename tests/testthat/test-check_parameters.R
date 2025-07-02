@@ -71,7 +71,6 @@ test_that("check_parameters", {
       isMateMinusStrand = NA,
       isFirstMateRead = NA,
       isSecondMateRead = NA,
-      isNotPrimaryRead = NA,
       isSecondaryAlignment = FALSE,
       isSupplementaryAlignment = FALSE,
       isNotPassingQualityControls = NA,
