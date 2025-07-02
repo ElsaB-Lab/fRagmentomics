@@ -20,8 +20,13 @@ test_that("analyze_fragments works", {
         neg_offset_mate_search = -200,
         pos_offset_mate_search = 200,
         one_based = TRUE,
-        flag_keep = 0x03,
-        flag_remove = 0x900,
+        flag_bam_list = list(
+            isPaired = TRUE,
+            isUnmappedQuery = FALSE,
+            isSecondaryAlignment = FALSE,
+            isSupplementaryAlignment = FALSE,
+            isDuplicate = FALSE
+            ),
         report_tlen = TRUE,
         report_softclip = TRUE,
         report_5p_3p_bases_fragment = 5,

@@ -26,3 +26,4 @@ retaining original text where applicable (e.g., "MUT & AMB_low_coverage").
 This function determines both the detailed and simplified mutation statuses of a DNA
 fragment based on the mutation status of each of the two reads from the fragment.
 }
+\keyword{internal}

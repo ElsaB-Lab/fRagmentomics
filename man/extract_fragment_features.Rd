@@ -18,7 +18,8 @@ extract_fragment_features(
   report_5p_3p_bases_fragment,
   cigar_free_indel_match,
   fasta_fafile = NULL,
-  fasta_seq = NULL
+  fasta_seq = NULL,
+  input_mutation_info
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ indel in the CIGAR does not match the norm of bcftools of the mutation being ana
 \item{fasta_fafile}{An open connection to an object of class FaFile}
 
 \item{fasta_seq}{A list with the fasta sequence between two positions.}
+
+\item{input_mutation_info}{Character vecotr representing the input mutation.}
 }
 \value{
 A dataframe with the processed fragment information.

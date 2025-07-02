@@ -13,8 +13,7 @@ check_parameters <- function(
     neg_offset_mate_search,
     pos_offset_mate_search,
     one_based,
-    flag_keep,
-    flag_remove,
+    flag_bam_list,
     report_tlen,
     report_softclip,
     report_5p_3p_bases_fragment,
@@ -29,8 +28,7 @@ check_parameters <- function(
   check_neg_offset_mate_search(neg_offset_mate_search)
   check_pos_offset_mate_search(pos_offset_mate_search)
   check_one_based(one_based)
-  check_flag_keep(flag_keep)
-  check_flag_remove(flag_remove)
+  check_flag_bam_list(flag_bam_list)
   check_report_tlen(report_tlen)
   check_report_softclip(report_softclip)
   check_report_bases_fragm_5p_3p(report_5p_3p_bases_fragment)
@@ -161,31 +159,42 @@ check_one_based <- function(one_based) {
   }
 }
 
-#' Check if the flag_keep parameter is valid
+#' Check if the flag_bam_list parameter is valid
 #'
 #' @inheritParams check_parameters
 #'
+#' @importFrom Rsamtools scanBamFlag
+#'
 #' @noRd
-check_flag_keep <- function(flag_keep) {
-  if (!is.numeric(flag_keep)) {
-    stop("Error: flag_keep must be numeric.")
+check_flag_bam_list <- function(flag_bam_list) {
+  # Check if the input is a list
+  if (!is.list(flag_bam_list)) {
+    stop("Error: 'flag_bam_list' must be a list.")
   }
-  if (flag_keep < 0) {
-    stop("Error: flag_keep must be non-negative.")
-  }
-}
 
-#' Check if the flag_remove parameter is valid
-#'
-#' @inheritParams check_parameters
-#'
-#' @noRd
-check_flag_remove <- function(flag_remove) {
-  if (!is.numeric(flag_remove)) {
-    stop("Error: flag_remove must be numeric.")
+  # Check if all values in the list are logical (TRUE, FALSE, or NA)
+  all_values_logical <- all(vapply(flag_bam_list, is.logical, logical(1)))
+  if (!all_values_logical) {
+    stop("Error: All values in 'flag_bam_list' must be logical (TRUE, FALSE, or NA).")
   }
-  if (flag_remove < 0) {
-    stop("Error: flag_remove must be non-negative.")
+
+  # Check if the list items are named and if the names are valid
+  if (length(flag_bam_list) > 0) {
+    valid_flag_names <- names(formals(Rsamtools::scanBamFlag))
+    user_flag_names <- names(flag_bam_list)
+
+    if (is.null(user_flag_names) || any(user_flag_names == "")) {
+      stop("Error: All elements in a non-empty 'flag_bam_list' must be named.")
+    }
+
+    invalid_names <- user_flag_names[!user_flag_names %in% valid_flag_names]
+    if (length(invalid_names) > 0) {
+      stop(
+        "Error: Invalid name(s) found in 'flag_bam_list': ",
+        paste(shQuote(invalid_names), collapse = ", "),
+        ".\n\nSee ?Rsamtools::scanBamFlag for a list of valid flag names."
+      )
+    }
   }
 }
 

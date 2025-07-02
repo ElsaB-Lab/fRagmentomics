@@ -12,8 +12,7 @@ read_bam(
   pos,
   neg_offset_mate_search,
   pos_offset_mate_search,
-  flag_keep,
-  flag_remove
+  flag_bam_list
 )
 }
 \arguments{
@@ -31,11 +30,8 @@ overlaps the queried position.}
 
 \item{pos_offset_mate_search}{Integer. Use in read_bam.}
 
-\item{flag_keep}{Character vector. Use in read_bam.
-Represents the SAM flags that should be kept when filtering alignments.}
-
-\item{flag_remove}{Character vector. Use in read_bam.
-Represents the SAM flags that should be excluded when filtering alignments.}
+\item{flag_bam_list}{A named list of logicals for filtering reads based on their SAM flag
+NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.}
 }
 \value{
 A dataframe containing the filtered SAM entries.

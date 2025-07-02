@@ -62,8 +62,21 @@ test_that("check_parameters", {
     neg_offset_mate_search = -1000L,
     pos_offset_mate_search = 1000L,
     one_based = TRUE,
-    flag_keep = 0x03,
-    flag_remove = 0x900,
+    flag_bam_list = list(
+      isPaired = TRUE,
+      isProperPair = NA,
+      isUnmappedQuery = FALSE,
+      hasUnmappedMate = NA,
+      isMinusStrand = NA,
+      isMateMinusStrand = NA,
+      isFirstMateRead = NA,
+      isSecondMateRead = NA,
+      isNotPrimaryRead = NA,
+      isSecondaryAlignment = FALSE,
+      isSupplementaryAlignment = FALSE,
+      isNotPassingQualityControls = NA,
+      isDuplicate = FALSE
+    ),
     report_tlen = FALSE,
     report_softclip = FALSE,
     report_5p_3p_bases_fragment = 5L,
@@ -85,8 +98,7 @@ test_that("check_parameters", {
       neg_offset_mate_search = valid_params$neg_offset_mate_search,
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
-      flag_keep = valid_params$flag_keep,
-      flag_remove = valid_params$flag_remove,
+      flag_bam_list = valid_params$flag_bam_list,
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
@@ -109,8 +121,7 @@ test_that("check_parameters", {
       neg_offset_mate_search = valid_params$neg_offset_mate_search,
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
-      flag_keep = valid_params$flag_keep,
-      flag_remove = valid_params$flag_remove,
+      flag_bam_list = valid_params$flag_bam_list,
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
@@ -135,8 +146,7 @@ test_that("check_parameters", {
       neg_offset_mate_search = valid_params$neg_offset_mate_search,
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
-      flag_keep = valid_params$flag_keep,
-      flag_remove = valid_params$flag_remove,
+      flag_bam_list = valid_params$flag_bam_list,
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
@@ -161,8 +171,7 @@ test_that("check_parameters", {
       neg_offset_mate_search = valid_params$neg_offset_mate_search,
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
-      flag_keep = valid_params$flag_keep,
-      flag_remove = valid_params$flag_remove,
+      flag_bam_list = valid_params$flag_bam_list,
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
@@ -190,8 +199,7 @@ test_that("check_parameters", {
       neg_offset_mate_search = valid_params$neg_offset_mate_search,
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
-      flag_keep = valid_params$flag_keep,
-      flag_remove = valid_params$flag_remove,
+      flag_bam_list = valid_params$flag_bam_list,
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
@@ -218,8 +226,7 @@ test_that("check_parameters", {
       neg_offset_mate_search = valid_params$neg_offset_mate_search,
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
-      flag_keep = valid_params$flag_keep,
-      flag_remove = valid_params$flag_remove,
+      flag_bam_list = valid_params$flag_bam_list,
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
@@ -251,10 +258,49 @@ test_that("check_parameters individual parameter validations", {
   expect_error(check_pos_offset_mate_search(as.integer(-1000)), "must be positive")
 
   # Flags
-  expect_error(check_flag_keep("abc"), "must be numeric")
-  expect_error(check_flag_remove("abc"), "must be numeric")
-  expect_error(check_flag_keep(-1), "must be non-negative")
-  expect_error(check_flag_remove(-1), "must be non-negative")
+  # A standard, valid partial list
+  expect_no_error(
+    check_flag_bam_list(list(isPaired = TRUE, isDuplicate = FALSE))
+  )
+  # A valid list including NA
+  expect_no_error(
+    check_flag_bam_list(list(isProperPair = NA, isUnmappedQuery = FALSE))
+  )
+  # An empty list should also be valid
+  expect_no_error(
+    check_flag_bam_list(list())
+  )
+  # Test case for non-list input
+  expect_error(
+    check_flag_bam_list("not a list"),
+    "must be a list"
+  )
+  # Test case for non-logical values in the list
+  expect_error(
+    check_flag_bam_list(list(isPaired = TRUE, isDuplicate = "FALSE")),
+    "must be logical"
+  )
+  expect_error(
+    check_flag_bam_list(list(isUnmappedQuery = 0)),
+    "must be logical"
+  )
+  # Test case for an unnamed list element
+  expect_error(
+    check_flag_bam_list(list(TRUE, isPaired = FALSE)),
+    "must be named"
+  )
+  # Test case for an invalid flag name
+  expect_error(
+    check_flag_bam_list(list(isPaired = TRUE, isADuplicate = FALSE)),
+    "Invalid name(s) found",
+    fixed = TRUE
+  )
+  # Test case for multiple invalid flag names
+  expect_error(
+    check_flag_bam_list(list(isPaired = TRUE, isADuplicate = FALSE, isGood = TRUE)),
+    "Invalid name(s) found",
+    fixed = TRUE
+  )
 
   # Logical flags
   expect_error(check_one_based("TRUE"), "must be a single logical")

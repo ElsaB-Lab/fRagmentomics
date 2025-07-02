@@ -11,10 +11,8 @@
 #'  overlaps the queried position.
 #' @param pos_offset_mate_search Integer. Use in read_bam.
 #' @param one_based Boolean. TRUE if fasta is in one based. False if in 0 based.
-#' @param flag_keep Character vector. Use in read_bam.
-#'  Represents the SAM flags that should be kept when filtering alignments.
-#' @param flag_remove Character vector. Use in read_bam.
-#'  Represents the SAM flags that should be excluded when filtering alignments.
+#' @param flag_bam_list A named list of logicals for filtering reads based on their SAM flag
+#'   NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.
 #' @param report_tlen Boolean. Whether to include the TLEN (template length)
 #'  information in the output.
 #' @param report_softclip Boolean. Whether to include the number of soft-clipped
@@ -48,8 +46,21 @@ analyze_fragments <- function(
     neg_offset_mate_search = -1000,
     pos_offset_mate_search = 1000,
     one_based = TRUE,
-    flag_keep = 0x03,
-    flag_remove = 0x900,
+    flag_bam_list = list(
+      isPaired = TRUE,
+      isProperPair = NA,
+      isUnmappedQuery = FALSE,
+      hasUnmappedMate = NA,
+      isMinusStrand = NA,
+      isMateMinusStrand = NA,
+      isFirstMateRead = NA,
+      isSecondMateRead = NA,
+      isNotPrimaryRead = NA,
+      isSecondaryAlignment = FALSE,
+      isSupplementaryAlignment = FALSE,
+      isNotPassingQualityControls = NA,
+      isDuplicate = FALSE
+    ),
     report_tlen = FALSE,
     report_softclip = FALSE,
     report_5p_3p_bases_fragment = 5,
@@ -74,8 +85,8 @@ analyze_fragments <- function(
     sample_id,
     neg_offset_mate_search,
     pos_offset_mate_search,
-    one_based, flag_keep,
-    flag_remove,
+    one_based,
+    flag_bam_list,
     report_tlen,
     report_softclip,
     report_5p_3p_bases_fragment,
@@ -123,9 +134,18 @@ analyze_fragments <- function(
       pos_norm,
       neg_offset_mate_search,
       pos_offset_mate_search,
-      flag_keep,
-      flag_remove
+      flag_bam_list
     )
+
+    # Check read_bam
+    if (is.null(df_sam)) {
+      warning_message <- paste0(
+        "No read covers the position of interest for the mutation ",
+        chr_norm, ":", pos_norm, ":", ref_norm, ">", alt_norm, ". Skipping."
+      )
+      warning(warning_message, immediate. = TRUE, call. = FALSE)
+      next
+    }
 
     # Make one large request to FASTA to avoid doing time-consuming requests to FASTA for each fragment
     # Calculations below serve to ensure we extract just enough reference sequence for all the per-fragment

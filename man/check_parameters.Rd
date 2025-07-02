@@ -12,8 +12,7 @@ check_parameters(
   neg_offset_mate_search,
   pos_offset_mate_search,
   one_based,
-  flag_keep,
-  flag_remove,
+  flag_bam_list,
   report_tlen,
   report_softclip,
   report_5p_3p_bases_fragment,
@@ -42,11 +41,8 @@ overlaps the queried position.}
 
 \item{one_based}{Boolean. TRUE if fasta is in one based. False if in 0 based.}
 
-\item{flag_keep}{Character vector. Use in read_bam.
-Represents the SAM flags that should be kept when filtering alignments.}
-
-\item{flag_remove}{Character vector. Use in read_bam.
-Represents the SAM flags that should be excluded when filtering alignments.}
+\item{flag_bam_list}{A named list of logicals for filtering reads based on their SAM flag
+NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.}
 
 \item{report_tlen}{Boolean. Whether to include the TLEN (template length)
 information in the output.}
@@ -66,7 +62,7 @@ indel in the CIGAR does not match the norm of bcftools of the mutation being ana
 
 \item{tmp_folder}{Character vector for the folder temporary path.}
 
-\item{output_file}{Character vector for the output file path. Mandatory.}
+\item{output_file}{Character vector for the output file path.}
 
 \item{n_cores}{Number of cores for parallel computation.}
 }

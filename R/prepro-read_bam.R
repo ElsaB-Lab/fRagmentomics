@@ -8,7 +8,7 @@
 #'
 #' @return A dataframe containing the filtered SAM entries.
 #'
-#' @importFrom Rsamtools ScanBamParam
+#' @importFrom Rsamtools ScanBamParam scanBam
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #'
@@ -19,134 +19,79 @@ read_bam <- function(
     pos,
     neg_offset_mate_search,
     pos_offset_mate_search,
-    flag_keep,
-    flag_remove) {
-
-  flag_keep_int <- as.integer(flag_keep)
-  flag_remove_int <- as.integer(flag_remove)
-
+    flag_bam_list) {
   # ---------------------------------------
-  # Check the start and end position of the read bam
+  # Define region and flags for a single, filtered read from the BAM file
   # ---------------------------------------
-  start <- max(1, pos + neg_offset_mate_search)
+  start_ext <- max(1, pos + neg_offset_mate_search)
+  end_ext <- pos + pos_offset_mate_search
 
-  # ---------------------------------------
-  # Extract reads around the interested position
-  # ---------------------------------------
-  region_pos <- GenomicRanges::GRanges(
-    seqnames = chr,
-    ranges = IRanges::IRanges(start = pos, end = pos)
-  )
-  param_pos <- Rsamtools::ScanBamParam(
-    which = region_pos,
-    what = c("qname", "flag", "rname", "pos", "isize", "mapq", "cigar", "seq", "qual")
-  )
-  bam_pos_list <- Rsamtools::scanBam(bam, param = param_pos)
-
-  # If we found no reads, we return a empty df
-  if (length(bam_pos_list[[1]]$qname) == 0) {
-    df_sam_pos <- data.frame(
-      QNAME = character(),
-      FLAG = integer(),
-      RNAME = character(),
-      POS = integer(),
-      TLEN = integer(),
-      MAPQ = integer(),
-      CIGAR = character(),
-      SEQ = character(),
-      QUAL = character(),
-      stringsAsFactors = FALSE
-    )
-  } else {
-    df_sam_pos <- data.frame(
-      QNAME = as.character(bam_pos_list[[1]]$qname),
-      FLAG = as.integer(bam_pos_list[[1]]$flag),
-      RNAME = as.character(bam_pos_list[[1]]$rname),
-      POS = as.integer(bam_pos_list[[1]]$pos),
-      TLEN = as.integer(bam_pos_list[[1]]$isize),
-      MAPQ = as.integer(bam_pos_list[[1]]$mapq),
-      CIGAR = as.character(bam_pos_list[[1]]$cigar),
-      SEQ = as.character(bam_pos_list[[1]]$seq),
-      QUAL = as.character(bam_pos_list[[1]]$qual),
-      stringsAsFactors = FALSE
-    )
-  }
-
-  # We only keep the reads with the appropriate flags
-  df_sam_pos <- subset(
-    df_sam_pos,
-    (bitwAnd(df_sam_pos$FLAG, flag_keep_int) == flag_keep_int) &
-      (bitwAnd(df_sam_pos$FLAG, flag_remove_int) == 0)
-  )
-
-  # ---------------------------------------
-  # Extract wider reads around the interested position
-  # ---------------------------------------
   region_ext <- GenomicRanges::GRanges(
     seqnames = chr,
-    ranges = IRanges::IRanges(start = start, end = pos + pos_offset_mate_search)
+    ranges = IRanges::IRanges(start = start_ext, end = end_ext)
   )
+
+  # Generate the flag vector using the user-provided list
+  scan_flag <- do.call(Rsamtools::scanBamFlag, flag_bam_list)
+
+  what_to_scan <- c("qname", "flag", "rname", "pos", "isize", "mapq", "cigar", "seq", "qual")
+
   param_ext <- Rsamtools::ScanBamParam(
     which = region_ext,
-    what = c("qname", "flag", "rname", "pos", "isize", "mapq", "cigar", "seq", "qual")
-  )
-  bam_ext_list <- Rsamtools::scanBam(bam, param = param_ext)
-
-  if (length(bam_ext_list[[1]]$qname) == 0) {
-    df_sam_ext <- data.frame(
-      QNAME = character(),
-      FLAG = integer(),
-      RNAME = character(),
-      POS = integer(),
-      TLEN = integer(),
-      MAPQ = integer(),
-      CIGAR = character(),
-      SEQ = character(),
-      QUAL = character(),
-      stringsAsFactors = FALSE
-    )
-  } else {
-    df_sam_ext <- data.frame(
-      QNAME = as.character(bam_ext_list[[1]]$qname),
-      FLAG = as.integer(bam_ext_list[[1]]$flag),
-      RNAME = as.character(bam_ext_list[[1]]$rname),
-      POS = as.integer(bam_ext_list[[1]]$pos),
-      TLEN = as.integer(bam_ext_list[[1]]$isize),
-      MAPQ = as.integer(bam_ext_list[[1]]$mapq),
-      CIGAR = as.character(bam_ext_list[[1]]$cigar),
-      SEQ = as.character(bam_ext_list[[1]]$seq),
-      QUAL = as.character(bam_ext_list[[1]]$qual),
-      stringsAsFactors = FALSE
-    )
-  }
-
-  # We only keep the reads with the appropriate flags
-  df_sam_ext <- subset(
-    df_sam_ext,
-    (bitwAnd(df_sam_ext$FLAG, flag_keep_int) == flag_keep_int) &
-      (bitwAnd(df_sam_ext$FLAG, flag_remove_int) == 0)
+    what = what_to_scan,
+    flag = scan_flag
   )
 
-  # Select only the lines where QNAME (col 1) is in df_sam_pos
-  fragments_of_interest <- unique(df_sam_pos$QNAME)
-  df_sam_final <- df_sam_ext[df_sam_ext$QNAME %in% fragments_of_interest, ]
+  bam_list <- Rsamtools::scanBam(bam, param = param_ext)[[1]]
 
-  # Check if the final bam is empty and have the selected columns
-  if (nrow(df_sam_final) == 0) {
-    stop("The final BAM dataframe is empty. No reads match the criteria.")
+  if (length(bam_list$qname) == 0) {
+      return(NULL)
   }
 
-  required_columns <-
-    c("QNAME", "FLAG", "RNAME", "POS", "MAPQ", "CIGAR", "SEQ", "QUAL")
-  missing_columns <- setdiff(required_columns, colnames(df_sam_final))
-
-  if (length(missing_columns) > 0) {
-    stop(paste(
-      "The final BAM dataframe is missing the following columns:",
-      paste(missing_columns, collapse = ", ")
-    ))
+  # ---------------------------------------
+  # Helper function to parse CIGAR strings in base R
+  # ---------------------------------------
+  get_cigar_width <- function(cigar) {
+    matches <- gregexpr("\\d+[MDN=X]", cigar)
+    sapply(regmatches(cigar, matches), function(cigar_parts) {
+      if (length(cigar_parts) == 0) {
+        return(0)
+      }
+      sum(as.numeric(gsub("[A-Z]", "", cigar_parts)))
+    })
   }
 
-  # Return df with sam data
-  df_sam_final
+  # ---------------------------------------
+  # Convert to a dataframe and find reads covering the position of interest
+  # ---------------------------------------
+  df_sam_filtered <- data.frame(
+    QNAME = as.character(bam_list$qname),
+    FLAG = as.integer(bam_list$flag),
+    RNAME = as.character(bam_list$rname), 
+    POS = as.integer(bam_list$pos),
+    TLEN = as.integer(bam_list$isize),
+    MAPQ = as.integer(bam_list$mapq),
+    CIGAR = as.character(bam_list$cigar),
+    SEQ = as.character(bam_list$seq),
+    QUAL = as.character(bam_list$qual),
+    stringsAsFactors = FALSE
+  )
+
+  read_width <- get_cigar_width(df_sam_filtered$CIGAR)
+  read_end <- df_sam_filtered$POS + read_width - 1
+
+  cover_position <- df_sam_filtered$POS <= pos & read_end >= pos
+  fragments_of_interest <- unique(df_sam_filtered[cover_position, "QNAME"])
+
+  if (length(fragments_of_interest) == 0) {
+    return(NULL) 
+  }
+
+  # ---------------------------------------
+  # Select all reads belonging to the fragments of interest
+  # ---------------------------------------
+  final_condition <- df_sam_filtered$QNAME %in% fragments_of_interest
+  df_sam_final <- df_sam_filtered[final_condition, ]
+
+  return(df_sam_final)
 }

@@ -8,8 +8,13 @@ test_that("Read bam", {
     pos         = 7578063,
     neg_offset  = 20,
     pos_offset  = 20,
-    flag_keep   = 0x03,
-    flag_remove = 0x900
+    flag_bam_list = list(
+      isPaired = TRUE,
+      isUnmappedQuery = FALSE,
+      isSecondaryAlignment = FALSE,
+      isSupplementaryAlignment = FALSE,
+      isDuplicate = FALSE
+    )
   )
 
   # Create the fake dataframe to compare
@@ -59,8 +64,13 @@ test_that("Read bam", {
     pos         = 2191,
     neg_offset  = -1000,
     pos_offset  = 1000,
-    flag_keep   = 0x03,
-    flag_remove = 0x900
+    flag_bam_list = list(
+      isPaired = TRUE,
+      isUnmappedQuery = FALSE,
+      isSecondaryAlignment = FALSE,
+      isSupplementaryAlignment = FALSE,
+      isDuplicate = FALSE
+    )
   )
 
   expected_cols <- c(
@@ -77,17 +87,16 @@ test_that("Read bam", {
 test_that("Read bam empty", {
   bam_test <- system.file("testdata/bam/", "cfdna-test-01_chr17_7576000_7579000.bam", package = "fRagmentomics")
 
-  expect_error(
+  # Test that the function correctly returns NULL when no reads are found
+  expect_null(
     read_bam(
-      bam         = bam_test,
-      chr         = "chr17",
-      pos         = 15168135,
-      neg_offset  = -1000,
-      pos_offset  = 1000,
-      flag_keep   = 0x03,
-      flag_remove = 0x900
-    ),
-    "The final BAM dataframe is empty. No reads match the criteria."
+      bam           = bam_test,
+      chr           = "chr17",
+      pos           = 15168135, 
+      neg_offset_mate_search = -1000,
+      pos_offset_mate_search = 1000,
+      flag_bam_list = list(isPaired = TRUE, isUnmappedQuery = FALSE)
+    )
   )
 })
 
@@ -100,8 +109,13 @@ test_that("Read bam missing columns", {
     pos         = 7578063,
     neg_offset  = -20,
     pos_offset  = 20,
-    flag_keep   = 0x03,
-    flag_remove = 0x900
+    flag_bam_list = list(
+      isPaired = TRUE,
+      isUnmappedQuery = FALSE,
+      isSecondaryAlignment = FALSE,
+      isSupplementaryAlignment = FALSE,
+      isDuplicate = FALSE
+    )
   )
 
   # Simulation when deletion of a column
