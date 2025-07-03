@@ -5,27 +5,16 @@
 \title{Compute fragment inner distance
 Calculates the inner distance between two paired-end sequencing reads.}
 \usage{
-get_fragment_inner_distance(
-  r_pos1,
-  r_cigar1,
-  read_length1,
-  r_pos2,
-  r_cigar2,
-  read_length2
-)
+get_fragment_inner_distance(r_pos_5p, r_cigar_5p, r_pos_3p, r_cigar_3p)
 }
 \arguments{
-\item{r_pos1}{numeric value representing the read 1 mapping position}
+\item{r_pos_5p}{numeric value representing the read 5p mapping position}
 
-\item{r_cigar1}{character vector representing the read 1 CIGAR}
+\item{r_cigar_5p}{character vector representing the read 5p CIGAR}
 
-\item{read_length1}{numeric value representing the length of read 1}
+\item{r_pos_3p}{numeric value representing the read 3p mapping position}
 
-\item{r_pos2}{numeric value representing the read 2 mapping position}
-
-\item{r_cigar2}{character vector representing the read 2 CIGAR}
-
-\item{read_length2}{numeric value representing the length of read 2}
+\item{r_cigar_3p}{character vector representing the read 3p CIGAR}
 }
 \value{
 a named list with names \code{a} and \code{b}.

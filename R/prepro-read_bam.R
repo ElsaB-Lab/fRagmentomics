@@ -34,7 +34,7 @@ read_bam <- function(
   # Generate the flag vector using the user-provided list
   scan_flag <- do.call(Rsamtools::scanBamFlag, flag_bam_list)
 
-  what_to_scan <- c("qname", "flag", "rname", "pos", "isize", "mapq", "cigar", "seq", "qual")
+  what_to_scan <- c("qname", "flag", "rname", "pos", "isize", "mapq", "cigar", "mrnm", "mpos", "seq", "qual")
 
   param_ext <- Rsamtools::ScanBamParam(
     which = region_ext,
@@ -45,7 +45,7 @@ read_bam <- function(
   bam_list <- Rsamtools::scanBam(bam, param = param_ext)[[1]]
 
   if (length(bam_list$qname) == 0) {
-      return(NULL)
+    return(NULL)
   }
 
   # ---------------------------------------
@@ -67,11 +67,13 @@ read_bam <- function(
   df_sam_filtered <- data.frame(
     QNAME = as.character(bam_list$qname),
     FLAG = as.integer(bam_list$flag),
-    RNAME = as.character(bam_list$rname), 
+    RNAME = as.character(bam_list$rname),
     POS = as.integer(bam_list$pos),
     TLEN = as.integer(bam_list$isize),
     MAPQ = as.integer(bam_list$mapq),
     CIGAR = as.character(bam_list$cigar),
+    RNEXT = as.character(bam_list$mrnm),
+    PNEXT = as.integer(bam_list$mpos),
     SEQ = as.character(bam_list$seq),
     QUAL = as.character(bam_list$qual),
     stringsAsFactors = FALSE
@@ -84,14 +86,19 @@ read_bam <- function(
   fragments_of_interest <- unique(df_sam_filtered[cover_position, "QNAME"])
 
   if (length(fragments_of_interest) == 0) {
-    return(NULL) 
+    return(NULL)
   }
 
   # ---------------------------------------
   # Select all reads belonging to the fragments of interest
   # ---------------------------------------
   final_condition <- df_sam_filtered$QNAME %in% fragments_of_interest
-  df_sam_final <- df_sam_filtered[final_condition, ]
+  df_sam_with_read_covering <- df_sam_filtered[final_condition, ]
 
-  return(df_sam_final)
+  # Remove the read if RNEXT != "=" because it's a translocation so the read will be alone
+  # (other read on another chromosome)
+  # df_sam_without_translocation <- df_sam_with_read_covering[
+  #   df_sam_with_read_covering$RNEXT == "=" | df_sam_with_read_covering$RNAME == df_sam_with_read_covering$RNEXT,
+  # ]
+  return(df_sam_with_read_covering)
 }

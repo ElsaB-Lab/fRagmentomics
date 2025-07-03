@@ -39,6 +39,27 @@ extract_fragment_features <- function(df_sam,
   # Sanity check fragments
   # -------------------------------
   fragment_qc <- ""
+
+  # If one of the 2 reads is mapped to a different chromosome
+  read <- df_fragment_reads[1, , drop = F]
+  if (!is.na(read$RNAME) && !is.na(read$RNEXT) && read$RNEXT != read$RNAME) {
+    qc <- paste("Mate maps to a different chromosome. RNEXT=", read$RNEXT)
+    if (fragment_qc == "") {
+      fragment_qc <- qc
+    } else {
+      fragment_qc <- paste(c(fragment_qc, qc), collapse = " & ")
+    }
+  }
+  # If one of the 2 reads is unmapped
+  if ((!is.na(read$POS) && !is.na(read$PNEXT)) && (read$POS == 0 || read$PNEXT == 0)) {
+    qc <- paste("Read or mate is unmapped. POS=", read$POS, "and PNEXT=", read$PNEXT)
+    if (fragment_qc == "") {
+      fragment_qc <- qc
+    } else {
+      fragment_qc <- paste(c(fragment_qc, qc), collapse = " & ")
+    }
+  }
+  # If the actual read is on another chromosome
   if (!all(df_fragment_reads[, 3] == chr)) {
     qc <- paste("Read(s) from another chromosome than", chr)
     if (fragment_qc == "") {
@@ -47,6 +68,7 @@ extract_fragment_features <- function(df_sam,
       fragment_qc <- paste(c(fragment_qc, qc), collapse = " & ")
     }
   }
+  # If only one read selected
   if (nrow(df_fragment_reads) != 2) {
     qc <- paste("Fragment has", nrow(df_fragment_reads), "read(s)")
     if (fragment_qc == "") {
@@ -127,22 +149,6 @@ extract_fragment_features <- function(df_sam,
   )
 
   # -------------------------------
-  # Compute fragment size
-  # -------------------------------
-  inner_distance <- get_fragment_inner_distance(
-    read_stats_1$POS, read_stats_1$CIGAR, read_stats_1$read_length,
-    read_stats_2$POS, read_stats_2$CIGAR, read_stats_2$read_length
-  )
-  absolute_size <- read_stats_1$read_length +
-    read_stats_2$read_length +
-    inner_distance
-
-  # -------------------------------
-  # Define fragment status
-  # -------------------------------
-  fstats <- get_fragment_mutation_statuses(mstat_1 = read_info_1$mstat, mstat_2 = read_info_2$mstat)
-
-  # -------------------------------
   # Define 3' and 5' reads
   # -------------------------------
   identity_3p <- ifelse(read_stats_1$POS <= read_stats_2$POS, 2, 1)
@@ -159,6 +165,22 @@ extract_fragment_features <- function(df_sam,
     read_stats_3p <- read_stats_1
     read_info_3p <- read_info_1
   }
+
+  # -------------------------------
+  # Compute fragment size
+  # -------------------------------
+  inner_distance <- get_fragment_inner_distance(
+    read_stats_5p$POS, read_stats_5p$CIGAR,
+    read_stats_3p$POS, read_stats_3p$CIGAR
+  )
+  absolute_size <- read_stats_5p$read_length +
+    read_stats_3p$read_length +
+    inner_distance
+
+  # -------------------------------
+  # Define fragment status
+  # -------------------------------
+  fstats <- get_fragment_mutation_statuses(mstat_1 = read_info_1$mstat, mstat_2 = read_info_2$mstat)
 
   # -------------------------------
   # Build an adaptative dataframe

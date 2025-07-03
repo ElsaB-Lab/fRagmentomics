@@ -14,9 +14,8 @@ analyze_fragments(
   one_based = TRUE,
   flag_bam_list = list(isPaired = TRUE, isProperPair = NA, isUnmappedQuery = FALSE,
     hasUnmappedMate = NA, isMinusStrand = NA, isMateMinusStrand = NA, isFirstMateRead =
-    NA, isSecondMateRead = NA, isNotPrimaryRead = NA, isSecondaryAlignment = FALSE,
-    isSupplementaryAlignment = FALSE, isNotPassingQualityControls = NA, isDuplicate =
-    FALSE),
+    NA, isSecondMateRead = NA, isSecondaryAlignment = FALSE, isSupplementaryAlignment =
+    FALSE, isNotPassingQualityControls = NA, isDuplicate = FALSE),
   report_tlen = FALSE,
   report_softclip = FALSE,
   report_5p_3p_bases_fragment = 5,

@@ -1,3 +1,9 @@
+# fRagmentomics 0.2.6
+
+- Upgrade flag selection for the read_bam function.
+- No graphic representation
+- No pipeline integration.
+
 # fRagmentomics 0.2.5
 
 - Remove the soft clipping from the sequence for the comparison with the WT and MUT references. Avoid cases where a mutation is at the end of the read, just before the soft-clipped bases. Previously, the classification was WT; it is now AMB.
