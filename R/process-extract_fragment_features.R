@@ -38,45 +38,34 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   # Sanity check fragments
   # -------------------------------
-  fragment_qc <- ""
+  qc_messages <- list()
 
-  # If one of the 2 reads is mapped to a different chromosome
-  read <- df_fragment_reads[1, , drop = F]
-  if (!is.na(read$RNAME) && !is.na(read$RNEXT) && read$RNEXT != read$RNAME) {
-    qc <- paste("Mate maps to a different chromosome. RNEXT=", read$RNEXT)
-    if (fragment_qc == "") {
-      fragment_qc <- qc
-    } else {
-      fragment_qc <- paste(c(fragment_qc, qc), collapse = " & ")
-    }
-  }
-  # If one of the 2 reads is unmapped
-  if ((!is.na(read$POS) && !is.na(read$PNEXT)) && (read$POS == 0 || read$PNEXT == 0)) {
-    qc <- paste("Read or mate is unmapped. POS=", read$POS, "and PNEXT=", read$PNEXT)
-    if (fragment_qc == "") {
-      fragment_qc <- qc
-    } else {
-      fragment_qc <- paste(c(fragment_qc, qc), collapse = " & ")
-    }
-  }
-  # If the actual read is on another chromosome
-  if (!all(df_fragment_reads[, 3] == chr)) {
-    qc <- paste("Read(s) from another chromosome than", chr)
-    if (fragment_qc == "") {
-      fragment_qc <- qc
-    } else {
-      fragment_qc <- paste(c(fragment_qc, qc), collapse = " & ")
-    }
-  }
-  # If only one read selected
+  # Test 1: Report if the fragment does not consist of exactly two reads.
   if (nrow(df_fragment_reads) != 2) {
-    qc <- paste("Fragment has", nrow(df_fragment_reads), "read(s)")
-    if (fragment_qc == "") {
-      fragment_qc <- qc
-    } else {
-      fragment_qc <- paste(c(fragment_qc, qc), collapse = " & ")
+    qc_messages <- c(qc_messages, paste("Fragment has", nrow(df_fragment_reads), "read(s)"))
+  }
+
+  # Test 2: Report if any read in the fragment is not on the expected chromosome.
+  if (!all(df_fragment_reads$RNAME == chr)) {
+    qc_messages <- c(qc_messages, paste("Read(s) found on a chromosome other than", chr))
+  }
+
+  if (nrow(df_fragment_reads) > 0) {
+    # Isolate the first read of the fragment
+    read <- df_fragment_reads[1, , drop = FALSE]
+
+    # Test 3: Report if the mate appears to be on another chromosome (translocation).
+    if (!is.na(read$RNEXT) && read$RNEXT != "=" && read$RNAME != read$RNEXT) {
+      qc_messages <- c(qc_messages, paste("Mate maps to a different chromosome. RNEXT=", read$RNEXT))
+    }
+
+    # Test 4: Report if the read or its mate is marked as unmapped.
+    if (read$POS == 0 || read$PNEXT == 0) {
+      qc_messages <- c(qc_messages, paste("Read or mate is unmapped. POS=", read$POS, "& PNEXT=", read$PNEXT))
     }
   }
+
+  fragment_qc <- paste(qc_messages, collapse = " & ")
 
   # If the fragment fails QC, return a dataframe with NAs
   if (fragment_qc != "") {

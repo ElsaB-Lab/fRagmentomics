@@ -1,6 +1,7 @@
 # fRagmentomics 0.2.6
 
 - Upgrade flag selection for the read_bam function.
+- Remove fragments with reads in the same orientation.
 - No graphic representation
 - No pipeline integration.
 

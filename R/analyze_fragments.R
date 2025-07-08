@@ -184,8 +184,6 @@ analyze_fragments <- function(
         function(fragment_name) {
           # Tell progressor a step is done
           p()
-
-          # Le corps de la boucle est le même qu'avant
           extract_fragment_features(
             df_sam                      = df_sam,
             fragment_name               = fragment_name,

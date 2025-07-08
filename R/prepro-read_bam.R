@@ -92,13 +92,27 @@ read_bam <- function(
   # ---------------------------------------
   # Select all reads belonging to the fragments of interest
   # ---------------------------------------
-  final_condition <- df_sam_filtered$QNAME %in% fragments_of_interest
-  df_sam_with_read_covering <- df_sam_filtered[final_condition, ]
+  fragment_name_covering <- df_sam_filtered$QNAME %in% fragments_of_interest
+  df_reads_of_covering_fragments <- df_sam_filtered[fragment_name_covering, ]
+
+  # ---------------------------------------
+  # Select all reads with a different orientation
+  # ---------------------------------------
+  is_read_reverse <- bitwAnd(df_reads_of_covering_fragments$FLAG, 16) != 0
+  is_mate_reverse <- bitwAnd(df_reads_of_covering_fragments$FLAG, 32) != 0
+
+  # Keep only the read with a different orientation
+  well_oriented_reads <- is_read_reverse != is_mate_reverse
+  df_well_oriented_reads <- df_reads_of_covering_fragments[well_oriented_reads, ]
+
+  if (nrow(df_well_oriented_reads) == 0) {
+    return(NULL)
+  }
 
   # Remove the read if RNEXT != "=" because it's a translocation so the read will be alone
   # (other read on another chromosome)
   # df_sam_without_translocation <- df_sam_with_read_covering[
   #   df_sam_with_read_covering$RNEXT == "=" | df_sam_with_read_covering$RNAME == df_sam_with_read_covering$RNEXT,
   # ]
-  return(df_sam_with_read_covering)
+  return(df_well_oriented_reads)
 }
