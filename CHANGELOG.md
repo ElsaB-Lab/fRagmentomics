@@ -2,6 +2,7 @@
 
 - Upgrade flag selection for the read_bam function.
 - Remove fragments with reads in the same orientation.
+- Define 5p/3p reads with strand not position.
 - No graphic representation
 - No pipeline integration.
 
