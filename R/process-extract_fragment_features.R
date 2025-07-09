@@ -140,15 +140,19 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   # Define 3' and 5' reads
   # -------------------------------
-  identity_3p <- ifelse(read_stats_1$POS <= read_stats_2$POS, 2, 1)
-  identity_5p <- ifelse(identity_3p == 2, 1, 2)
+  # 5p read: forward strand / 3p: reverse strand
 
-  if (identity_5p == 1) {
+  # If bitwAnd(FLAG, 16) == 0, strand is '+'.
+  is_read1_on_forward_strand <- bitwAnd(read_stats_1$FLAG, 16) == 0
+
+  if (is_read1_on_forward_strand) {
+    # read_1 is on strand '+'. read_1 -> 5p
     read_stats_5p <- read_stats_1
     read_info_5p <- read_info_1
     read_stats_3p <- read_stats_2
     read_info_3p <- read_info_2
   } else {
+    # read_1 is on strand '-'. read_1 -> 3p
     read_stats_5p <- read_stats_2
     read_info_5p <- read_info_2
     read_stats_3p <- read_stats_1
