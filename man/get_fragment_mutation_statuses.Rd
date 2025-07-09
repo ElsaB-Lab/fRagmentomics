@@ -4,14 +4,14 @@
 \alias{get_fragment_mutation_statuses}
 \title{Get detailed and simplified fragment mutation statuses.}
 \usage{
-get_fragment_mutation_statuses(mstat_1, mstat_2)
+get_fragment_mutation_statuses(mstat_5p, mstat_3p)
 }
 \arguments{
-\item{mstat_1}{The mutation status of read 1 (e.g., "MUT:C>T_high_conf", "WT", "AMB_low_coverage").
-Can be \code{NA} for no coverage.}
+\item{mstat_5p}{The mutation status of read 5p (e.g., "MUT:C>T_high_conf", "WT", "AMB_low_coverage").
+Can be "NA" for no coverage.}
 
-\item{mstat_2}{The mutation status of read 2 (e.g., "MUT:C>T_high_conf", "WT", "AMB_low_coverage").
-Can be \code{NA} for no coverage.}
+\item{mstat_3p}{The mutation status of read 3p (e.g., "MUT:C>T_high_conf", "WT", "AMB_low_coverage").
+Can be "NA" for no coverage.}
 }
 \value{
 A list containing two character strings:

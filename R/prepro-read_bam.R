@@ -11,6 +11,7 @@
 #' @importFrom Rsamtools ScanBamParam scanBam
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
+#' @importFrom Rsamtools bamFlagAsBitMatrix
 #'
 #' @keywords internal
 read_bam <- function(
@@ -98,11 +99,10 @@ read_bam <- function(
   # ---------------------------------------
   # Select all reads with a different orientation
   # ---------------------------------------
-  is_read_reverse <- bitwAnd(df_reads_of_covering_fragments$FLAG, 16) != 0
-  is_mate_reverse <- bitwAnd(df_reads_of_covering_fragments$FLAG, 32) != 0
+  flag_matrix <- bamFlagAsBitMatrix(df_reads_of_covering_fragments$FLAG)
 
   # Keep only the read with a different orientation
-  well_oriented_reads <- is_read_reverse != is_mate_reverse
+  well_oriented_reads <- flag_matrix[, "isMinusStrand"] != flag_matrix[, "isMateMinusStrand"]
   df_well_oriented_reads <- df_reads_of_covering_fragments[well_oriented_reads, ]
 
   if (nrow(df_well_oriented_reads) == 0) {

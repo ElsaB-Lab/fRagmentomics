@@ -26,7 +26,7 @@ test_that("analyze_fragments works", {
             isSecondaryAlignment = FALSE,
             isSupplementaryAlignment = FALSE,
             isDuplicate = FALSE
-            ),
+        ),
         report_tlen = TRUE,
         report_softclip = TRUE,
         report_5p_3p_bases_fragment = 5,
@@ -51,9 +51,9 @@ test_that("analyze_fragments works", {
     # Check that we have the expected columns
     expected_cols <- c(
         "Chromosome", "Position", "Ref", "Alt", "Input_Mutation", "Fragment_Id", "Fragment_QC",
-        "Fragment_Status_Simple", "Fragment_Status_Detail", "Fragment_Size", "Inner_Distance", "Read_5p",
-        "Read_5p_Status", "Read_3p_Status", "MAPQ_5p", "MAPQ_3p", "BASE_5p", "BASE_3p", "BASQ_5p",
-        "BASQ_3p", "CIGAR_5p", "CIGAR_3p", "POS_5p", "POS_3p", "TLEN", "Fragment_Bases_5p",
+        "Fragment_Status_Simple", "Fragment_Status_Detail", "Fragment_Size", "Inner_Distance",
+        "Read_5p_Status", "Read_3p_Status", "FLAG_5p", "FLAG_3p", "MAPQ_5p", "MAPQ_3p", "BASE_5p", "BASE_3p",
+        "BASQ_5p", "BASQ_3p", "CIGAR_5p", "CIGAR_3p", "POS_5p", "POS_3p", "TLEN", "Fragment_Bases_5p",
         "Fragment_Bases_3p", "Fragment_Basqs_5p", "Fragment_Basqs_3p", "Nb_Fragment_Bases_Softclip_5p",
         "Nb_Fragment_Bases_Softclip_3p", "VAF"
     )

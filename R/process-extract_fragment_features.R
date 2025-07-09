@@ -14,6 +14,8 @@
 #'
 #' @return A dataframe with the processed fragment information.
 #'
+#' @importFrom Rsamtools bamFlagAsBitMatrix
+#'
 #' @keywords internal
 extract_fragment_features <- function(df_sam,
                                       fragment_name,
@@ -38,34 +40,7 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   # Sanity check fragments
   # -------------------------------
-  qc_messages <- list()
-
-  # Test 1: Report if the fragment does not consist of exactly two reads.
-  if (nrow(df_fragment_reads) != 2) {
-    qc_messages <- c(qc_messages, paste("Fragment has", nrow(df_fragment_reads), "read(s)"))
-  }
-
-  # Test 2: Report if any read in the fragment is not on the expected chromosome.
-  if (!all(df_fragment_reads$RNAME == chr)) {
-    qc_messages <- c(qc_messages, paste("Read(s) found on a chromosome other than", chr))
-  }
-
-  if (nrow(df_fragment_reads) > 0) {
-    # Isolate the first read of the fragment
-    read <- df_fragment_reads[1, , drop = FALSE]
-
-    # Test 3: Report if the mate appears to be on another chromosome (translocation).
-    if (!is.na(read$RNEXT) && read$RNEXT != "=" && read$RNAME != read$RNEXT) {
-      qc_messages <- c(qc_messages, paste("Mate maps to a different chromosome. RNEXT=", read$RNEXT))
-    }
-
-    # Test 4: Report if the read or its mate is marked as unmapped.
-    if (read$POS == 0 || read$PNEXT == 0) {
-      qc_messages <- c(qc_messages, paste("Read or mate is unmapped. POS=", read$POS, "& PNEXT=", read$PNEXT))
-    }
-  }
-
-  fragment_qc <- paste(qc_messages, collapse = " & ")
+  fragment_qc <- process_fragment_reads_QC(df_fragment_reads, chr)
 
   # If the fragment fails QC, return a dataframe with NAs
   if (fragment_qc != "") {
@@ -81,9 +56,10 @@ extract_fragment_features <- function(df_sam,
       Fragment_Status_Detail = NA,
       Fragment_Size          = NA,
       Inner_Distance         = NA,
-      Read_5p                = NA,
       Read_5p_Status         = NA,
       Read_3p_Status         = NA,
+      FLAG_5p                = NA,
+      FLAG_3p                = NA,
       MAPQ_5p                = NA,
       MAPQ_3p                = NA,
       BASE_5p                = NA,
@@ -120,44 +96,43 @@ extract_fragment_features <- function(df_sam,
     return(result_df)
   }
 
-  # Separate read_1/read_2
-  reads <- identify_read_sequence_order(df_fragment_reads)
-  read_stats_1 <- get_read_stats(reads$read_1)
-  read_stats_2 <- get_read_stats(reads$read_2)
+  # -------------------------------
+  # Define 3' and 5' reads
+  # -------------------------------
+  # Get a numeric matrix of FLAG attributes for both reads in the fragment.
+  flag_matrix <- bamFlagAsBitMatrix(df_fragment_reads$FLAG)
+
+  # Sanity check that the fragment is a valid pair.
+  # It must contain exactly one "first mate" read.
+  if (sum(flag_matrix[, "isFirstMateRead"]) != 1) {
+    stop(paste("Fragment", fragment_name, "is not a valid R1/R2 pair."))
+  }
+  # It must contain one forward and one reverse read.
+  if (sum(flag_matrix[, "isMinusStrand"]) != 1) {
+    stop(paste("Fragment", fragment_name, "does not have one forward and one reverse read."))
+  }
+
+  # Identify the row index of the 5p read (forward strand, where isMinusStrand is 0).
+  idx_5p <- which(flag_matrix[, "isMinusStrand"] == 0)
+
+  # The 3p read is the other one (reverse strand, where isMinusStrand is 1).
+  idx_3p <- which(flag_matrix[, "isMinusStrand"] == 1)
+
+  # Get read bam info for read 5' and read 3'
+  read_stats_5p <- get_read_stats(df_fragment_reads[idx_5p, ])
+  read_stats_3p <- get_read_stats(df_fragment_reads[idx_3p, ])
 
   # -------------------------------
   # Get read sequence, read base qualities, and read mutation status
   # -------------------------------
-  read_info_1 <- get_base_basq_mstat_from_read(
-    chr, pos, ref, alt, read_stats_1, fasta_fafile, fasta_seq,
+  read_info_5p <- get_base_basq_mstat_from_read(
+    chr, pos, ref, alt, read_stats_5p, fasta_fafile, fasta_seq,
     cigar_free_indel_match
   )
-  read_info_2 <- get_base_basq_mstat_from_read(
-    chr, pos, ref, alt, read_stats_2, fasta_fafile, fasta_seq,
+  read_info_3p <- get_base_basq_mstat_from_read(
+    chr, pos, ref, alt, read_stats_3p, fasta_fafile, fasta_seq,
     cigar_free_indel_match
   )
-
-  # -------------------------------
-  # Define 3' and 5' reads
-  # -------------------------------
-  # 5p read: forward strand / 3p: reverse strand
-
-  # If bitwAnd(FLAG, 16) == 0, strand is '+'.
-  is_read1_on_forward_strand <- bitwAnd(read_stats_1$FLAG, 16) == 0
-
-  if (is_read1_on_forward_strand) {
-    # read_1 is on strand '+'. read_1 -> 5p
-    read_stats_5p <- read_stats_1
-    read_info_5p <- read_info_1
-    read_stats_3p <- read_stats_2
-    read_info_3p <- read_info_2
-  } else {
-    # read_1 is on strand '-'. read_1 -> 3p
-    read_stats_5p <- read_stats_2
-    read_info_5p <- read_info_2
-    read_stats_3p <- read_stats_1
-    read_info_3p <- read_info_1
-  }
 
   # -------------------------------
   # Compute fragment size
@@ -173,7 +148,7 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   # Define fragment status
   # -------------------------------
-  fstats <- get_fragment_mutation_statuses(mstat_1 = read_info_1$mstat, mstat_2 = read_info_2$mstat)
+  fstats <- get_fragment_mutation_statuses(mstat_5p = read_info_5p$mstat, mstat_3p = read_info_3p$mstat)
 
   # -------------------------------
   # Build an adaptative dataframe
@@ -190,9 +165,10 @@ extract_fragment_features <- function(df_sam,
     Fragment_Status_Detail = fstats$Detail,
     Fragment_Size          = absolute_size,
     Inner_Distance         = inner_distance,
-    Read_5p                = identity_5p,
     Read_5p_Status         = read_info_5p$mstat,
     Read_3p_Status         = read_info_3p$mstat,
+    FLAG_5p                = read_stats_5p$FLAG,
+    FLAG_3p                = read_stats_3p$FLAG,
     MAPQ_5p                = read_stats_5p$MAPQ,
     MAPQ_3p                = read_stats_3p$MAPQ,
     BASE_5p                = read_info_5p$base,
@@ -216,11 +192,11 @@ extract_fragment_features <- function(df_sam,
   # Put sample if not NA
   # -------------------------------
   if (report_tlen) {
-    if (is.null(read_stats_1$TLEN) || is.na(read_stats_1$TLEN)) {
+    if (is.null(read_stats_5p$TLEN) || is.na(read_stats_5p$TLEN)) {
       message("Warning: TLEN is NULL")
       final_row_fragment$TLEN <- "Warning: TLEN is NULL"
     } else {
-      final_row_fragment$TLEN <- abs(read_stats_1$TLEN)
+      final_row_fragment$TLEN <- abs(read_stats_5p$TLEN)
     }
   }
 
@@ -270,42 +246,6 @@ extract_fragment_features <- function(df_sam,
   result_df
 }
 
-
-#' Identify the first read and second read order using the BAM FLAG field.
-#'
-#' @param df_fragment_reads A dataframe with two rows representing reads.
-#'
-#' @return A named list containing two elements: `read_1` and `read_2`.
-#'
-#' @noRd
-identify_read_sequence_order <- function(df_fragment_reads) {
-  # Extract flag values
-  flag_a <- bitvalues_from_bam_flag(
-    as.integer(df_fragment_reads[1, "FLAG"]),
-    bitnames = c("isFirstMateRead", "isSecondMateRead")
-  )
-  flag_b <- bitvalues_from_bam_flag(
-    as.integer(df_fragment_reads[2, "FLAG"]),
-    bitnames = c("isFirstMateRead", "isSecondMateRead")
-  )
-
-  if (
-    (flag_a[, "isFirstMateRead"] == 1) &&
-      (flag_b[, "isSecondMateRead"] == 1)
-  ) {
-    list(read_1 = df_fragment_reads[1, ], read_2 = df_fragment_reads[2, ])
-  } else if (
-    (flag_b[, "isFirstMateRead"] == 1) &&
-      (flag_a[, "isSecondMateRead"] == 1)
-  ) {
-    list(read_1 = df_fragment_reads[2, ], read_2 = df_fragment_reads[1, ])
-  } else {
-    stop("Invalid read flags.
-    One read should be first mate, the other second mate.")
-  }
-}
-
-
 #' Retrieves key attributes from a single sequencing read.
 #'
 #' @param df_read A dataframe containing a single read (one row).
@@ -316,6 +256,7 @@ identify_read_sequence_order <- function(df_fragment_reads) {
 #' @noRd
 get_read_stats <- function(df_read) {
   list(
+    FLAG        = df_read$FLAG,
     MAPQ        = df_read$MAPQ,
     TLEN        = df_read$TLEN,
     CIGAR       = df_read$CIGAR,
