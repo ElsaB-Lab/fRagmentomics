@@ -1,3 +1,11 @@
+# fRagmentomics 0.2.7
+
+- Upgrade the fragment size formula. Add the deleted bases in the overlapping section of both reads and remove
+the inserted bases in the overlapping section of both reads.
+- Add a remove softclip parameter to remove softclip in 5p of the 5p read and in 3p of the 3p read.
+- No graphic representation
+- No pipeline integration.
+
 # fRagmentomics 0.2.6
 
 - Upgrade flag selection for the read_bam function.
