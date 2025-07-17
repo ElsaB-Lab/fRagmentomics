@@ -23,3 +23,8 @@ cleanup_test_fasta <- function(fasta_setup_list) {
         unlink(fasta_setup_list$dir, recursive = TRUE, force = TRUE)
     }
 }
+
+calculate_read_length <- function(cigar) {
+    ops <- stringr::str_extract_all(cigar, "[[:digit:]]+(?=[MIS=X])")[[1]]
+    sum(as.numeric(ops))
+}

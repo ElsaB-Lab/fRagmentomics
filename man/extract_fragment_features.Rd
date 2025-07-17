@@ -17,6 +17,7 @@ extract_fragment_features(
   report_softclip,
   report_5p_3p_bases_fragment,
   cigar_free_indel_match,
+  remove_softclip,
   fasta_fafile = NULL,
   fasta_seq = NULL,
   input_mutation_info
@@ -52,6 +53,8 @@ to the sequence of the wild-type reference and the mutated reference. Activating
 genotyping of reads compared to the information provided by the CIGAR for indels. On the other hand, when
 activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
 indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.}
+
+\item{remove_softclip}{Boolean. For all analyses, trim soft-clipped bases from the 5′ end of Read 5p and from the 3′ end of Read 3p.}
 
 \item{fasta_fafile}{An open connection to an object of class FaFile}
 

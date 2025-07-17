@@ -28,6 +28,7 @@ extract_fragment_features <- function(df_sam,
                                       report_softclip,
                                       report_5p_3p_bases_fragment,
                                       cigar_free_indel_match,
+                                      remove_softclip,
                                       fasta_fafile = NULL,
                                       fasta_seq = NULL,
                                       input_mutation_info) {
@@ -44,55 +45,10 @@ extract_fragment_features <- function(df_sam,
 
   # If the fragment fails QC, return a dataframe with NAs
   if (fragment_qc != "") {
-    final_row_fragment <- list(
-      Chromosome             = chr,
-      Position               = pos,
-      Ref                    = ref,
-      Alt                    = alt,
-      Input_Mutation         = input_mutation_info,
-      Fragment_Id            = fragment_name,
-      Fragment_QC            = fragment_qc,
-      Fragment_Status_Simple = NA,
-      Fragment_Status_Detail = NA,
-      Fragment_Size          = NA,
-      Inner_Distance         = NA,
-      Read_5p_Status         = NA,
-      Read_3p_Status         = NA,
-      FLAG_5p                = NA,
-      FLAG_3p                = NA,
-      MAPQ_5p                = NA,
-      MAPQ_3p                = NA,
-      BASE_5p                = NA,
-      BASE_3p                = NA,
-      BASQ_5p                = NA,
-      BASQ_3p                = NA,
-      CIGAR_5p               = NA,
-      CIGAR_3p               = NA,
-      POS_5p                 = NA,
-      POS_3p                 = NA
+    result_df <- create_empty_fragment_row(
+      chr, pos, ref, alt, input_mutation_info, fragment_name, fragment_qc,
+      sample_id, report_tlen, report_5p_3p_bases_fragment, report_softclip
     )
-
-    if (!is.na(sample_id)) {
-      final_row_fragment$Sample_Id <- sample_id
-    }
-
-    if (report_tlen) {
-      final_row_fragment$TLEN <- NA
-    }
-
-    if (report_5p_3p_bases_fragment != 0) {
-      final_row_fragment$Fragment_Bases_5p <- NA
-      final_row_fragment$Fragment_Bases_3p <- NA
-      final_row_fragment$Fragment_Basqs_5p <- NA
-      final_row_fragment$Fragment_Basqs_3p <- NA
-    }
-
-    if (report_softclip) {
-      final_row_fragment$Nb_Fragment_Bases_Softclip_5p <- NA
-      final_row_fragment$Nb_Fragment_Bases_Softclip_3p <- NA
-    }
-
-    result_df <- as.data.frame(final_row_fragment)
     return(result_df)
   }
 
@@ -122,6 +78,45 @@ extract_fragment_features <- function(df_sam,
   read_stats_5p <- get_read_stats(df_fragment_reads[idx_5p, ])
   read_stats_3p <- get_read_stats(df_fragment_reads[idx_3p, ])
 
+
+  # -------------------------------
+  # If remove_softclip = TRUE, remove softclip for analysis
+  # -------------------------------
+  if (remove_softclip) {
+    read_5p_info_without_softclip <- remove_softclip(read_stats_5p)
+    read_3p_info_without_softclip <- remove_softclip(read_stats_3p)
+
+    # Check if trimming resulted in an empty sequence or CIGAR
+    if (read_5p_info_without_softclip$SEQ == "" || read_5p_info_without_softclip$CIGAR == "") {
+      # The read is invalid after trimming, so fail the whole fragment.
+      result_df <- create_empty_fragment_row(
+        chr, pos, ref, alt, input_mutation_info, fragment_name,
+        fragment_qc = "Read empty after softclip trim",
+        sample_id, report_tlen, report_5p_3p_bases_fragment, report_softclip
+      )
+      return(result_df)
+    }
+
+    read_stats_5p$SEQ <- read_5p_info_without_softclip$SEQ
+    read_stats_5p$QUAL <- read_5p_info_without_softclip$QUAL
+    read_stats_5p$CIGAR <- read_5p_info_without_softclip$CIGAR
+
+    # Check if trimming resulted in an empty sequence or CIGAR
+    if (read_3p_info_without_softclip$SEQ == "" || read_3p_info_without_softclip$CIGAR == "") {
+      # The read is invalid after trimming, so fail the whole fragment.
+      result_df <- create_empty_fragment_row(
+        chr, pos, ref, alt, input_mutation_info, fragment_name,
+        fragment_qc = "Read empty after softclip trim",
+        sample_id, report_tlen, report_5p_3p_bases_fragment, report_softclip
+      )
+      return(result_df)
+    }
+
+    read_stats_3p$SEQ <- read_3p_info_without_softclip$SEQ
+    read_stats_3p$QUAL <- read_3p_info_without_softclip$QUAL
+    read_stats_3p$CIGAR <- read_3p_info_without_softclip$CIGAR
+  }
+
   # -------------------------------
   # Get read sequence, read base qualities, and read mutation status
   # -------------------------------
@@ -137,13 +132,7 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   # Compute fragment size
   # -------------------------------
-  inner_distance <- get_fragment_inner_distance(
-    read_stats_5p$POS, read_stats_5p$CIGAR,
-    read_stats_3p$POS, read_stats_3p$CIGAR
-  )
-  absolute_size <- read_stats_5p$read_length +
-    read_stats_3p$read_length +
-    inner_distance
+  fragment_size <- get_fragment_size(read_stats_5p, read_stats_3p)
 
   # -------------------------------
   # Define fragment status
@@ -163,8 +152,7 @@ extract_fragment_features <- function(df_sam,
     Fragment_QC            = "OK",
     Fragment_Status_Simple = fstats$Simple,
     Fragment_Status_Detail = fstats$Detail,
-    Fragment_Size          = absolute_size,
-    Inner_Distance         = inner_distance,
+    Fragment_Size          = fragment_size,
     Read_5p_Status         = read_info_5p$mstat,
     Read_3p_Status         = read_info_3p$mstat,
     FLAG_5p                = read_stats_5p$FLAG,

@@ -25,6 +25,7 @@
 #'  genotyping of reads compared to the information provided by the CIGAR for indels. On the other hand, when
 #'  activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
 #'  indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.
+#' @param remove_softclip Boolean. For all analyses, trim soft-clipped bases from the 5′ end of Read 5p and from the 3′ end of Read 3p.
 #' @param tmp_folder Character vector for the folder temporary path.
 #' @param output_file Character vector for the output file path.
 #' @param n_cores Number of cores for parallel computation.
@@ -64,6 +65,7 @@ analyze_fragments <- function(
     report_softclip = FALSE,
     report_5p_3p_bases_fragment = 5,
     cigar_free_indel_match = FALSE,
+    remove_softclip = FALSE,
     tmp_folder = tempdir(),
     output_file = NA,
     n_cores = 8) {
@@ -90,6 +92,7 @@ analyze_fragments <- function(
     report_softclip,
     report_5p_3p_bases_fragment,
     cigar_free_indel_match,
+    remove_softclip,
     tmp_folder,
     output_file,
     n_cores
@@ -196,6 +199,7 @@ analyze_fragments <- function(
             report_softclip             = report_softclip,
             report_5p_3p_bases_fragment = report_5p_3p_bases_fragment,
             cigar_free_indel_match      = cigar_free_indel_match,
+            remove_softclip             = remove_softclip,
             fasta_seq                   = fasta_seq,
             input_mutation_info         = input_mutation_info
           )

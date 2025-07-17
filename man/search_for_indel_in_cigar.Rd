@@ -2,7 +2,7 @@
 % Please edit documentation in R/process-search_for_indel_in_cigar.R
 \name{search_for_indel_in_cigar}
 \alias{search_for_indel_in_cigar}
-\title{Get the informations about the presence of a insertion in the read.}
+\title{Get the informations about the presence of a indel in the read.}
 \usage{
 search_for_indel_in_cigar(pos, ref, alt, read_stats, type)
 }
@@ -22,6 +22,6 @@ a list with two booleans. The first boolean indicate if the INDEL searched was f
 indicate if another INDEL (different size and/or different sequence) was found.
 }
 \description{
-Get the informations about the presence of a insertion in the read.
+Get the informations about the presence of a indel in the read.
 }
 \keyword{internal}

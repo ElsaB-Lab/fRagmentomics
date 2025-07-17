@@ -38,3 +38,118 @@ calculate_len_without_end_softclip <- function(cigar, seq) {
   # Return the total length minus the trailing soft clip length
   return(read_len - softclip_len)
 }
+
+#' Extracts the positions of insertions and deletions for a single read
+#'
+#' @param read_stats A list containing read infos.
+#' @return A list containing two vectors: deletions and insertions.
+#'
+#' @noRd
+get_pos_indels_from_read <- function(read_stats) {
+  list_pos_del <- c()
+  list_pos_ins <- c()
+
+  # Parse the CIGAR string
+  cigar_ops <- parse_cigar(read_stats$CIGAR)
+
+  # Initialize the current genomic position
+  current_ref_pos <- read_stats$POS
+
+  # Iterate over each CIGAR operation
+  for (i in 1:nrow(cigar_ops)) {
+    op_len <- cigar_ops$length[i]
+    op_type <- cigar_ops$type[i]
+
+    # Handle operations that consume the reference
+    if (op_type %in% c("M", "=", "X")) {
+      # Match or Mismatch: advances the position on the reference
+      current_ref_pos <- current_ref_pos + op_len
+    } else if (op_type == "D") {
+      # Deletion: does not advance on the read, but does on the reference
+      # The positions of the deleted bases
+      deleted_positions <- seq(from = current_ref_pos, length.out = op_len)
+      list_pos_del <- c(list_pos_del, deleted_positions)
+
+      # Update the position on the reference
+      current_ref_pos <- current_ref_pos + op_len
+    } else if (op_type == "I") {
+      # Insertion: advances on the read, but not on the reference
+      # The genomic position is the one just before the insertion
+      pos_before_insertion <- current_ref_pos - 1
+
+      # Create the custom positions for each inserted base
+      inserted_positions <- as.numeric(paste0(pos_before_insertion, ".", 1:op_len))
+      list_pos_ins <- c(list_pos_ins, inserted_positions)
+      # current_ref_pos does not change
+    } else if (op_type == "N") {
+      # Skipped region: advances the position on the reference
+      current_ref_pos <- current_ref_pos + op_len
+    }
+    # 'S' (soft clip), 'H' (hard clip), and 'P' (padding) operations
+    # do not consume the reference, so we do nothing.
+  }
+
+  return(list(deletions = list_pos_del, insertions = list_pos_ins))
+}
+
+#' Function to create a empty fragment row if QC failure
+#'
+#' @inheritParams extract_fragment_features
+#' @param fragment_qc a character vector corresponding to QC failure of the fragment
+#'
+#' @return a df with length and type of the CIGAR string. One row per operation.
+#'
+#' @noRd
+create_empty_fragment_row <- function(
+    chr, pos, ref, alt, input_mutation_info, fragment_name, fragment_qc,
+    sample_id, report_tlen, report_5p_3p_bases_fragment, report_softclip) {
+  final_row_fragment <- list(
+    Chromosome             = chr,
+    Position               = pos,
+    Ref                    = ref,
+    Alt                    = alt,
+    Input_Mutation         = input_mutation_info,
+    Fragment_Id            = fragment_name,
+    Fragment_QC            = fragment_qc,
+    Fragment_Status_Simple = NA,
+    Fragment_Status_Detail = NA,
+    Fragment_Size          = NA,
+    Read_5p_Status         = NA,
+    Read_3p_Status         = NA,
+    FLAG_5p                = NA,
+    FLAG_3p                = NA,
+    MAPQ_5p                = NA,
+    MAPQ_3p                = NA,
+    BASE_5p                = NA,
+    BASE_3p                = NA,
+    BASQ_5p                = NA,
+    BASQ_3p                = NA,
+    CIGAR_5p               = NA,
+    CIGAR_3p               = NA,
+    POS_5p                 = NA,
+    POS_3p                 = NA
+  )
+
+  if (!is.na(sample_id)) {
+    final_row_fragment$Sample_Id <- sample_id
+  }
+
+  if (report_tlen) {
+    final_row_fragment$TLEN <- NA
+  }
+
+  if (report_5p_3p_bases_fragment != 0) {
+    final_row_fragment$Fragment_Bases_5p <- NA
+    final_row_fragment$Fragment_Bases_3p <- NA
+    final_row_fragment$Fragment_Basqs_5p <- NA
+    final_row_fragment$Fragment_Basqs_3p <- NA
+  }
+
+  if (report_softclip) {
+    final_row_fragment$Nb_Fragment_Bases_Softclip_5p <- NA
+    final_row_fragment$Nb_Fragment_Bases_Softclip_3p <- NA
+  }
+
+  result_df <- as.data.frame(final_row_fragment)
+  return(result_df)
+}

@@ -1,4 +1,4 @@
-#' Get the informations about the presence of a insertion in the read.
+#' Get the informations about the presence of a indel in the read.
 #'
 #' @inheritParams get_base_basq_mstat_from_read
 #' @param type, choose between "INS" or "DEL"
@@ -30,10 +30,10 @@ search_for_indel_in_cigar <- function(pos, ref, alt, read_stats, type) {
     op_type <- ops$type[i]
 
     # test if we have found the insertion we are looking for
-    if (op_type==type){
+    if (op_type == type) {
       # check that we have a CIGAR operation of the right type, of the right size, at the right position
-      if (op_type=="I" && ref_pos - 1 == pos){
-        if (op_len==nchar(alt)-1 && substr(read_stats$SEQ, read_idx, read_idx + op_len)==alt){
+      if (op_type == "I" && ref_pos - 1 == pos) {
+        if (op_len == nchar(alt) - 1 && substr(read_stats$SEQ, read_idx, read_idx + op_len) == alt) {
           # Of note, if the CIGAR starts with I, then read_idx is zero and the substr
           # below will return a string of size op_len instead of op_len + 1
           # In that case, the sequence extracted from the read will not include the base before the insertion
@@ -42,8 +42,8 @@ search_for_indel_in_cigar <- function(pos, ref, alt, read_stats, type) {
         } else {
           return(list(FALSE, TRUE))
         }
-      } else if (op_type=="D" && ref_pos - 1 == pos){
-        if (op_len==nchar(ref)-1){
+      } else if (op_type == "D" && ref_pos - 1 == pos) {
+        if (op_len == nchar(ref) - 1) {
           return(list(TRUE, NULL))
         } else {
           return(list(FALSE, TRUE))
