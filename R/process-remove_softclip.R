@@ -38,6 +38,9 @@ remove_softclip <- function(read_stats) {
     new_cigar <- sub("^(\\d+H)?\\d+S", "\\1", cigar)
     new_cigar <- sub("\\d+S(\\d+H)?$", "\\1", new_cigar)
 
+    # Update read length
+    new_read_length <- nchar(new_seq)
+
     # Return the new seq, qual and cigar
-    return(list(SEQ = new_seq, QUAL = new_qual, CIGAR = new_cigar))
+    return(list(SEQ = new_seq, QUAL = new_qual, CIGAR = new_cigar, read_length = new_read_length))
 }

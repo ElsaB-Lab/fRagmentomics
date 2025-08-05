@@ -100,6 +100,7 @@ extract_fragment_features <- function(df_sam,
     read_stats_5p$SEQ <- read_5p_info_without_softclip$SEQ
     read_stats_5p$QUAL <- read_5p_info_without_softclip$QUAL
     read_stats_5p$CIGAR <- read_5p_info_without_softclip$CIGAR
+    read_stats_5p$read_length <- read_5p_info_without_softclip$read_length
 
     # Check if trimming resulted in an empty sequence or CIGAR
     if (read_3p_info_without_softclip$SEQ == "" || read_3p_info_without_softclip$CIGAR == "") {
@@ -115,6 +116,7 @@ extract_fragment_features <- function(df_sam,
     read_stats_3p$SEQ <- read_3p_info_without_softclip$SEQ
     read_stats_3p$QUAL <- read_3p_info_without_softclip$QUAL
     read_stats_3p$CIGAR <- read_3p_info_without_softclip$CIGAR
+    read_stats_3p$read_length <- read_3p_info_without_softclip$read_length
   }
 
   # -------------------------------

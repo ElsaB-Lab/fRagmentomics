@@ -15,7 +15,8 @@ test_that("Test function remove softclip", {
     expected_output <- list(
         SEQ   = paste(rep("G", 80), collapse = ""),
         QUAL  = substr(read_stats_input$QUAL, 11, 90),
-        CIGAR = "80M"
+        CIGAR = "80M",
+        read_length = 80
     )
 
     expect_equal(result, expected_output)
@@ -35,7 +36,8 @@ test_that("Test function remove softclip", {
     expected_output <- list(
         SEQ   = paste(rep("G", 95), collapse = ""),
         QUAL  = substr(read_stats_input$QUAL, 6, 100),
-        CIGAR = "95M"
+        CIGAR = "95M",
+        read_length = 95
     )
 
     expect_equal(result, expected_output)
@@ -55,8 +57,9 @@ test_that("Test function remove softclip", {
     expected_output <- list(
         SEQ   = paste(rep("G", 92), collapse = ""),
         QUAL  = substr(read_stats_input$QUAL, 1, 92),
-        CIGAR = "92M"
-    )
+        CIGAR = "92M",
+        read_length = 92
+        )
 
     expect_equal(result, expected_output)
 
@@ -69,7 +72,14 @@ test_that("Test function remove softclip", {
     result <- remove_softclip(read_stats_input)
 
     # Assert: The result should be identical to the input
-    expect_equal(result, read_stats_input)
+    expected_output <- list(
+        SEQ   = paste(rep("G", 100), collapse = ""),
+        QUAL  = paste(rep("F", 100), collapse = ""),
+        CIGAR = "100M",
+        read_length = 100
+    )
+    expect_equal(result, expected_output)
+
 
     # Test 5: Returns empty strings when the entire read is soft-clipped
     read_stats_input <- list(
@@ -83,7 +93,8 @@ test_that("Test function remove softclip", {
     expected_output <- list(
         SEQ   = "",
         QUAL  = "",
-        CIGAR = ""
+        CIGAR = "",
+        read_length = 0
     )
 
     expect_equal(result, expected_output)
@@ -101,7 +112,8 @@ test_that("Test function remove softclip", {
     expected_output <- list(
         SEQ   = substr(read_stats_input$SEQ, 11, 95), # 100 - 10 - 5 = 85 chars long
         QUAL  = substr(read_stats_input$QUAL, 11, 95),
-        CIGAR = "40M5I45M"
+        CIGAR = "40M5I45M",
+        read_length = 85
     )
 
     expect_equal(result, expected_output)
@@ -118,7 +130,8 @@ test_that("Test function remove softclip", {
     expected_output <- list(
         SEQ   = substr(read_stats_input$SEQ, 11, 90), # 95 - 10 - 5 = 80 chars
         QUAL  = substr(read_stats_input$QUAL, 11, 90),
-        CIGAR = "5H80M5H"
+        CIGAR = "5H80M5H",
+        read_length = 80
     )
 
     expect_equal(result, expected_output)
