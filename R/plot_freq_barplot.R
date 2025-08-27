@@ -148,6 +148,8 @@ plot_freq_barplot <- function(df_fragments,
             select(group = all_of(col_z), motif = all_of(end_motif_3p)) %>%
             mutate(motif = str_sub(motif, -motif_size, -1))
     }
+    nucleotide_cols <- c("A", "C", "G", "T")
+
     count_df <- bind_rows(motifs_list) %>%
         filter(!is.na(motif)) %>%
         mutate(
@@ -155,7 +157,11 @@ plot_freq_barplot <- function(df_fragments,
             G = str_count(motif, "G"), T = str_count(motif, "T")
         ) %>%
         select(-motif) %>%
-        pivot_longer(cols = c(A, C, G, T), names_to = "nucleotide", values_to = "count") %>%
+        pivot_longer(
+            cols = all_of(nucleotide_cols),
+            names_to = "nucleotide", 
+            values_to = "count"
+        ) %>%
         group_by(group, nucleotide) %>%
         summarise(total_count = sum(count, na.rm = TRUE), .groups = "drop")
 

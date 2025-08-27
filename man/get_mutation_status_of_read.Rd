@@ -46,6 +46,16 @@ indel in the CIGAR does not match the norm of bcftools of the mutation being ana
 
 \item{n_match_base_after}{Number of bases to be matched after the last alt allele in the sequences comparison}
 }
+\value{
+A character string indicating the mutational status of the read. Possible values include:
+\itemize{
+\item '"WT"': Wild-Type. The read matches the reference sequence.
+\item '"MUT"': Mutant. The read matches the alternate allele.
+\item '"AMB"': Ambiguous. The read is too short or the context is too complex to definitively assign a status.
+\item '"OTH"': Other. An alteration is found, but it is not the one of interest.
+\item For INDELs, the status may be combined with a descriptive message (e.g., '"AMB by cigar-free search..."').
+}
+}
 \description{
 The algorithm to determine if a read supports the mutation of interest is quite intuitive but requires careful
 considerations of insertions and deletions in repeated sequences to resolve ambiguities whenever possible. The core

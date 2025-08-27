@@ -63,28 +63,39 @@
 #'
 #' @export
 #' @examples
-#' \dontrun{
-#' # Load the package
-#' library(fRagmentomics)
+#' # --- 1. Locate Example Files ---
+#' # The package includes small example files to demonstrate its functionality.
+#' # We locate them using system.file().
+#' mut_file <- system.file(
+#'   "extdata", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv",
+#'   package = "fRagmentomics"
+#' )
+#' bam_file <- system.file(
+#'   "extdata", "cfdna-test-01_chr1_27433000_27435000.bam",
+#'   package = "fRagmentomics"
+#' )
+#' fasta_file <- system.file(
+#'   "extdata", "hg19_chr1_27433000_27435000.fa",
+#'   package = "fRagmentomics"
+#' )
 #'
-#' # Assuming you have your input files:
-#' mut_file <- "path/to/your/mutation.tsv"
-#' bam_file <- "path/to/your/alignment.bam"
-#' fasta_file <- "path/to/your/reference.fasta"
-#' output_path <- "path/to/your/results.tsv"
-#'
-#' # Run the analysis on 4 cores
-#' results_df <- analyze_fragments(
+#' # --- 2. Run the Analysis ---
+#' # This single call runs the full analysis pipeline on the example data.
+#' # The output file is written to a temporary location to avoid cluttering
+#' # the working directory. We use n_cores = 1L for examples.
+#' results <- analyze_fragments(
 #'   mut = mut_file,
 #'   bam = bam_file,
 #'   fasta = fasta_file,
-#'   output_file = output_path,
-#'   n_cores = 4
+#'   sample_id = "cfdna-test-01",
+#'   output_file = tempfile(fileext = ".tsv"),
+#'   n_cores = 1L
 #' )
 #'
-#' # View the first few results
-#' head(results_df)
-#' }
+#' # --- 3. View the Results ---
+#' # Print the first few rows of the output data frame to see the results.
+#' print(head(results))
+#'
 analyze_fragments <- function(
     mut,
     bam,

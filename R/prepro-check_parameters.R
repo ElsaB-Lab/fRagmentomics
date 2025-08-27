@@ -304,7 +304,7 @@ check_output_file <- function(output_file) {
   }
 
   if (file.exists(output_file)) {
-    message(sprintf("Warning: The file '%s' already exists and will be overwritten.", output_file))
+    warning(sprintf("The file '%s' already exists and will be overwritten.", output_file))
   }
 }
 
