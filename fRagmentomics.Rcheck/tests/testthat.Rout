@@ -1,0 +1,69 @@
+
+R version 4.4.3 (2025-02-28) -- "Trophy Case"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # This file is part of the standard setup for testthat.
+> # It is recommended that you do not modify it.
+> #
+> # Where should you do additional test configuration?
+> # Learn more about the roles of various files in:
+> # * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
+> # * https://testthat.r-lib.org/articles/special-files.html
+> 
+> library(testthat)
+> library(fRagmentomics)
+> 
+> test_check("fRagmentomics")
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Processing bcftools norm normalisation for variant: chr17:126 TG>TGT
+Lines   total/split/joined/realigned/removed/skipped:	1/0/0/1/0/0
+Processing bcftools norm normalisation for variant: chr17:126 TGTA>TG
+Lines   total/split/joined/realigned/removed/skipped:	1/0/0/1/0/0
+Processing bcftools norm normalisation for variant: chr17:126 TGT>TGTAGG
+Lines   total/split/joined/realigned/removed/skipped:	1/0/0/1/0/0
+Processing bcftools norm normalisation for variant: chr17:126 AGT>A
+Reference allele mismatch at chr17:126 .. REF_SEQ:'TGT' vs VCF:'AGT'
+Processing bcftools norm normalisation for variant: chr17:126 TAT>TA
+Reference allele mismatch at chr17:126 .. REF_SEQ:'TGT' vs VCF:'TAT'
+Processing bcftools norm normalisation for variant: chr17:126 T>
+Non-ACGTN alternate allele at chr17:126 .. VCF:'.'
+Processing bcftools norm normalisation for variant: chr17:126 T>-
+Non-ACGTN alternate allele at chr17:126 .. VCF:'-'
+Processing bcftools norm normalisation for variant: chr17:126 >GG
+Non-ACGTN reference allele at chr17:126 .. REF_SEQ:'T' vs VCF:'.'
+Processing bcftools norm normalisation for variant: chr17:126 .>G
+Non-ACGTN reference allele at chr17:126 .. REF_SEQ:'T' vs VCF:'.'
+Processing bcftools norm normalisation for variant: chr17:126 ->GG
+Non-ACGTN reference allele at chr17:126 .. REF_SEQ:'T' vs VCF:'-'
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+[1] "Warning: The following rows have non-integer values in the POS column: "
+[2] "REF can not be multiallelic"                                            
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 453 ]
+> 
+> proc.time()
+   user  system elapsed 
+ 19.539   0.946  49.859 

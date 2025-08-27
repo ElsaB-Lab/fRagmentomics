@@ -1,8 +1,7 @@
 #' Remove bad mutations
 #'
-#' This function verifies the validity of the mutation input data by
-#' checking the chromosome, position, reference, and alternative alleles.
-#' It only returns rows that pass all checks.
+#' @description This function verifies the validity of the mutation input data by checking the chromosome, position,
+#' reference, and alternative alleles. It only returns rows that pass all checks.
 #'
 #' @param df_mut A dataframe with mutation information.
 #'
@@ -21,7 +20,7 @@ remove_bad_mut <- function(df_mut) {
 
     # Validate inputs
     if (!check_chr_input(chr) || !check_pos_input(pos) || !check_ref_alt_input(ref, alt)) {
-      warning(paste("Invalid row:", i, "- CHROM:", chr, "POS:", pos, "REF:", ref, "ALT:", alt))
+      warning(sprintf("Invalid row: %d - CHROM: %s POS: %s REF: %s ALT: %s", i, chr, pos, ref, alt))
       next
     }
 

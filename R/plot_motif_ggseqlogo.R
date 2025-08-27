@@ -1,6 +1,6 @@
 #' Plot sequence motif composition
 #'
-#' Creates a sequence logo plot showing the proportion of each nucleotide at each specified position, with flexible
+#' @description Creates a sequence logo plot showing the proportion of each nucleotide at each specified position, with flexible
 #' grouping and faceting.
 #'
 #' @param df_fragments The input dataframe containing fragment sequence data.
@@ -26,6 +26,71 @@
 #' @importFrom RColorBrewer brewer.pal brewer.pal.info
 #'
 #' @export
+#'
+#' @examples
+#' ## --- Create a dataset for demonstration ---
+#' # Set a seed for reproducibility
+#' set.seed(42)
+#'
+#' # Helper function to generate random DNA sequences with a bias
+#' generate_biased_dna <- function(n_seq, len, prob) {
+#'     bases <- c("A", "C", "G", "T")
+#'     replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
+#' }
+#'
+#' # Create 50 "MUT" fragments with a high proportion of 'C' at the ends
+#' df_mut <- data.frame(
+#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'     Fragment_Status_Simple = "MUT"
+#' )
+#'
+#' # Create 50 "WT" fragments with a high proportion of 'G' at the ends
+#' df_wt <- data.frame(
+#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'     Fragment_Status_Simple = "WT"
+#' )
+#'
+#' # Combine into a single dataframe
+#' example_df <- rbind(df_mut, df_wt)
+#'
+#' ## --- Function Calls ---
+#'
+#' # 1. Default plot: Shows a 3-base motif from both 5' and 3' ends,
+#' #    separated by a dash, for each group ("MUT" and "WT").
+#' p1 <- plot_qqseqlogo_meme(example_df)
+#' print(p1)
+#'
+#' # 2. Analyze a longer, single-end motif: Shows a 5-base motif
+#' #    from only the 5' end ('motif_type = "Start"').
+#' p2 <- plot_qqseqlogo_meme(
+#'     df_fragments = example_df,
+#'     motif_type = "Start",
+#'     motif_size = 5
+#' )
+#' print(p2)
+#'
+#' # 3. Customizing colors: Use a named RColorBrewer palette.
+#' #    Note the separator "-" is not a nucleotide and won't be colored.
+#' p3 <- plot_qqseqlogo_meme(
+#'     df_fragments = example_df,
+#'     colors_z = "Set1"
+#' )
+#' print(p3)
+#'
+#' # You can also provide a named vector for full control over colors.
+#' custom_cols <- c("A" = "#1B9E77", "C" = "#D95F02", "G" = "#7570B3", "T" = "#E7298A")
+#' p4 <- plot_qqseqlogo_meme(
+#'     df_fragments = example_df,
+#'     motif_type = "Start",
+#'     colors_z = custom_cols
+#' )
+#' print(p4)
+#'
+#' # 4. Ungrouped plot: Analyzes all fragments together as a single group.
+#' p5 <- plot_qqseqlogo_meme(example_df, col_z = NULL)
+#' print(p5)
 plot_qqseqlogo_meme <- function(df_fragments,
                                 end_motif_5p = "Fragment_Bases_5p",
                                 end_motif_3p = "Fragment_Bases_3p",
@@ -36,7 +101,9 @@ plot_qqseqlogo_meme <- function(df_fragments,
                                 colors_z = NULL) {
     # --- 1. Input Validation ---
     if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
-    if (!is.null(col_z) && !col_z %in% names(df_fragments)) stop(paste("Column", col_z, "not found in the dataframe."))
+    if (!is.null(col_z) && !col_z %in% names(df_fragments)) {
+        stop(sprintf("Column '%s' not found in the dataframe.", col_z))
+    }
     if (!motif_type %in% c("Start", "End", "Both")) stop("motif_type must be one of 'Start', 'End', or 'Both'.")
 
     # --- 2. Data Filtering and Preparation ---
@@ -65,8 +132,10 @@ plot_qqseqlogo_meme <- function(df_fragments,
             if (length(sequences) > 0) {
                 min_len_5p <- min(nchar(sequences))
                 if (min_len_5p < motif_size) {
-                    warning(sprintf("For group '%s', 5' motif_size (%d) truncated to %d due to short sequences.",
-                                    group_name, motif_size, min_len_5p), call. = FALSE)
+                    warning(sprintf(
+                        "For group '%s', 5' motif_size (%d) truncated to %d due to short sequences.",
+                        group_name, motif_size, min_len_5p
+                    ), call. = FALSE)
                 }
 
                 sequences <- sequences[nchar(sequences) >= motif_size]
@@ -81,11 +150,13 @@ plot_qqseqlogo_meme <- function(df_fragments,
             if (length(sequences) > 0) {
                 min_len_3p <- min(nchar(sequences))
                 if (min_len_3p < motif_size) {
-                    warning(sprintf("For group '%s', 3' motif_size (%d) truncated to %d due to short sequences.",
-                                    group_name, motif_size, min_len_3p), call. = FALSE)
+                    warning(sprintf(
+                        "For group '%s', 3' motif_size (%d) truncated to %d due to short sequences.",
+                        group_name, motif_size, min_len_3p
+                    ), call. = FALSE)
                 }
 
-                
+
                 sequences <- sequences[nchar(sequences) >= motif_size]
                 if (length(sequences) > 0) {
                     end_motifs <- str_sub(sequences, -motif_size, -1)
@@ -95,7 +166,7 @@ plot_qqseqlogo_meme <- function(df_fragments,
 
         if (motif_type == "Both") {
             common_length <- min(length(start_motifs), length(end_motifs))
-            return(paste0(start_motifs[1:common_length], "-", end_motifs[1:common_length]))
+            return(paste0(start_motifs[seq_len(common_length)], "-", end_motifs[seq_len(common_length)]))
         } else if (motif_type == "Start") {
             return(start_motifs)
         } else {
@@ -114,7 +185,10 @@ plot_qqseqlogo_meme <- function(df_fragments,
     new_counts <- map_int(list_of_motifs, length)
     total_removed <- sum(original_counts - new_counts)
     if (total_removed > 0) {
-        warning(paste(total_removed, "motifs containing 'N' were found and removed before plotting."))
+        warning(sprintf(
+            "%d motifs containing 'N' were found and removed before plotting.",
+            total_removed
+        ))
     }
     list_of_motifs <- list_of_motifs[map_int(list_of_motifs, length) > 0]
 
@@ -138,14 +212,20 @@ plot_qqseqlogo_meme <- function(df_fragments,
         if (is.character(colors_z) && length(colors_z) == 1 && colors_z %in% rownames(brewer.pal.info)) {
             max_palette_colors <- brewer.pal.info[colors_z, "maxcolors"]
             if (n_colors_needed > max_palette_colors) {
-                stop(paste0("Palette '", colors_z, "' only has ", max_palette_colors, " colors, but ", n_colors_needed, " are needed."))
+                stop(sprintf(
+                    "Palette '%s' only has %d colors, but %d are needed.",
+                    colors_z, max_palette_colors, n_colors_needed
+                ))
             }
             palette_cols <- brewer.pal(n_colors_needed, colors_z)
             color_scheme <- make_col_scheme(chars = unique_nucleotides, cols = palette_cols)
         } else if (is.character(colors_z) && !is.null(names(colors_z))) {
             if (!all(unique_nucleotides %in% names(colors_z))) {
                 missing_nucs <- setdiff(unique_nucleotides, names(colors_z))
-                stop(paste("Custom colors provided, but missing definitions for nucleotide(s):", paste(missing_nucs, collapse = ", ")))
+                stop(sprintf(
+                    "Custom colors provided, but missing definitions for nucleotide(s): %s",
+                    paste(missing_nucs, collapse = ", ")
+                ))
             }
             color_scheme <- make_col_scheme(chars = names(colors_z), cols = colors_z)
         } else {
@@ -173,11 +253,11 @@ plot_qqseqlogo_meme <- function(df_fragments,
     motif_len <- nchar(list_of_motifs[[1]][1])
     custom_labels <- NULL
     if (motif_type == "Start") {
-        custom_labels <- as.character(1:motif_len)
+        custom_labels <- as.character(seq_len(motif_len))
     } else if (motif_type == "End") {
         custom_labels <- as.character((-motif_len):-1)
     } else if (motif_type == "Both") {
-        start_labels <- 1:motif_size
+        start_labels <- seq_len(motif_size)
         end_labels <- (-motif_size):-1
         custom_labels <- as.character(c(start_labels, "", end_labels))
     }
@@ -185,7 +265,7 @@ plot_qqseqlogo_meme <- function(df_fragments,
     # Create a robust annotation dataframe for custom labels
     facet_names <- names(list_of_motifs)
     base_annotation_df <- tibble(
-        x_pos = 1:motif_len,
+        x_pos = seq_len(motif_len),
         label = custom_labels
     )
     annotation_df <- tidyr::crossing(

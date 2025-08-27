@@ -1,7 +1,20 @@
-#' Normalize user-provided representation into VCF representation
-#' This function normalizes the REF and ALT columns into the VCF format.
-#' It also checks if all nucleotides in the REF column match those from
-#' a given FASTA reference.
+#' Normalize a variant to VCF representation
+#'
+#' @description
+#' This function converts a variant from a user-provided format into the
+#' standard VCF representation, which is crucial for handling indels. It also
+#' harmonizes chromosome names and validates the reference allele against a
+#' FASTA file.
+#'
+#' @details
+#' The normalization process involves several key steps:
+#' 1.  **Coordinate Adjustment**: Converts the input 'pos' from 0-based to 1-based if 'one_based' is 'FALSE'.
+#' 2.  **Chromosome Naming**: Standardizes the chromosome name (e.g., '1' vs 'chr1') to match the provided FASTA
+#'     reference using 'harmonize_chr_to_fasta'.
+#' 3.  **Indel Padding**: For insertions and deletions, it prepends an "anchor" base from the reference genome to both
+#'     'ref' and 'alt' alleles to create a valid VCF-style representation. The 'pos' is adjusted accordingly for
+#'     deletions. SNVs and MNVs are not modified.
+#' 4.  **Validation**: After normalization, it confirms that the final 'ref' allele matches the sequence in the FASTA file at the new coordinates.
 #'
 #' @inheritParams normalize_mut
 #' @param chr A string representing the chromosome.
@@ -19,7 +32,6 @@ normalize_to_vcf_rep <- function(
     alt,
     fasta_fafile,
     one_based) {
-
   # Remove all the forbidden characters (-, ., _, NA)
   result <- normalize_na_representation(ref, alt)
   ref_norm <- result$ref
@@ -77,10 +89,10 @@ normalize_to_vcf_rep <- function(
 
   # Sanity check
   ref_matches_fasta <- check_if_ref_matches_fasta(
-      chr          = chr_norm,
-      pos          = pos_norm,
-      ref          = ref_norm,
-      fasta_fafile = fasta_fafile
+    chr          = chr_norm,
+    pos          = pos_norm,
+    ref          = ref_norm,
+    fasta_fafile = fasta_fafile
   )
 
   if (ref_matches_fasta) {
@@ -88,16 +100,16 @@ normalize_to_vcf_rep <- function(
     # Return the final normalized values
     return(list(chr = chr_norm, pos = pos_norm, ref = ref_norm, alt = alt_norm))
   } else {
-    warning(paste0("Mismatch found between ref and fasta
-    for (", chr, " ", pos, " ", ref, ")."))
+    warning(sprintf("Mismatch found between ref and fasta for (%s %d %s).", chr, pos, ref))
     return(NULL)
   }
 }
 
 
-#' Normalize Variant Data
-#' This function normalizes the REF and ALT columns by
-#' replacing invalid values with an empty string.
+#' Clean allele strings by removing ambiguous characters
+#'
+#' @description A helper function that removes common representations for missing or null alleles (e.g., '-', '.', '_', 'NA')
+#' from reference and alternate allele strings, converting them to empty strings ('""').
 #'
 #' @inheritParams normalize_to_vcf_rep
 #'

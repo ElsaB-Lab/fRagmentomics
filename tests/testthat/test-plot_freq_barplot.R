@@ -27,7 +27,8 @@ test_that("Function stops for invalid or inconsistent arguments", {
     # Error when col_z does not exist.
     expect_error(
         plot_freq_barplot(df_freq_sample, col_z = "NonExistentColumn"),
-        regexp = "Column NonExistentColumn not found in the dataframe."
+        regexp = "Column 'NonExistentColumn' not found in the dataframe.",
+        fixed = TRUE
     )
 })
 

@@ -1,0 +1,1268 @@
+\nonstopmode{}
+\documentclass[a4paper]{book}
+\usepackage[times,inconsolata,hyper]{Rd}
+\usepackage{makeidx}
+\makeatletter\@ifl@t@r\fmtversion{2018/04/01}{}{\usepackage[utf8]{inputenc}}\makeatother
+% \usepackage{graphicx} % @USE GRAPHICX@
+\makeindex{}
+\begin{document}
+\chapter*{}
+\begin{center}
+{\textbf{\huge Package `fRagmentomics'}}
+\par\bigskip{\large \today}
+\end{center}
+\ifthenelse{\boolean{Rd@use@hyper}}{\hypersetup{pdftitle = {fRagmentomics: Extract Fragmentomics Features and Mutational Status}}}{}
+\ifthenelse{\boolean{Rd@use@hyper}}{\hypersetup{pdfauthor = {Killian Maudet; Yoann Pradat; Juliette Samaniego; Elsa Bernard}}}{}
+\begin{description}
+\raggedright{}
+\item[Title]\AsIs{Extract Fragmentomics Features and Mutational Status}
+\item[Version]\AsIs{0.2.8}
+\item[Description]\AsIs{A user-friendly R package that enables the characterization
+of each cfDNA fragment overlapping one or multiple mutations of interest,
+starting from a sequencing file containing aligned reads (BAM file).
+fRagmentomics supports multiple mutation input formats (e.g., VCF, TSV, 
+or string “chr:pos:ref:alt” representation), accommodates one-based and
+zero-based genomic conventions, handles mutation representation ambiguities,
+and accepts any reference file and species in FASTA format. For each cfDNA
+fragment, fRagmentomics outputs its size, its 3’ and 5’ sequences, and its
+mutational status.}
+\item[License]\AsIs{GPL (>= 3)}
+\item[Encoding]\AsIs{UTF-8}
+\item[Roxygen]\AsIs{list(markdown = TRUE)}
+\item[RoxygenNote]\AsIs{7.3.2}
+\item[Suggests]\AsIs{covr, testthat (>= 3.0.0)}
+\item[Config/testthat/edition]\AsIs{3}
+\item[Imports]\AsIs{Biostrings, dplyr, future, future.apply, GenomeInfoDb,
+GenomicRanges, ggh4x, ggplot2, ggseqlogo, IRanges, magrittr,
+progressr, purrr, RColorBrewer, readr, Rsamtools, scales,
+stringr, tibble, tidyr}
+\item[NeedsCompilation]\AsIs{no}
+\item[Author]\AsIs{Killian Maudet [aut, cre],
+Yoann Pradat [aut] (<}\url{https://orcid.org/0000-0002-4647-5779}\AsIs{>),
+Juliette Samaniego [aut],
+Elsa Bernard [aut] (<}\url{https://orcid.org/0000-0002-2057-7187}\AsIs{>)}
+\item[Maintainer]\AsIs{Killian Maudet }\email{killian.maudet@gustaveroussy.fr}\AsIs{}
+\end{description}
+\Rdcontents{Contents}
+\HeaderA{fRagmentomics-package}{fRagmentomics: Extract Fragmentomics Features and Mutational Status}{fRagmentomics.Rdash.package}
+\keyword{internal}{fRagmentomics-package}
+%
+\begin{Description}
+A user-friendly R package that enables the characterization of each cfDNA fragment overlapping one or multiple mutations of interest, starting from a sequencing file containing aligned reads (BAM file). fRagmentomics supports multiple mutation input formats (e.g., VCF, TSV, or string “chr:pos:ref:alt” representation), accommodates one-based and zero-based genomic conventions, handles mutation representation ambiguities, and accepts any reference file and species in FASTA format. For each cfDNA fragment, fRagmentomics outputs its size, its 3’ and 5’ sequences, and its mutational status.
+\end{Description}
+%
+\begin{Author}
+\strong{Maintainer}: Killian Maudet \email{killian.maudet@gustaveroussy.fr}
+
+Authors:
+\begin{itemize}
+
+\item{} Yoann Pradat \email{yoann.pradat@gustaveroussy.fr} (\Rhref{https://orcid.org/0000-0002-4647-5779}{ORCID})
+\item{} Juliette Samaniego \email{juliette.samaniego@gustaveroussy.fr}
+\item{} Elsa Bernard \email{elsa.bernard@gustaveroussy.fr} (\Rhref{https://orcid.org/0000-0002-2057-7187}{ORCID})
+
+\end{itemize}
+
+
+\end{Author}
+\HeaderA{analyze\_fragments}{Analyze fragments}{analyze.Rul.fragments}
+%
+\begin{Description}
+This is the main function of the package. It provides an end-to-end pipeline for analyzing the allelic state of
+individual DNA fragments covering specific genomic variants. It takes a list of mutations and an aligned sequencing
+file (BAM) as input, processes each fragment in parallel, and returns a detailed data frame of results.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+analyze_fragments(
+  mut,
+  bam,
+  fasta,
+  sample_id = NA,
+  neg_offset_mate_search = -1000,
+  pos_offset_mate_search = 1000,
+  one_based = TRUE,
+  flag_bam_list = list(isPaired = TRUE, isProperPair = NA, isUnmappedQuery = FALSE,
+    hasUnmappedMate = NA, isMinusStrand = NA, isMateMinusStrand = NA, isFirstMateRead =
+    NA, isSecondMateRead = NA, isSecondaryAlignment = FALSE, isSupplementaryAlignment =
+    FALSE, isNotPassingQualityControls = NA, isDuplicate = FALSE),
+  report_tlen = FALSE,
+  report_softclip = FALSE,
+  report_5p_3p_bases_fragment = 5,
+  cigar_free_indel_match = FALSE,
+  remove_softclip = FALSE,
+  tmp_folder = tempdir(),
+  output_file = NA,
+  n_cores = 8
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{mut}] Path to a .vcf or .tsv file or string representation chr:pos:ref:alt of a mutation.
+
+\item[\code{bam}] Path to a BAM file.
+
+\item[\code{fasta}] Path to the FASTA file for the reference sequence used for generating the BAM file.
+
+\item[\code{sample\_id}] Sample identifier.
+
+\item[\code{neg\_offset\_mate\_search}] Integer. Use in read\_bam.
+Represents the number of nucleotides to extend upstream (negative direction)
+from the position of interest when querying the BAM file with Rsamtools.
+his extension ensures that paired reads are retrieved, even if only one mate
+overlaps the queried position.
+
+\item[\code{pos\_offset\_mate\_search}] Integer. Use in read\_bam.
+
+\item[\code{one\_based}] Boolean. TRUE if fasta is in one based. False if in 0 based.
+
+\item[\code{flag\_bam\_list}] A named list of logicals for filtering reads based on their SAM flag
+NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.
+
+\item[\code{report\_tlen}] Boolean. Whether to include the TLEN (template length)
+information in the output.
+
+\item[\code{report\_softclip}] Boolean. Whether to include the number of soft-clipped
+bases at the fragment extremities in the output.
+
+\item[\code{report\_5p\_3p\_bases\_fragment}] Integer. Whether to include N fragment
+extremity bases in the output.
+
+\item[\code{cigar\_free\_indel\_match}] Boolean. If activated, the information from the CIGAR is disregarded when determining the
+mutation status of a read for indel. Instead the mutation status is determined by comparing the sequence of the read
+to the sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
+genotyping of reads compared to the information provided by the CIGAR for indels. On the other hand, when
+activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
+indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.
+
+\item[\code{remove\_softclip}] Boolean. For all analyses, trim soft-clipped bases from the 5′ end of Read 5p and from the 3′ end of Read 3p.
+
+\item[\code{tmp\_folder}] Character vector for the folder temporary path.
+
+\item[\code{output\_file}] Character vector for the output file path.
+
+\item[\code{n\_cores}] Number of cores for parallel computation.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+The function executes a multi-step workflow for each variant provided in the
+'mut' input:
+\begin{enumerate}
+
+\item{} \strong{Input Validation}: All parameters are rigorously checked for correctness (e.g., file existence, data types).
+Required file indices ('.bai', '.fai') are created automatically if missing.
+\item{} \strong{Variant Normalization}: The input variants are parsed and normalized into a canonical, left-aligned
+representation using a combination of VCF-style indel padding and the external 'bcftools norm' command.
+\item{} \strong{BAM Read Extraction}: For each normalized variant, the function efficiently queries the BAM file to
+retrieve all read pairs that cover the genomic locus.
+\item{} \strong{Parallel Fragment Processing}: The core analysis is performed in parallel using the 'future' framework.
+Each unique DNA fragment is processed by the 'extract\_fragment\_features' worker function to determine
+its size, quality metrics, and mutation status (e.g., "MUT", "WT", "DISCORDANT").
+\item{} \strong{VAF Calculation}: After all fragments for a variant are processed, the Variant Allele Frequency (VAF) is calculated.
+\item{} \strong{Output Generation}: Results from all variants are aggregated into a single data frame. If an 'output\_file'
+path is provided, this data frame is also written to a tab-separated file.
+
+\end{enumerate}
+
+\end{Details}
+%
+\begin{Value}
+A dataframe containing extracted fragment-level information.
+\end{Value}
+%
+\begin{Examples}
+\begin{ExampleCode}
+## Not run: 
+# Load the package
+library(fRagmentomics)
+
+# Assuming you have your input files:
+mut_file <- "path/to/your/mutation.tsv"
+bam_file <- "path/to/your/alignment.bam"
+fasta_file <- "path/to/your/reference.fasta"
+output_path <- "path/to/your/results.tsv"
+
+# Run the analysis on 4 cores
+results_df <- analyze_fragments(
+  mut = mut_file,
+  bam = bam_file,
+  fasta = fasta_file,
+  output_file = output_path,
+  n_cores = 4
+)
+
+# View the first few results
+head(results_df)
+
+## End(Not run)
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{apply\_bcftools\_norm}{Normalize a single variant using bcftools norm}{apply.Rul.bcftools.Rul.norm}
+\keyword{internal}{apply\_bcftools\_norm}
+%
+\begin{Description}
+This function normalizes a single variant by leveraging the external 'bcftools norm' command. It writes
+the variant to a temporary VCF file, executes 'bcftools norm' for left-alignment and parsimonious representation,
+and then reads the normalized result back into a data frame.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+apply_bcftools_norm(chr, pos, ref, alt, fasta, tmp_folder)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{chr}] A string representing the chromosome.
+
+\item[\code{pos}] An integer representing the position.
+
+\item[\code{ref}] A string representing the reference allele.
+
+\item[\code{alt}] A string representing the alternative allele.
+
+\item[\code{fasta}] Character vector for the folder temporary path.
+
+\item[\code{tmp\_folder}] Character vector for the folder temporary path.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A dataframe containing normalized variant information with bcftools.
+\end{Value}
+\HeaderA{check\_parameters}{Check and validate all input parameters for the analysis pipeline}{check.Rul.parameters}
+\keyword{internal}{check\_parameters}
+%
+\begin{Description}
+This function serves as a centralized gatekeeper, validating all user-provided parameters before the main
+analysis begins. It calls a series of specialized  helper functions to check each parameter for correctness (e.g., file existence,
+data type, valid values) and stops execution with an informative error message if any check fails.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+check_parameters(
+  mut,
+  bam,
+  fasta,
+  sample_id,
+  neg_offset_mate_search,
+  pos_offset_mate_search,
+  one_based,
+  flag_bam_list,
+  report_tlen,
+  report_softclip,
+  report_5p_3p_bases_fragment,
+  cigar_free_indel_match,
+  remove_softclip,
+  tmp_folder,
+  output_file,
+  n_cores
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{mut}] Path to a .vcf or .tsv file or string representation chr:pos:ref:alt of a mutation.
+
+\item[\code{bam}] Path to a BAM file.
+
+\item[\code{fasta}] Path to the FASTA file for the reference sequence used for generating the BAM file.
+
+\item[\code{sample\_id}] Sample identifier.
+
+\item[\code{neg\_offset\_mate\_search}] Integer. Use in read\_bam.
+Represents the number of nucleotides to extend upstream (negative direction)
+from the position of interest when querying the BAM file with Rsamtools.
+his extension ensures that paired reads are retrieved, even if only one mate
+overlaps the queried position.
+
+\item[\code{pos\_offset\_mate\_search}] Integer. Use in read\_bam.
+
+\item[\code{one\_based}] Boolean. TRUE if fasta is in one based. False if in 0 based.
+
+\item[\code{flag\_bam\_list}] A named list of logicals for filtering reads based on their SAM flag
+NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.
+
+\item[\code{report\_tlen}] Boolean. Whether to include the TLEN (template length)
+information in the output.
+
+\item[\code{report\_softclip}] Boolean. Whether to include the number of soft-clipped
+bases at the fragment extremities in the output.
+
+\item[\code{report\_5p\_3p\_bases\_fragment}] Integer. Whether to include N fragment
+extremity bases in the output.
+
+\item[\code{cigar\_free\_indel\_match}] Boolean. If activated, the information from the CIGAR is disregarded when determining the
+mutation status of a read for indel. Instead the mutation status is determined by comparing the sequence of the read
+to the sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
+genotyping of reads compared to the information provided by the CIGAR for indels. On the other hand, when
+activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
+indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.
+
+\item[\code{remove\_softclip}] Boolean. For all analyses, trim soft-clipped bases from the 5′ end of Read 5p and from the 3′ end of Read 3p.
+
+\item[\code{tmp\_folder}] Character vector for the folder temporary path.
+
+\item[\code{output\_file}] Character vector for the output file path.
+
+\item[\code{n\_cores}] Number of cores for parallel computation.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+None. The function stops execution if error.
+\end{Value}
+\HeaderA{compare\_read\_to\_ref\_wt\_and\_mut}{Compare a read sequence against reference and alternate alleles}{compare.Rul.read.Rul.to.Rul.ref.Rul.wt.Rul.and.Rul.mut}
+\keyword{internal}{compare\_read\_to\_ref\_wt\_and\_mut}
+%
+\begin{Description}
+A core comparison utility that classifies a read sequence by checking its compatibility with the
+expected wild-type (WT) and mutant (MUT) sequences.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+compare_read_to_ref_wt_and_mut(
+  read_seq,
+  ref_seq_wt,
+  ref_seq_mut,
+  compare_len_wt,
+  compare_len_mut
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{read\_seq}] Base sequence of the read
+
+\item[\code{ref\_seq\_wt}] Base sequence of the wild-type ref
+
+\item[\code{ref\_seq\_mut}] Base sequence of the mutated ref
+
+\item[\code{compare\_len\_wt}] Number of bases to be compared in read vs wild-type ref comparison
+
+\item[\code{compare\_len\_mut}] Number of bases to be compared in read vs mutated ref comparison
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+a character describing the mutation status of the read
+\end{Value}
+\HeaderA{extract\_fragment\_features}{Process a single DNA fragment from paired-end reads}{extract.Rul.fragment.Rul.features}
+\keyword{internal}{extract\_fragment\_features}
+%
+\begin{Description}
+This is a high-level worker function that orchestrates the complete analysis of a single DNA fragment
+(represented by a pair of reads) at a specific variant locus. It performs quality control, identifies reads, extracts
+features, determines mutation status, and returns all results in a structured format.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+extract_fragment_features(
+  df_sam,
+  fragment_name,
+  sample_id,
+  chr,
+  pos,
+  ref,
+  alt,
+  report_tlen,
+  report_softclip,
+  report_5p_3p_bases_fragment,
+  cigar_free_indel_match,
+  remove_softclip,
+  fasta_fafile = NULL,
+  fasta_seq = NULL,
+  input_mutation_info
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{df\_sam}] A dataframe containing sequencing reads.
+
+\item[\code{fragment\_name}] Name of the fragment (paired-end reads).
+
+\item[\code{sample\_id}] Sample identifier.
+
+\item[\code{chr}] Character vector representing the chromosome of interest.
+
+\item[\code{pos}] Numeric value representing the Genomic position of interest.
+
+\item[\code{ref}] Character vector representing reference base(s).
+
+\item[\code{alt}] Character vector representing alternative base(s).
+
+\item[\code{report\_tlen}] Boolean. Whether to include the TLEN (template length)
+information in the output.
+
+\item[\code{report\_softclip}] Boolean. Whether to include the number of soft-clipped
+bases at the fragment extremities in the output.
+
+\item[\code{report\_5p\_3p\_bases\_fragment}] Integer. Whether to include N fragment
+extremity bases in the output.
+
+\item[\code{cigar\_free\_indel\_match}] Boolean. If activated, the information from the CIGAR is disregarded when determining the
+mutation status of a read for indel. Instead the mutation status is determined by comparing the sequence of the read
+to the sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
+genotyping of reads compared to the information provided by the CIGAR for indels. On the other hand, when
+activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
+indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.
+
+\item[\code{remove\_softclip}] Boolean. For all analyses, trim soft-clipped bases from the 5′ end of Read 5p and from the 3′ end of Read 3p.
+
+\item[\code{fasta\_fafile}] An open connection to an object of class FaFile
+
+\item[\code{fasta\_seq}] A list with the fasta sequence between two positions.
+
+\item[\code{input\_mutation\_info}] Character vecotr representing the input mutation.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+The function executes the following pipeline for each fragment:
+\begin{enumerate}
+
+\item{} It subsets the reads from 'df\_sam' that match the given 'fragment\_name'.
+\item{} It performs initial quality control checks (e.g., proper pairing,
+chromosome consistency) via 'process\_fragment\_reads\_QC'.
+\item{} It identifies the 5' (forward strand) and 3' (reverse strand) reads
+based on their SAM FLAGs.
+\item{} If 'remove\_softclip' is 'TRUE', it trims soft-clipped bases from the
+sequences, qualities, and CIGAR strings.
+\item{} It calls 'get\_base\_basq\_mstat\_from\_read' to determine the allele and
+mutation status for each individual read at the variant position.
+\item{} It calculates the precise fragment size using 'get\_fragment\_size'.
+\item{} It consolidates the two read statuses into a final fragment status
+(e.g., "MUT", "DISCORDANT") using 'get\_fragment\_mutation\_statuses'.
+\item{} It assembles and returns a single-row data frame containing all
+extracted information.
+
+\end{enumerate}
+
+\end{Details}
+%
+\begin{Value}
+A dataframe with the processed fragment information.
+\end{Value}
+\HeaderA{fRagmentomics}{fRagmentomics: Per-Fragment Analysis of cfDNA characteristics}{fRagmentomics}
+%
+\begin{Description}
+A user-friendly R package that enables the characterization
+of each cfDNA fragment overlapping one or multiple mutations of interest,
+starting from a sequencing file containing aligned reads (BAM file).
+fRagmentomics supports multiple mutation input formats (e.g., VCF, TSV,
+or string “chr:pos:ref:alt” representation), accommodates one-based and
+zero-based genomic conventions, handles mutation representation ambiguities,
+and accepts any reference file and species in FASTA format. For each cfDNA
+fragment, fRagmentomics outputs its size, its 3’ and 5’ sequences, and its
+mutational status.
+
+The fRagmentomics package provides a characterization of each cfDNA fragment overlapping one or multiple mutations
+of interest, starting from a sequencing file containing aligned reads (BAM file).
+
+The core functionality is delivered through the 'analyze\_fragments()'
+function, which implements a robust pipeline that:
+\begin{itemize}
+
+\item{} Accepts variant inputs in multiple formats (VCF, TSV, or string).
+\item{} Performs validation and normalization of variants into a canonical, left-aligned representation.
+\item{} Efficiently queries BAM files to retrieve all relevant fragments for each variant.
+\item{} Executes the analysis in parallel to ensure high performance on large datasets.
+\item{} For each fragment, it extracts a rich set of features, including its inferred size, mutational status
+(mutant, wild-type, or ambiguous), alignment details, and the sequences of its 5' and 3' ends.
+
+\end{itemize}
+
+\end{Description}
+%
+\begin{SeeAlso}
+The primary function for analysis: \code{\LinkA{analyze\_fragments}{analyze.Rul.fragments}}
+\end{SeeAlso}
+%
+\begin{Examples}
+\begin{ExampleCode}
+# The main entry point of the package is the analyze_fragments() function.
+
+?analyze_fragments
+
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{get\_base\_basq\_from\_read\_at\_pos}{Extract sequence and quality between two read indices}{get.Rul.base.Rul.basq.Rul.from.Rul.read.Rul.at.Rul.pos}
+\keyword{internal}{get\_base\_basq\_from\_read\_at\_pos}
+%
+\begin{Description}
+Extracts the read sequence and base qualities corresponding to the region between two read indices,
+which are derived from genomic positions.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+get_base_basq_from_read_at_pos(pos_cur, pos_pre, read_stats)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{pos\_cur}] current position request
+
+\item[\code{pos\_pre}] previous position request
+
+\item[\code{read\_stats}] A list of read-level statistics.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list with the base and the quality of the read aligning with the position provided. If the read contains a
+deletion, base is set to '-' and the quality to an empty string.
+\end{Value}
+\HeaderA{get\_base\_basq\_mstat\_from\_read}{Extract allele, quality, and mutation status from a read}{get.Rul.base.Rul.basq.Rul.mstat.Rul.from.Rul.read}
+\keyword{internal}{get\_base\_basq\_mstat\_from\_read}
+%
+\begin{Description}
+This function serves as a primary parser for a single read at a variant locus. It determines if the
+read covers the variant, extracts the observed sequence and its base qualities, and assigns a detailed mutation status.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+get_base_basq_mstat_from_read(
+  chr,
+  pos,
+  ref,
+  alt,
+  read_stats,
+  fasta_fafile = NULL,
+  fasta_seq = NULL,
+  cigar_free_indel_match = FALSE
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{chr}] Character vector representing the chromosome of interest.
+
+\item[\code{pos}] Numeric value representing the Genomic position of interest.
+
+\item[\code{ref}] Character vector representing reference base(s).
+
+\item[\code{alt}] Character vector representing alternative base(s).
+
+\item[\code{read\_stats}] A list of read-level statistics.
+
+\item[\code{fasta\_fafile}] An open connection to an object of class FaFile
+
+\item[\code{fasta\_seq}] A list with the fasta sequence between two positions.
+
+\item[\code{cigar\_free\_indel\_match}] Boolean. If activated, the information from the CIGAR is disregarded when determining the
+mutation status of a read for indel. Instead the mutation status is determined by comparing the sequence of the read
+to the sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
+genotyping of reads compared to the information provided by the CIGAR for indels. On the other hand, when
+activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
+indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list containing "base", "basq", "mstat".
+\end{Value}
+\HeaderA{get\_fragment\_bases\_5p\_3p}{Extract Fragment Bases and Quality Scores from Read Sequences}{get.Rul.fragment.Rul.bases.Rul.5p.Rul.3p}
+\keyword{internal}{get\_fragment\_bases\_5p\_3p}
+%
+\begin{Description}
+This function extracts a fixed number of bases ('n\_bases')
+and their corresponding quality scores from the 5' and 3' ends of reads.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+get_fragment_bases_5p_3p(n_bases, seq_5p, seq_3p, qual_5p, qual_3p)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{n\_bases}] The number of bases to extract from each end (5' and 3').
+
+\item[\code{seq\_5p}] The nucleotide sequence of the 5' read.
+
+\item[\code{seq\_3p}] The nucleotide sequence of the 3' read.
+
+\item[\code{qual\_5p}] The quality string corresponding to the 5' read.
+
+\item[\code{qual\_3p}] The quality string corresponding to the 3' read.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list containing four character elements:
+-fragment\_bases\_5p: The first 'n\_bases' nucleotides from the 5' read.
+-fragment\_bases\_3p: The last 'n\_bases' nucleotides from the 3' read.
+-fragment\_basqs\_5p: The first 'n\_bases' qual chr from the 5' read.
+-fragment\_basqs\_3p: The last 'n\_bases' qual chr from the 3' read.
+\end{Value}
+\HeaderA{get\_fragment\_bases\_5p\_3p\_softclip}{Extract Soft-Clipped Base Counts from CIGAR Strings}{get.Rul.fragment.Rul.bases.Rul.5p.Rul.3p.Rul.softclip}
+\keyword{internal}{get\_fragment\_bases\_5p\_3p\_softclip}
+%
+\begin{Description}
+This function extracts the number of soft-clipped bases at the 5' ends of 5' reads and 3' ends of 3' reads.
+If no soft clipping is detected, the count is set to 0.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+get_fragment_bases_5p_3p_softclip(cigar_5p, cigar_3p)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{cigar\_5p}] Character string. The CIGAR string of the 5' read.
+
+\item[\code{cigar\_3p}] Character string. The CIGAR string of the 3' read.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A 'list' containing two integer:
+\begin{itemize}
+
+\item{} 'nb\_softclip\_5p': The number of soft-clipped bases at the start of
+the 5' read.
+\item{} 'nb\_softclip\_3p': The number of soft-clipped bases at the end of
+the 3' read.
+
+\end{itemize}
+
+\end{Value}
+\HeaderA{get\_fragment\_mutation\_statuses}{Get detailed and simplified fragment mutation statuses.}{get.Rul.fragment.Rul.mutation.Rul.statuses}
+\keyword{internal}{get\_fragment\_mutation\_statuses}
+%
+\begin{Description}
+This function determines both the detailed and simplified mutation statuses of a DNA
+fragment based on the mutation status of each of the two reads from the fragment.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+get_fragment_mutation_statuses(mstat_5p, mstat_3p)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{mstat\_5p}] The mutation status of read 5p (e.g., "MUT:C>T\_high\_conf", "WT", "AMB\_low\_coverage").
+Can be "NA" for no coverage.
+
+\item[\code{mstat\_3p}] The mutation status of read 3p (e.g., "MUT:C>T\_high\_conf", "WT", "AMB\_low\_coverage").
+Can be "NA" for no coverage.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A list containing two character strings:
+\begin{itemize}
+
+\item{} 'Fragment\_Status\_Detail': A detailed status reflecting the combination,
+retaining original text where applicable (e.g., "MUT \& AMB\_low\_coverage").
+\item{} 'Fragment\_Status\_Simple': A simplified status (e.g., "MUT", "NON-TARGET MUT",
+"DISCORDANT", "AMB", "ERROR").
+
+\end{itemize}
+
+\end{Value}
+\HeaderA{get\_fragment\_size}{Compute fragment size}{get.Rul.fragment.Rul.size}
+\keyword{internal}{get\_fragment\_size}
+%
+\begin{Description}
+Calculates the size of a DNA fragment from its aligned paired-end reads. The function provides a more precise
+estimate than the SAM/BAM TLEN field by accounting for complex alignment features like soft-clipping and indels not
+only based one genomic position.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+get_fragment_size(read_stats_5p, read_stats_3p)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{read\_stats\_5p}] 5p read infos
+
+\item[\code{read\_stats\_3p}] 3p read infos
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+a integer corresponding to the fragment size
+\end{Value}
+\HeaderA{get\_index\_aligning\_with\_pos}{Find the read sequence index for a genomic position}{get.Rul.index.Rul.aligning.Rul.with.Rul.pos}
+\keyword{internal}{get\_index\_aligning\_with\_pos}
+%
+\begin{Description}
+Parses a read's CIGAR string to find the 1-based index in the read's sequence that corresponds to a
+specific 1-based genomic coordinate.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+get_index_aligning_with_pos(pos, read_stats)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{pos}] Numeric value representing the Genomic position of interest.
+
+\item[\code{read\_stats}] A list of read-level statistics.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+An integer scalar representing the 1-based index in the read sequence.
+\begin{itemize}
+
+\item{} Returns '-1' if the read does not cover the position.
+\item{} Returns '-2' if the position falls within a deletion or skipped
+region ('D' or 'N' CIGAR operation) in the read.
+
+\end{itemize}
+
+\end{Value}
+\HeaderA{get\_mutation\_status\_of\_read}{Get mutation status of read}{get.Rul.mutation.Rul.status.Rul.of.Rul.read}
+\keyword{internal}{get\_mutation\_status\_of\_read}
+%
+\begin{Description}
+The algorithm to determine if a read supports the mutation of interest is quite intuitive but requires careful
+considerations of insertions and deletions in repeated sequences to resolve ambiguities whenever possible. The core
+idea is to apply the mutation on the reference sequence and compare the mutated reference sequence to the read
+sequence starting from the position of the mutation of interest. The sequence of the read should be compared to the
+sequence of the reference sequence and of the mutated reference sequence for just enough bases to assign mutational
+status without ambiguity.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+get_mutation_status_of_read(
+  chr,
+  pos,
+  ref,
+  alt,
+  read_stats,
+  read_index_at_pos,
+  fasta_fafile = NULL,
+  fasta_seq = NULL,
+  cigar_free_indel_match = FALSE,
+  n_match_base_before = 1,
+  n_match_base_after = 1
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{chr}] Character vector representing the chromosome of interest.
+
+\item[\code{pos}] Numeric value representing the Genomic position of interest.
+
+\item[\code{ref}] Character vector representing reference base(s).
+
+\item[\code{alt}] Character vector representing alternative base(s).
+
+\item[\code{read\_stats}] A list of read-level statistics.
+
+\item[\code{read\_index\_at\_pos}] An integer representing the index of the nucleotide in sequence aligning with the position of interest.
+
+\item[\code{fasta\_fafile}] An open connection to an object of class FaFile
+
+\item[\code{fasta\_seq}] A list with the fasta sequence between two positions.
+
+\item[\code{cigar\_free\_indel\_match}] Boolean. If activated, the information from the CIGAR is disregarded when determining the
+mutation status of a read for indel. Instead the mutation status is determined by comparing the sequence of the read
+to the sequence of the wild-type reference and the mutated reference. Activating this option may lead to discordant
+genotyping of reads compared to the information provided by the CIGAR for indels. On the other hand, when
+activated, it may rescue mutated genotypes for indel that would be missed in cases where the representation of the
+indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.
+
+\item[\code{n\_match\_base\_before}] Number of bases to be matched before the alt allele in the sequences comparison
+
+\item[\code{n\_match\_base\_after}] Number of bases to be matched after the last alt allele in the sequences comparison
+\end{ldescription}
+\end{Arguments}
+\HeaderA{get\_number\_of\_common\_first\_char}{Count common leading characters between two strings}{get.Rul.number.Rul.of.Rul.common.Rul.first.Rul.char}
+\keyword{internal}{get\_number\_of\_common\_first\_char}
+%
+\begin{Description}
+Calculates the length of the common prefix for two given character strings.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+get_number_of_common_first_char(str_a, str_b)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{str\_a}] a string
+
+\item[\code{str\_b}] a string
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+An integer
+\end{Value}
+\HeaderA{normalize\_mut}{Normalize a data frame of variants}{normalize.Rul.mut}
+\keyword{internal}{normalize\_mut}
+%
+\begin{Description}
+This function serves as the main variant normalization pipeline. It iterates through a data frame of variants,
+applying a two-step normalization process to each one, ensuring they are represented in a canonical, left-aligned
+format suitable for downstream analysis.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+normalize_mut(df_mut, fasta, fasta_fafile, one_based, tmp_folder)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{df\_mut}] a dataframe with mutations
+
+\item[\code{fasta}] Path to the FASTA file for the reference sequence used for generating the BAM file.
+
+\item[\code{fasta\_fafile}] An open connection to an object of class FaFile
+
+\item[\code{one\_based}] Boolean. TRUE if fasta is in one based. False if in 0 based.
+
+\item[\code{tmp\_folder}] Character vector for the folder temporary path.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+a dataframe with normalized mutations representations containing columns CHROM, POS, REF, ALT
+\end{Value}
+\HeaderA{normalize\_to\_vcf\_rep}{Normalize a variant to VCF representation}{normalize.Rul.to.Rul.vcf.Rul.rep}
+\keyword{internal}{normalize\_to\_vcf\_rep}
+%
+\begin{Description}
+This function converts a variant from a user-provided format into the
+standard VCF representation, which is crucial for handling indels. It also
+harmonizes chromosome names and validates the reference allele against a
+FASTA file.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+normalize_to_vcf_rep(chr, pos, ref, alt, fasta_fafile, one_based)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{chr}] A string representing the chromosome.
+
+\item[\code{pos}] An integer representing the position.
+
+\item[\code{ref}] A string representing the reference allele.
+
+\item[\code{alt}] A string representing the alternative allele.
+
+\item[\code{fasta\_fafile}] An open connection to an object of class FaFile
+
+\item[\code{one\_based}] Boolean. TRUE if fasta is in one based. False if in 0 based.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+The normalization process involves several key steps:
+\begin{enumerate}
+
+\item{} \strong{Coordinate Adjustment}: Converts the input 'pos' from 0-based to 1-based if 'one\_based' is 'FALSE'.
+\item{} \strong{Chromosome Naming}: Standardizes the chromosome name (e.g., '1' vs 'chr1') to match the provided FASTA
+reference using 'harmonize\_chr\_to\_fasta'.
+\item{} \strong{Indel Padding}: For insertions and deletions, it prepends an "anchor" base from the reference genome to both
+'ref' and 'alt' alleles to create a valid VCF-style representation. The 'pos' is adjusted accordingly for
+deletions. SNVs and MNVs are not modified.
+\item{} \strong{Validation}: After normalization, it confirms that the final 'ref' allele matches the sequence in the FASTA file at the new coordinates.
+
+\end{enumerate}
+
+\end{Details}
+%
+\begin{Value}
+A list with chr, pos, ref and alt
+\end{Value}
+\HeaderA{plot\_freq\_barplot}{Plot Overall Nucleotide Frequency}{plot.Rul.freq.Rul.barplot}
+%
+\begin{Description}
+Creates a faceted bar plot to compare the overall proportion of each nucleotide across different groups. Includes
+error bars (95\% confidence intervals) and an optional global Chi-squared test for statistical significance.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+plot_freq_barplot(
+  df_fragments,
+  end_motif_5p = "Fragment_Bases_5p",
+  end_motif_3p = "Fragment_Bases_3p",
+  motif_type = "Both",
+  motif_size = 3,
+  col_z = "Fragment_Status_Simple",
+  vals_z = NULL,
+  ...,
+  colors_z = "Set2"
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{df\_fragments}] The input dataframe containing fragment sequence data.
+
+\item[\code{end\_motif\_5p}] Character string. Column name for 5' end sequences.
+
+\item[\code{end\_motif\_3p}] Character string. Column name for 3' end sequences.
+
+\item[\code{motif\_type}] Character string. Which ends to analyze: 'Start', 'End', or 'Both'.
+
+\item[\code{motif\_size}] A single integer specifying the length of the motif to analyze.
+
+\item[\code{col\_z}] Character string. Column name for grouping. If NULL, no grouping is applied.
+
+\item[\code{vals\_z}] A character vector of group names from 'col\_z' to include.
+If NULL, all unique groups in 'col\_z' are used.
+
+\item[\code{...}] Additional arguments passed on to 'ggplot2::geom\_bar()'.
+
+\item[\code{colors\_z}] A character vector of colors for the groups, or a single string
+naming an RColorBrewer palette (e.g., "Set2").
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A 'ggplot' object.
+\end{Value}
+\HeaderA{plot\_motif\_barplot}{Plot 3-base motif proportions with various representations}{plot.Rul.motif.Rul.barplot}
+%
+\begin{Description}
+Creates a bar plot to visualize the proportion of 3-base motifs at fragment ends. Supports grouped analysis and
+three different visual representations: hierarchical faceting by base, log2 fold change, or side-by-side motifs.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+plot_motif_barplot(
+  df_fragments,
+  end_motif_5p = "Fragment_Bases_5p",
+  end_motif_3p = "Fragment_Bases_3p",
+  motif_type = "Both",
+  motif_start = NULL,
+  col_z = "Fragment_Status_Simple",
+  vals_z = NULL,
+  representation = "split_by_base",
+  ...,
+  colors_z = c("#FD96A9", "#E88B00", "#0D539E", "#6CAE75")
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{df\_fragments}] The input dataframe containing fragment sequence data.
+
+\item[\code{end\_motif\_5p}] Character string. Column name for 5' end sequences.
+
+\item[\code{end\_motif\_3p}] Character string. Column name for 3' end sequences.
+
+\item[\code{motif\_type}] Character string. Which ends to analyze: 'Start', 'End', or 'Both'.
+
+\item[\code{motif\_start}] Optional character vector ('A','C','G','T') to filter motifs by their starting base.
+
+\item[\code{col\_z}] Character string. Column name for grouping. If NULL, no grouping is applied.
+
+\item[\code{vals\_z}] A character vector of group names from 'col\_z' to include. If NULL, all unique groups in 'col\_z' are used.
+
+\item[\code{representation}] Character string. The type of plot to generate.
+\begin{itemize}
+
+\item{} '"split\_by\_base"' (default): A proportion plot with hierarchical axes, splitting motifs by each base position into facets.
+\item{} '"differential"': A log2 fold change plot comparing two groups.
+\item{} '"split\_by\_motif"': A proportion plot with motifs on the x-axis, with bars for different groups placed side-by-side.
+
+\end{itemize}
+
+
+\item[\code{...}] Additional arguments passed on to 'ggplot2::geom\_bar()'.
+
+\item[\code{colors\_z}] For the "split\_by\_base" plot, a character vector of 4 colors for
+A, C, G, T, or a single string naming an RColorBrewer palette. For other plots,
+a suitable palette is chosen automatically.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A ggplot object.
+\end{Value}
+\HeaderA{plot\_qqseqlogo\_meme}{Plot sequence motif composition}{plot.Rul.qqseqlogo.Rul.meme}
+%
+\begin{Description}
+Creates a sequence logo plot showing the proportion of each nucleotide at each specified position, with flexible
+grouping and faceting.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+plot_qqseqlogo_meme(
+  df_fragments,
+  end_motif_5p = "Fragment_Bases_5p",
+  end_motif_3p = "Fragment_Bases_3p",
+  motif_type = "Both",
+  motif_size = 3,
+  col_z = "Fragment_Status_Simple",
+  vals_z = NULL,
+  colors_z = NULL
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{df\_fragments}] The input dataframe containing fragment sequence data.
+
+\item[\code{end\_motif\_5p}] Character string. The column name for 5' end sequences.
+
+\item[\code{end\_motif\_3p}] Character string. The column name for 3' end sequences.
+
+\item[\code{motif\_type}] Character string. Which ends to analyze: 'Start', 'End', or 'Both'.
+
+\item[\code{motif\_size}] A single integer specifying the length of the motif.
+
+\item[\code{col\_z}] Character string. The column name for grouping/faceting. If NULL, no grouping is applied.
+
+\item[\code{vals\_z}] A character vector of group names to include. If NULL, all groups in 'col\_z' are used.
+
+\item[\code{colors\_z}] The color scheme for nucleotides. Can be NULL (default ggseqlogo colors), a character string naming
+an RColorBrewer palette (e.g., "Dark2"), or a named character vector (e.g., c("A"="blue", "C"="red", ...)).
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A 'ggplot' object.
+\end{Value}
+\HeaderA{plot\_size\_distribution}{Plot Fragment Size Distribution}{plot.Rul.size.Rul.distribution}
+%
+\begin{Description}
+Generates a plot visualizing the distribution of fragment lengths. It allows for grouping by a
+categorical variable and can represent the distribution as a histogram, a density plot, or an overlay of both.
+It also displays the sample size (N) for each group in the legend.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+plot_size_distribution(
+  df_fragments,
+  size_col = "Fragment_Size",
+  col_z = "Fragment_Status_Simple",
+  vals_z = NULL,
+  histo_args = list(),
+  density_args = list(),
+  colors_z = NULL,
+  show_histogram = FALSE,
+  show_density = TRUE,
+  x_limits = c(0, 750),
+  histogram_binwidth = 5,
+  show_nuc_peaks = TRUE
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{df\_fragments}] The input dataframe containing the fragment data.
+
+\item[\code{size\_col}] A character string specifying the name of the numeric column that contains the fragment lengths.
+
+\item[\code{col\_z}] A character string specifying the name of the column to use for grouping the data. If NULL, no grouping is applied.
+
+\item[\code{vals\_z}] An optional character vector to filter and display only specific groups from 'col\_z'. If NULL, all groups are used.
+
+\item[\code{histo\_args}] A named list of additional arguments to pass to 'ggplot2::geom\_histogram()'.
+
+\item[\code{density\_args}] A named list of additional arguments to pass to 'ggplot2::geom\_density()'.
+
+\item[\code{colors\_z}] A character vector of colors for the groups, or a single string naming an RColorBrewer palette.
+
+\item[\code{show\_histogram}] A logical value. If TRUE, a histogram layer is added.
+
+\item[\code{show\_density}] A logical value. If TRUE, a density plot layer is added.
+
+\item[\code{x\_limits}] An optional numeric vector of length 2 to set the x-axis limits (e.g., c(0, 700)).
+
+\item[\code{histogram\_binwidth}] A numeric value specifying the bin width for the histogram.
+
+\item[\code{show\_nuc\_peaks}] A logical value. If TRUE, adds vertical lines for nucleosome peaks.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A 'ggplot' object representing the size distribution plot.
+\end{Value}
+\HeaderA{read\_bam}{Extract and filter paired-end reads for a target locus from a BAM file}{read.Rul.bam}
+\keyword{internal}{read\_bam}
+%
+\begin{Description}
+This function performs a targeted extraction of sequencing reads from a BAM file. It first fetches reads
+within a specified genomic window around a variant of interest, then expands the selection to include the mates of
+any reads covering the variant, ensuring complete fragments are retrieved for analysis.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+read_bam(
+  bam,
+  chr,
+  pos,
+  neg_offset_mate_search,
+  pos_offset_mate_search,
+  flag_bam_list
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{bam}] Path to a BAM file.
+
+\item[\code{chr}] Character. Chromosome of interest.
+
+\item[\code{pos}] Integer. Genomic position of interest.
+
+\item[\code{neg\_offset\_mate\_search}] Integer. Use in read\_bam.
+Represents the number of nucleotides to extend upstream (negative direction)
+from the position of interest when querying the BAM file with Rsamtools.
+his extension ensures that paired reads are retrieved, even if only one mate
+overlaps the queried position.
+
+\item[\code{pos\_offset\_mate\_search}] Integer. Use in read\_bam.
+
+\item[\code{flag\_bam\_list}] A named list of logicals for filtering reads based on their SAM flag
+NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+The read retrieval and filtering process follows a multi-step pipeline:
+\begin{enumerate}
+
+\item{} A genomic query region is defined around the target 'pos' using the 'neg\_offset\_mate\_search' and 'pos\_offset\_mate\_search' parameters.
+\item{} 'Rsamtools::scanBam' is used to fetch all reads within this region that pass the filters specified by 'flag\_bam\_list'.
+\item{} From this initial set, the function identifies the subset of reads that \emph{directly} cover the specific 'pos'.
+\item{} The names ('QNAME') of the fragments corresponding to these covering reads are collected.
+\item{} The function then selects \strong{all} reads from the initially fetched data that share these fragment names, thereby
+retrieving the mates even if they did not directly cover the variant position.
+\item{} A final filter is applied to retain only properly oriented pairs, where the read and its mate have opposite strand orientations.
+
+\end{enumerate}
+
+\end{Details}
+%
+\begin{Value}
+A dataframe containing the filtered SAM entries.
+\end{Value}
+\HeaderA{read\_mut}{Read variant information from multiple sources}{read.Rul.mut}
+\keyword{internal}{read\_mut}
+%
+\begin{Description}
+This function acts as a dispatcher to read variant information from a file (VCF or TSV) or a character
+string. It automatically detects the input format and uses the appropriate parser. All multi-allelic sites are split
+into separate, bi-allelic rows.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+read_mut(mut)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{mut}] Path to a .vcf or .tsv file or string representation chr:pos:ref:alt of a mutation.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A 'data.frame' where each row represents a single bi-allelic variant, with the columns 'CHROM', 'POS', 'REF', and 'ALT'.
+\end{Value}
+\HeaderA{remove\_bad\_mut}{Remove bad mutations}{remove.Rul.bad.Rul.mut}
+\keyword{internal}{remove\_bad\_mut}
+%
+\begin{Description}
+This function verifies the validity of the mutation input data by checking the chromosome, position,
+reference, and alternative alleles. It only returns rows that pass all checks.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+remove_bad_mut(df_mut)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{df\_mut}] A dataframe with mutation information.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A filtered dataframe containing only valid mutations.
+\end{Value}
+\HeaderA{search\_for\_indel\_in\_cigar}{Search for a specific indel within a read's CIGAR string}{search.Rul.for.Rul.indel.Rul.in.Rul.cigar}
+\keyword{internal}{search\_for\_indel\_in\_cigar}
+%
+\begin{Description}
+This internal function scans the CIGAR string of a single aligned read to
+determine if it contains a specific insertion or deletion at a precise genomic location.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+search_for_indel_in_cigar(pos, ref, alt, read_stats, type)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{pos}] Numeric value representing the Genomic position of interest.
+
+\item[\code{ref}] Character vector representing reference base(s).
+
+\item[\code{alt}] Character vector representing alternative base(s).
+
+\item[\code{read\_stats}] A list of read-level statistics.
+
+\item[\code{type}] choose between "INS" or "DEL"
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+a list with two booleans. The first boolean indicate if the INDEL searched was found. The second boolean
+indicate if another INDEL (different size and/or different sequence) was found.
+\end{Value}
+\printindex{}
+\end{document}

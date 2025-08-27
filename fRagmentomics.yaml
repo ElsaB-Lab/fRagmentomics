@@ -5,7 +5,6 @@ channels:
   - defaults
 
 dependencies:
-  - compilers
   - bcftools=1.21
   - r-base=4.4
   - bioconductor-rsamtools
@@ -22,3 +21,14 @@ dependencies:
   - r-ggseqlogo
   - r-scales
   - r-rcolorbrewer
+  - conda-forge::texlive-core
+  - conda-forge::perl
+  - conda-forge::c-compiler       
+  - conda-forge::cxx-compiler    
+  - conda-forge::pkg-config       
+  - conda-forge::zlib              
+  - r-covr
+  - bioconductor-bioccheck
+  - r-goodpractice
+  - r-magrittr
+  - libxml2

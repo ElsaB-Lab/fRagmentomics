@@ -1,0 +1,17 @@
+CHROM	POS	REF	ALT
+chr1	12345	A	T
+2	67890	GT	C
+chr3	101112	A.	A-
+chr22	56789	NA	NA
+22	56789	.	-
+chrX	54321	A	
+chrY	99999		C
+chr4	1234	-	A
+chr5	5678		
+chr6	91011	G	NA
+chr7	121314	T,T	C
+chr8	151617	G	A,T
+chrX		A	-
+chrY	.	T	C
+42453	181920	AC	-
+	181920	AC	-

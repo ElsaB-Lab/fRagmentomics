@@ -1,6 +1,6 @@
 #' Plot Overall Nucleotide Frequency
 #'
-#' Creates a faceted bar plot to compare the overall proportion of each nucleotide across different groups. Includes
+#' @description Creates a faceted bar plot to compare the overall proportion of each nucleotide across different groups. Includes
 #' error bars (95% confidence intervals) and an optional global Chi-squared test for statistical significance.
 #'
 #' @param df_fragments The input dataframe containing fragment sequence data.
@@ -27,6 +27,64 @@
 #' @import ggplot2
 #'
 #' @export
+#'
+#' @examples
+#' ## --- Create a dataset for demonstration ---
+#' # Set a seed for reproducibility
+#' set.seed(42)
+#'
+#' # Helper function to generate random DNA sequences with a bias
+#' generate_biased_dna <- function(n_seq, len, prob) {
+#'     bases <- c("A", "C", "G", "T")
+#'     replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
+#' }
+#'
+#' # Create 50 "MUT" fragments with a high proportion of 'C'
+#' df_mut <- data.frame(
+#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'     Fragment_Status_Simple = "MUT"
+#' )
+#'
+#' # Create 50 "WT" fragments with a high proportion of 'G'
+#' df_wt <- data.frame(
+#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'     Fragment_Status_Simple = "WT"
+#' )
+#'
+#' # Combine into a single dataframe
+#' example_df <- rbind(df_mut, df_wt)
+#'
+#' ## --- Function Calls ---
+#'
+#' # 1. Default plot: Compares MUT vs. WT groups for 3-mers
+#' #    from both the 5' and 3' ends.
+#' p1 <- plot_freq_barplot(example_df)
+#' print(p1)
+#'
+#' # 2. Customized plot: Analyzes only the first nucleotide ('motif_size = 1')
+#' #    of the 5' end ('motif_type = "Start"') using custom colors.
+#' p2 <- plot_freq_barplot(
+#'     df_fragments = example_df,
+#'     motif_type = "Start",
+#'     motif_size = 1,
+#'     colors_z = c("MUT" = "#d95f02", "WT" = "#1b9e77")
+#' )
+#' print(p2)
+#'
+#' # 3. Ungrouped plot: Analyzes the overall nucleotide frequency
+#' #    across all fragments combined.
+#' p3 <- plot_freq_barplot(example_df, col_z = NULL)
+#' print(p3)
+#'
+#' # 4. Plot with a subset of groups: If you had more than two groups
+#' #    (e.g., "MUT", "WT", "AMB"), you could select specific ones to plot.
+#' p4 <- plot_freq_barplot(
+#'     df_fragments = example_df,
+#'     vals_z = c("MUT", "WT")
+#' )
+#' print(p4)
 plot_freq_barplot <- function(df_fragments,
                               end_motif_5p = "Fragment_Bases_5p",
                               end_motif_3p = "Fragment_Bases_3p",
@@ -38,7 +96,9 @@ plot_freq_barplot <- function(df_fragments,
                               colors_z = "Set2") {
     # --- 1. Input Validation and Setup ---
     if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
-    if (!is.null(col_z) && !col_z %in% names(df_fragments)) stop(paste("Column", col_z, "not found in the dataframe."))
+    if (!is.null(col_z) && !col_z %in% names(df_fragments)) {
+        stop(sprintf("Column '%s' not found in the dataframe.", col_z))
+    }
     if (!motif_type %in% c("Start", "End", "Both")) stop("motif_type must be one of 'Start', 'End', or 'Both'.")
     is_grouped_analysis <- !is.null(col_z)
     if (!is_grouped_analysis) {
@@ -67,7 +127,12 @@ plot_freq_barplot <- function(df_fragments,
         max_len <- min(max_len, min(nchar(stats::na.omit(df_filtered[[end_motif_3p]]))))
     }
     if (motif_size > max_len) {
-        warning(paste0("Requested 'motif_size' (", motif_size, ") is larger than the shortest available sequence (", max_len, "). Using maximum possible size: ", max_len, "."))
+        warning(sprintf(
+            "Requested 'motif_size' (%d) is larger than the shortest available sequence (%d). Using maximum possible size: %d.",
+            motif_size,
+            max_len,
+            max_len
+        ))
         motif_size <- max_len
     }
 

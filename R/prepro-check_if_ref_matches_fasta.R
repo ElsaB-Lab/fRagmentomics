@@ -1,8 +1,7 @@
-#' Sanity check: Validate reference allele against FASTA sequence
+#' Validate a reference allele against a FASTA file
 #'
-#' This function checks whether the reference allele ('ref') at a given genomic
-#' position ('pos') matches the corresponding nucleotide in the provided FASTA
-#' reference genome.
+#' @description This function performs a critical sanity check to verify that a given reference allele ('ref') matches
+#' the sequence at the specified genomic coordinates ('chr', 'pos') in a reference FASTA file.
 #'
 #' @inheritParams process_fragment
 #' @param fasta A FASTA ref genome (loaded using 'Biostrings' or a file path).
@@ -22,7 +21,7 @@ check_if_ref_matches_fasta <- function(chr, pos, ref, fasta) {
 
   # Check if the chrom existe in the Fasta
   if (!chr %in% seq_names) {
-    warning(paste0("Chromosome ", chr, " not found in FASTA."))
+    warning(sprintf("Chromosome '%s' not found in FASTA.", chr))
     return(FALSE)
   }
 

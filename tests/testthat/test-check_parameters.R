@@ -132,7 +132,7 @@ test_that("check_parameters", {
       output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
     ),
-    "Error: The Mutation file does not exist",
+    "The Mutation file does not exist",
     fixed = TRUE
   )
 
@@ -158,7 +158,7 @@ test_that("check_parameters", {
       output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
     ),
-    "Error: The BAM file does not exist",
+    "The BAM file does not exist",
     fixed = TRUE
   )
 
@@ -184,7 +184,7 @@ test_that("check_parameters", {
       output_file = valid_params$output_file,
       n_cores = valid_params$n_cores
     ),
-    "Error: The FASTA file does not exist",
+    "The FASTA file does not exist",
     fixed = TRUE
   )
 

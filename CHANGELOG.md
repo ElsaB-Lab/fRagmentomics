@@ -1,3 +1,13 @@
+# fRagmentomics 0.2.8
+
+- Graphical representation:
+  - Plot fragment size distribution.
+  - Plot nucleotide frequency in end motifs.
+  - Provide versatile plotting options for end motifs.
+  - Generate sequence logo plots of end motifs using ggseqlogo.
+- Normalisation for Bioconductor.
+- No pipeline integration.
+
 # fRagmentomics 0.2.7
 
 - Upgrade the fragment size formula. Add the deleted bases in the overlapping section of both reads and remove

@@ -1,0 +1,272 @@
+
+R version 4.4.3 (2025-02-28) -- "Trophy Case"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> pkgname <- "fRagmentomics"
+> source(file.path(R.home("share"), "R", "examples-header.R"))
+> options(warn = 1)
+> base::assign(".ExTimings", "fRagmentomics-Ex.timings", pos = 'CheckExEnv')
+> base::cat("name\tuser\tsystem\telapsed\n", file=base::get(".ExTimings", pos = 'CheckExEnv'))
+> base::assign(".format_ptime",
++ function(x) {
++   if(!is.na(x[4L])) x[1L] <- x[1L] + x[4L]
++   if(!is.na(x[5L])) x[2L] <- x[2L] + x[5L]
++   options(OutDec = '.')
++   format(x[1L:3L], digits = 7L)
++ },
++ pos = 'CheckExEnv')
+> 
+> ### * </HEADER>
+> library('fRagmentomics')
+> 
+> base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
+> base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
+> cleanEx()
+> nameEx("analyze_fragments")
+> ### * analyze_fragments
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: analyze_fragments
+> ### Title: Analyze fragments
+> ### Aliases: analyze_fragments
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Load the package
+> ##D library(fRagmentomics)
+> ##D 
+> ##D # Assuming you have your input files:
+> ##D mut_file <- "path/to/your/mutation.tsv"
+> ##D bam_file <- "path/to/your/alignment.bam"
+> ##D fasta_file <- "path/to/your/reference.fasta"
+> ##D output_path <- "path/to/your/results.tsv"
+> ##D 
+> ##D # Run the analysis on 4 cores
+> ##D results_df <- analyze_fragments(
+> ##D   mut = mut_file,
+> ##D   bam = bam_file,
+> ##D   fasta = fasta_file,
+> ##D   output_file = output_path,
+> ##D   n_cores = 4
+> ##D )
+> ##D 
+> ##D # View the first few results
+> ##D head(results_df)
+> ## End(Not run)
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("analyze_fragments", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> cleanEx()
+> nameEx("fRagmentomics")
+> ### * fRagmentomics
+> 
+> flush(stderr()); flush(stdout())
+> 
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: fRagmentomics
+> ### Title: fRagmentomics: Per-Fragment Analysis of cfDNA characteristics
+> ### Aliases: fRagmentomics
+> 
+> ### ** Examples
+> 
+> # The main entry point of the package is the analyze_fragments() function.
+> 
+> ?analyze_fragments
+analyze_fragments        package:fRagmentomics         R Documentation
+
+_A_n_a_l_y_z_e _f_r_a_g_m_e_n_t_s
+
+_D_e_s_c_r_i_p_t_i_o_n:
+
+     This is the main function of the package. It provides an
+     end-to-end pipeline for analyzing the allelic state of individual
+     DNA fragments covering specific genomic variants. It takes a list
+     of mutations and an aligned sequencing file (BAM) as input,
+     processes each fragment in parallel, and returns a detailed data
+     frame of results.
+
+_U_s_a_g_e:
+
+     analyze_fragments(
+       mut,
+       bam,
+       fasta,
+       sample_id = NA,
+       neg_offset_mate_search = -1000,
+       pos_offset_mate_search = 1000,
+       one_based = TRUE,
+       flag_bam_list = list(isPaired = TRUE, isProperPair = NA, isUnmappedQuery = FALSE,
+         hasUnmappedMate = NA, isMinusStrand = NA, isMateMinusStrand = NA, isFirstMateRead =
+         NA, isSecondMateRead = NA, isSecondaryAlignment = FALSE, isSupplementaryAlignment =
+         FALSE, isNotPassingQualityControls = NA, isDuplicate = FALSE),
+       report_tlen = FALSE,
+       report_softclip = FALSE,
+       report_5p_3p_bases_fragment = 5,
+       cigar_free_indel_match = FALSE,
+       remove_softclip = FALSE,
+       tmp_folder = tempdir(),
+       output_file = NA,
+       n_cores = 8
+     )
+     
+_A_r_g_u_m_e_n_t_s:
+
+     mut: Path to a .vcf or .tsv file or string representation
+          chr:pos:ref:alt of a mutation.
+
+     bam: Path to a BAM file.
+
+   fasta: Path to the FASTA file for the reference sequence used for
+          generating the BAM file.
+
+sample_id: Sample identifier.
+
+neg_offset_mate_search: Integer. Use in read_bam. Represents the number
+          of nucleotides to extend upstream (negative direction) from
+          the position of interest when querying the BAM file with
+          Rsamtools. his extension ensures that paired reads are
+          retrieved, even if only one mate overlaps the queried
+          position.
+
+pos_offset_mate_search: Integer. Use in read_bam.
+
+one_based: Boolean. TRUE if fasta is in one based. False if in 0 based.
+
+flag_bam_list: A named list of logicals for filtering reads based on
+          their SAM flag NA = Filter is ignored, TRUE = The read MUST
+          have this flag, FALSE = The read MUST NOT have this flag.
+
+report_tlen: Boolean. Whether to include the TLEN (template length)
+          information in the output.
+
+report_softclip: Boolean. Whether to include the number of soft-clipped
+          bases at the fragment extremities in the output.
+
+report_5p_3p_bases_fragment: Integer. Whether to include N fragment
+          extremity bases in the output.
+
+cigar_free_indel_match: Boolean. If activated, the information from the
+          CIGAR is disregarded when determining the mutation status of
+          a read for indel. Instead the mutation status is determined
+          by comparing the sequence of the read to the sequence of the
+          wild-type reference and the mutated reference. Activating
+          this option may lead to discordant genotyping of reads
+          compared to the information provided by the CIGAR for indels.
+          On the other hand, when activated, it may rescue mutated
+          genotypes for indel that would be missed in cases where the
+          representation of the indel in the CIGAR does not match the
+          norm of bcftools of the mutation being analyzed.
+
+remove_softclip: Boolean. For all analyses, trim soft-clipped bases
+          from the 5′ end of Read 5p and from the 3′ end of Read 3p.
+
+tmp_folder: Character vector for the folder temporary path.
+
+output_file: Character vector for the output file path.
+
+ n_cores: Number of cores for parallel computation.
+
+_D_e_t_a_i_l_s:
+
+     The function executes a multi-step workflow for each variant
+     provided in the 'mut' input:
+
+       1. *Input Validation*: All parameters are rigorously checked for
+          correctness (e.g., file existence, data types). Required file
+          indices ('.bai', '.fai') are created automatically if
+          missing.
+
+       2. *Variant Normalization*: The input variants are parsed and
+          normalized into a canonical, left-aligned representation
+          using a combination of VCF-style indel padding and the
+          external 'bcftools norm' command.
+
+       3. *BAM Read Extraction*: For each normalized variant, the
+          function efficiently queries the BAM file to retrieve all
+          read pairs that cover the genomic locus.
+
+       4. *Parallel Fragment Processing*: The core analysis is
+          performed in parallel using the 'future' framework. Each
+          unique DNA fragment is processed by the
+          'extract_fragment_features' worker function to determine its
+          size, quality metrics, and mutation status (e.g., "MUT",
+          "WT", "DISCORDANT").
+
+       5. *VAF Calculation*: After all fragments for a variant are
+          processed, the Variant Allele Frequency (VAF) is calculated.
+
+       6. *Output Generation*: Results from all variants are aggregated
+          into a single data frame. If an 'output_file' path is
+          provided, this data frame is also written to a tab-separated
+          file.
+
+_V_a_l_u_e:
+
+     A dataframe containing extracted fragment-level information.
+
+_E_x_a_m_p_l_e_s:
+
+     ## Not run:
+     
+     # Load the package
+     library(fRagmentomics)
+     
+     # Assuming you have your input files:
+     mut_file <- "path/to/your/mutation.tsv"
+     bam_file <- "path/to/your/alignment.bam"
+     fasta_file <- "path/to/your/reference.fasta"
+     output_path <- "path/to/your/results.tsv"
+     
+     # Run the analysis on 4 cores
+     results_df <- analyze_fragments(
+       mut = mut_file,
+       bam = bam_file,
+       fasta = fasta_file,
+       output_file = output_path,
+       n_cores = 4
+     )
+     
+     # View the first few results
+     head(results_df)
+     ## End(Not run)
+     
+
+> 
+> 
+> 
+> 
+> base::assign(".dptime", (proc.time() - get(".ptime", pos = "CheckExEnv")), pos = "CheckExEnv")
+> base::cat("fRagmentomics", base::get(".format_ptime", pos = 'CheckExEnv')(get(".dptime", pos = "CheckExEnv")), "\n", file=base::get(".ExTimings", pos = 'CheckExEnv'), append=TRUE, sep="\t")
+> ### * <FOOTER>
+> ###
+> cleanEx()
+> options(digits = 7L)
+> base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+Time elapsed:  5.517 0.261 11.103 0.001 0.003 
+> grDevices::dev.off()
+null device 
+          1 
+> ###
+> ### Local variables: ***
+> ### mode: outline-minor ***
+> ### outline-regexp: "\\(> \\)?### [*]+" ***
+> ### End: ***
+> quit('no')

@@ -1,0 +1,9 @@
+analyze_fragments       Analyze fragments
+fRagmentomics           fRagmentomics: Per-Fragment Analysis of cfDNA
+                        characteristics
+plot_freq_barplot       Plot Overall Nucleotide Frequency
+plot_motif_barplot      Plot 3-base motif proportions with various
+                        representations
+plot_qqseqlogo_meme     Plot sequence motif composition
+plot_size_distribution
+                        Plot Fragment Size Distribution

@@ -38,7 +38,8 @@ test_that("Function throws errors for invalid arguments", {
     # Error when the grouping column doesn't exist.
     expect_error(
         plot_qqseqlogo_meme(df_motif_sample, col_z = "NonExistentCol"),
-        regexp = "Column NonExistentCol not found in the dataframe."
+        regexp = "Column 'NonExistentCol' not found in the dataframe.",
+        fixed = TRUE
     )
 
     # Error for an invalid motif_type.

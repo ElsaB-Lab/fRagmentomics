@@ -1,4 +1,7 @@
-#' Get read sequence, read base qualities, and read mutational status
+#' Extract allele, quality, and mutation status from a read
+#'
+#' @description This function serves as a primary parser for a single read at a variant locus. It determines if the
+#' read covers the variant, extracts the observed sequence and its base qualities, and assigns a detailed mutation status.
 #'
 #' @inheritParams extract_fragment_features
 #' @param read_stats A list of read-level statistics.
@@ -46,10 +49,13 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
           } else if (mstat_large == "MUT") {
             mstat <- "MUT"
           } else {
-            stop(paste(
-              "If the mutation status on the alt sequence is 'MUT', then the mutation status on extended",
-              "sequence cannot be", paste0("'", mstat_large, "'"), "for",
-              paste0(chr, ":", pos, ":", ref, ">", alt)
+            stop(sprintf(
+              "If the mutation status on the alt sequence is 'MUT', then the mutation status on extended sequence cannot be '%s' for %s:%d:%s>%s",
+              mstat_large,
+              chr,
+              pos,
+              ref,
+              alt
             ))
           }
         } else {
@@ -96,7 +102,10 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
 }
 
 
-#' Get mutation status of read by comparing to wild-type and mutated reference
+#' Compare a read sequence against reference and alternate alleles
+#'
+#' @description A core comparison utility that classifies a read sequence by checking its compatibility with the
+#' expected wild-type (WT) and mutant (MUT) sequences.
 #'
 #' @param read_seq Base sequence of the read
 #' @param ref_seq_wt Base sequence of the wild-type ref
@@ -129,8 +138,10 @@ compare_read_to_ref_wt_and_mut <- function(read_seq, ref_seq_wt, ref_seq_mut, co
   }
 }
 
-#' Get the number of common first characters beetween two strings
+#' Count common leading characters between two strings
 #'
+#' @description
+#' Calculates the length of the common prefix for two given character strings.
 #'
 #' @param str_a a string
 #' @param str_b a string
@@ -147,14 +158,18 @@ get_number_of_common_first_char <- function(str_a, str_b) {
 }
 
 
-#' Get the index of the element in the sequence aligning with the position of interest.
+#' Find the read sequence index for a genomic position
 #'
-#' Extracts base, quality, and indel informations based on the mutation type.
+#' @description Parses a read's CIGAR string to find the 1-based index in the read's sequence that corresponds to a
+#' specific 1-based genomic coordinate.
 #'
 #' @inheritParams get_base_basq_mstat_from_read
-#' @return An integer representing the index of the nucleotide in sequence aligning with the position of interest. If
-#' the read does not cover the position of interest, this integer is -1. If the read contains a deletion or skipping at
-#' the position of interest, this integer is -2.
+#' @return An integer scalar representing the 1-based index in the read sequence.
+#' \itemize{
+#'   \item Returns '-1' if the read does not cover the position.
+#'   \item Returns '-2' if the position falls within a deletion or skipped
+#'     region ('D' or 'N' CIGAR operation) in the read.
+#' }
 #'
 #' @keywords internal
 get_index_aligning_with_pos <- function(pos, read_stats) {
@@ -220,9 +235,10 @@ get_index_aligning_with_pos <- function(pos, read_stats) {
 }
 
 
-#' Get the element in the sequence and quality aligning with the position of interest.
+#' Extract sequence and quality between two read indices
 #'
-#' Extracts base, quality, and indel informations based on the mutation type.
+#' @description Extracts the read sequence and base qualities corresponding to the region between two read indices,
+#' which are derived from genomic positions.
 #'
 #' @inheritParams get_base_basq_mstat_from_read
 #' @param pos_cur current position request

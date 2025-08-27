@@ -1,7 +1,8 @@
-#' Normalize VCF file using bcftools norm
-#' This function normalizes a VCF file by calling bcftools norm on a temp VCF.
-#' The normalized output is then read into a dataframe, extracting the columns:
-#' chr, pos, ref, and alt.
+#' Normalize a single variant using bcftools norm
+#'
+#' @description This function normalizes a single variant by leveraging the external 'bcftools norm' command. It writes
+#' the variant to a temporary VCF file, executes 'bcftools norm' for left-alignment and parsimonious representation,
+#' and then reads the normalized result back into a data frame.
 #'
 #' @inheritParams normalize_to_vcf_rep
 #' @param fasta Character vector for the folder temporary path.
@@ -37,14 +38,18 @@ apply_bcftools_norm <- function(chr, pos, ref, alt, fasta, tmp_folder) {
     )
 
     # Build the bcftools norm command
-    cmd <- sprintf(
-      "bcftools norm -m +both -d exact --check REF,ALT -f %s -o %s %s",
-      shQuote(fasta),
-      shQuote(tmp_out_vcf),
-      shQuote(tmp_vcf)
+    command <- "bcftools"
+    args <- c(
+      "norm",
+      "-m", "+both",
+      "-d", "exact",
+      "--check", "REF,ALT",
+      "-f", fasta,
+      "-o", tmp_out_vcf,
+      tmp_vcf
     )
 
-    # Print a message 
+    # Print a message
     message(sprintf(
       "Processing bcftools norm normalisation for variant: %s:%s %s>%s",
       chr, pos, ref, alt
@@ -53,12 +58,13 @@ apply_bcftools_norm <- function(chr, pos, ref, alt, fasta, tmp_folder) {
     # Execute the command to normalize the VCF file
     exit_status <- tryCatch(
       {
-        system(cmd, intern = FALSE, ignore.stderr = FALSE)
+        # Execute the command
+        system2(command, args = args, stdout = TRUE, stderr = TRUE)
         0 # Success
       },
       error = function(e) {
         warning(sprintf(
-          "Error running bcftools norm for %s:%d:%s:%s - %s",
+          "Bcftools norm failed for variant %s:%d:%s:%s - %s",
           chr,
           pos,
           ref,
@@ -96,7 +102,8 @@ apply_bcftools_norm <- function(chr, pos, ref, alt, fasta, tmp_folder) {
 
 
 #' Create a temporary VCF file
-#' This function creates a temporary VCF file.
+#'
+#' @description This function creates a temporary VCF file.
 #'
 #' @inheritParams apply_bcftools_norm
 #'

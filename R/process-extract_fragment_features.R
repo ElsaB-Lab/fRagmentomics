@@ -1,5 +1,25 @@
-#' Process a single sequencing fragment
-#' Extracts and processes relevant data from a sequencing fragment.
+#' @title Process a single DNA fragment from paired-end reads
+#'
+#' @description This is a high-level worker function that orchestrates the complete analysis of a single DNA fragment
+#' (represented by a pair of reads) at a specific variant locus. It performs quality control, identifies reads, extracts
+#' features, determines mutation status, and returns all results in a structured format.
+#'
+#' @details
+#' The function executes the following pipeline for each fragment:
+#' 1.  It subsets the reads from 'df_sam' that match the given 'fragment_name'.
+#' 2.  It performs initial quality control checks (e.g., proper pairing,
+#'     chromosome consistency) via 'process_fragment_reads_QC'.
+#' 3.  It identifies the 5' (forward strand) and 3' (reverse strand) reads
+#'     based on their SAM FLAGs.
+#' 4.  If 'remove_softclip' is 'TRUE', it trims soft-clipped bases from the
+#'     sequences, qualities, and CIGAR strings.
+#' 5.  It calls 'get_base_basq_mstat_from_read' to determine the allele and
+#'     mutation status for each individual read at the variant position.
+#' 6.  It calculates the precise fragment size using 'get_fragment_size'.
+#' 7.  It consolidates the two read statuses into a final fragment status
+#'     (e.g., "MUT", "DISCORDANT") using 'get_fragment_mutation_statuses'.
+#' 8.  It assembles and returns a single-row data frame containing all
+#'     extracted information.
 #'
 #' @inheritParams analyze_fragments
 #' @param df_sam A dataframe containing sequencing reads.
@@ -61,11 +81,11 @@ extract_fragment_features <- function(df_sam,
   # Sanity check that the fragment is a valid pair.
   # It must contain exactly one "first mate" read.
   if (sum(flag_matrix[, "isFirstMateRead"]) != 1) {
-    stop(paste("Fragment", fragment_name, "is not a valid R1/R2 pair."))
+    stop(sprintf("Fragment '%s' is not a valid R1/R2 pair.", fragment_name))
   }
   # It must contain one forward and one reverse read.
   if (sum(flag_matrix[, "isMinusStrand"]) != 1) {
-    stop(paste("Fragment", fragment_name, "does not have one forward and one reverse read."))
+    stop(sprintf("Fragment '%s' does not have one forward and one reverse read.", fragment_name))
   }
 
   # Identify the row index of the 5p read (forward strand, where isMinusStrand is 0).
@@ -183,7 +203,7 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   if (report_tlen) {
     if (is.null(read_stats_5p$TLEN) || is.na(read_stats_5p$TLEN)) {
-      message("Warning: TLEN is NULL")
+      warning("TLEN is NULL or missing, cannot be reported.")
       final_row_fragment$TLEN <- "Warning: TLEN is NULL"
     } else {
       final_row_fragment$TLEN <- abs(read_stats_5p$TLEN)

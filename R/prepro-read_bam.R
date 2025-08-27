@@ -1,6 +1,18 @@
-#' Preprocess BAM file to extract reads around a given position
-#' This function extracts reads from a BAM file using Rsamtools, filtering them
-#' based on flags and selecting reads of interest around a genomic position.
+#' Extract and filter paired-end reads for a target locus from a BAM file
+#'
+#' @description This function performs a targeted extraction of sequencing reads from a BAM file. It first fetches reads
+#' within a specified genomic window around a variant of interest, then expands the selection to include the mates of
+#' any reads covering the variant, ensuring complete fragments are retrieved for analysis.
+#'
+#' @details
+#' The read retrieval and filtering process follows a multi-step pipeline:
+#' 1.  A genomic query region is defined around the target 'pos' using the 'neg_offset_mate_search' and 'pos_offset_mate_search' parameters.
+#' 2.  'Rsamtools::scanBam' is used to fetch all reads within this region that pass the filters specified by 'flag_bam_list'.
+#' 3.  From this initial set, the function identifies the subset of reads that *directly* cover the specific 'pos'.
+#' 4.  The names ('QNAME') of the fragments corresponding to these covering reads are collected.
+#' 5.  The function then selects **all** reads from the initially fetched data that share these fragment names, thereby
+#'     retrieving the mates even if they did not directly cover the variant position.
+#' 6.  A final filter is applied to retain only properly oriented pairs, where the read and its mate have opposite strand orientations.
 #'
 #' @inheritParams analyze_fragments
 #' @param chr Character. Chromosome of interest.
@@ -54,12 +66,12 @@ read_bam <- function(
   # ---------------------------------------
   get_cigar_width <- function(cigar) {
     matches <- gregexpr("\\d+[MDN=X]", cigar)
-    sapply(regmatches(cigar, matches), function(cigar_parts) {
+    vapply(regmatches(cigar, matches), function(cigar_parts) {
       if (length(cigar_parts) == 0) {
         return(0)
       }
       sum(as.numeric(gsub("[A-Z]", "", cigar_parts)))
-    })
+    }, FUN.VALUE = numeric(1))
   }
 
   # ---------------------------------------

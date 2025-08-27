@@ -1,4 +1,8 @@
-#' Function to parse the CIGAR string
+#' Parse a CIGAR string into its component operations
+#'
+#' @description
+#' This internal helper function deconstructs a CIGAR string into a structured
+#' format, separating the operation type (e.g., M, I, D) from its length.
 #'
 #' @param cigar a character vector
 #'
@@ -16,7 +20,12 @@ parse_cigar <- function(cigar) {
   data.frame(length = lengths, type = types, stringsAsFactors = FALSE)
 }
 
-#' Calculates the length of a read without the trailing soft clipping.
+#' Calculate read length excluding trailing soft clips
+#'
+#' @description
+#' This function computes the effective length of a read by subtracting the
+#' number of bases that are soft-clipped at its 3' end, which is a common
+#' step in variant analysis to avoid alignment artifacts.
 #'
 #' @param cigar A CIGAR string
 #' @param seq The corresponding DNA sequence
@@ -39,7 +48,11 @@ calculate_len_without_end_softclip <- function(cigar, seq) {
   return(read_len - softclip_len)
 }
 
-#' Extracts the positions of insertions and deletions for a single read
+#' Extract insertion and deletion positions from a read
+#'
+#' @description
+#' Parses a read's CIGAR string and starting position to determine the precise
+#' genomic coordinates of any insertions or deletions.
 #'
 #' @param read_stats A list containing read infos.
 #' @return A list containing two vectors: deletions and insertions.
@@ -56,7 +69,7 @@ get_pos_indels_from_read <- function(read_stats) {
   current_ref_pos <- read_stats$POS
 
   # Iterate over each CIGAR operation
-  for (i in 1:nrow(cigar_ops)) {
+  for (i in seq_len(nrow(cigar_ops))) {
     op_len <- cigar_ops$length[i]
     op_type <- cigar_ops$type[i]
 
@@ -78,7 +91,7 @@ get_pos_indels_from_read <- function(read_stats) {
       pos_before_insertion <- current_ref_pos - 1
 
       # Create the custom positions for each inserted base
-      inserted_positions <- as.numeric(paste0(pos_before_insertion, ".", 1:op_len))
+      inserted_positions <- as.numeric(paste0(pos_before_insertion, ".", seq_len(op_len)))
       list_pos_ins <- c(list_pos_ins, inserted_positions)
       # current_ref_pos does not change
     } else if (op_type == "N") {
@@ -92,7 +105,12 @@ get_pos_indels_from_read <- function(read_stats) {
   return(list(deletions = list_pos_del, insertions = list_pos_ins))
 }
 
-#' Function to create a empty fragment row if QC failure
+#' Create an empty data row for a QC-failed fragment
+#'
+#' @description
+#' Generates a standardized single-row 'data.frame' for a DNA fragment that
+#' failed quality control. All data fields are populated with 'NA', ensuring
+#' consistent output structure even for excluded fragments.
 #'
 #' @inheritParams extract_fragment_features
 #' @param fragment_qc a character vector corresponding to QC failure of the fragment

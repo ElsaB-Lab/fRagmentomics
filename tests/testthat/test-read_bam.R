@@ -6,8 +6,8 @@ test_that("Read bam", {
     bam = bam_test,
     chr = "chr17",
     pos = 7578063,
-    neg_offset = -20,
-    pos_offset = 20,
+    neg_offset_mate_search = -20,
+    pos_offset_mate_search = 20,
     flag_bam_list = list(
       isPaired = TRUE,
       isUnmappedQuery = FALSE,
@@ -64,8 +64,8 @@ test_that("Read bam", {
     bam = bam_test,
     chr = "chr17",
     pos = 2191,
-    neg_offset = -1000,
-    pos_offset = 1000,
+    neg_offset_mate_search = -1000,
+    pos_offset_mate_search = 1000,
     flag_bam_list = list(
       isPaired = TRUE,
       isUnmappedQuery = FALSE,
@@ -107,8 +107,8 @@ test_that("Read bam missing columns", {
     bam = bam_test,
     chr = "chr17",
     pos = 7578063,
-    neg_offset = -20,
-    pos_offset = 20,
+    neg_offset_mate_search = -20,
+    pos_offset_mate_search = 20,
     flag_bam_list = list(
       isPaired = TRUE,
       isUnmappedQuery = FALSE,

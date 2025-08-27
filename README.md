@@ -1,10 +1,18 @@
+# fRagmentomics <img src="man/figure/logo.svg" align="right" />
+
 ![Version](https://img.shields.io/badge/version-0.2.5-blue)
 [![codecov](https://codecov.io/gh/ElsaB-Lab/fRagmentomics/graph/badge.svg?token=OMTSCRO7LJ)](https://codecov.io/gh/ElsaB-Lab/fRagmentomics)
 
-# fRagmentomics
+## Overview
 
-**fRagmentomics** is an R package designed to integrate cell-free DNA (cfDNA) fragment features with mutational status to support the interpretation of liquid biopsies.
-The goal of fRagmentomics is to generate a customizable dataframe that includes the fragment characteristics you wish to analyze (e.g., fragment size, end sequences, soft-clipped bases).
+Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. The majority of cfDNA originates from hematopoietic cells, complicating the interpretation of ctDNA results in clinical practice, in the absence of matched white blood cells sequencing. Recent work has demonstrated that ctDNA fragments have distinct size distribution profiles and 5’/3’ end sequences compared to healthy cfDNA fragments.
+
+Cependant, à l'heure actuelle, aucun outil publié ne standardsie une analyse approfondit des fragmentomics features associées avec le status mutationnel en prenant en compte les challenges spécifiques associés
+aux cfDNA. En effet, pour n'en citer que quelqu'uns, il esxitse plusieurs approches du calcul de la fragment size lié. Simplement se basé sur les positions génomiques de début et de fin du fragment ne permet pas
+d'avoir la taille effective car on ne prend pas en comtpe les indels au sein du fragment qui peuvent changer la taille du fragment. Il existe aussi plsuieurs représentations des mutations en fonction des callers ainsi
+que des positions pour les indels.
+
+**fRagmentomics** is an R package designed to be a standardised fragmeork which integrate cell-free DNA (cfDNA) fragment features (size, end sequences) with mutational status (tumor drivers or clonal hematopoiesis mutations) to support the interpretation of liquid biopsies.
 
 Feature selection is based on the study by Wong *et al.* (2024):
 **"Cell-free DNA from germline TP53 mutation carriers reflect cancer-like fragmentation patterns"**, *Nature Communications*.

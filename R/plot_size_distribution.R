@@ -1,6 +1,6 @@
 #' Plot Fragment Size Distribution
 #'
-#' Generates a plot visualizing the distribution of fragment lengths. It allows for grouping by a
+#' @description Generates a plot visualizing the distribution of fragment lengths. It allows for grouping by a
 #' categorical variable and can represent the distribution as a histogram, a density plot, or an overlay of both.
 #' It also displays the sample size (N) for each group in the legend.
 #'
@@ -25,6 +25,68 @@
 #' @importFrom RColorBrewer brewer.pal
 #'
 #' @export
+#'
+#' @examples
+#' ## --- Create a dataset for demonstration ---
+#' # Set a seed for reproducibility
+#' set.seed(42)
+#'
+#' # Generate fragment sizes for two groups with different distributions
+#' # "MUT" group: N=100, shorter fragments
+#' mut_sizes <- rnorm(100, mean = 150, sd = 20)
+#'
+#' # "WT" group: N=150, centered around the mononucleosome peak
+#' wt_sizes <- rnorm(150, mean = 170, sd = 25)
+#'
+#' # Add some larger, dinucleosomal fragments to both groups
+#' di_nuc_sizes <- rnorm(30, mean = 330, sd = 30)
+#'
+#' # Combine into a single dataframe
+#' example_df_size <- data.frame(
+#'     Fragment_Size = c(mut_sizes, wt_sizes, di_nuc_sizes),
+#'     Fragment_Status_Simple = c(
+#'         rep("MUT", 100),
+#'         rep("WT", 150),
+#'         sample(c("MUT", "WT"), 30, replace = TRUE)
+#'     )
+#' )
+#' # Ensure all fragment sizes are positive
+#' example_df_size <- example_df_size[example_df_size$Fragment_Size > 0, ]
+#'
+#' ## --- Function Calls ---
+#'
+#' # 1. Default plot: A grouped density plot with nucleosome peaks shown.
+#' p1 <- plot_size_distribution(example_df_size)
+#' print(p1)
+#'
+#' # 2. Histogram plot: Show distributions as histograms instead of density curves.
+#' #    We add transparency (alpha) so overlapping bars are visible.
+#' p2 <- plot_size_distribution(
+#'     df_fragments = example_df_size,
+#'     show_histogram = TRUE,
+#'     show_density = FALSE,
+#'     histo_args = list(alpha = 0.6)
+#' )
+#' print(p2)
+#'
+#' # 3. Combined plot: Overlay both density curves and histograms.
+#' p3 <- plot_size_distribution(
+#'     df_fragments = example_df_size,
+#'     show_histogram = TRUE,
+#'     show_density = TRUE,
+#'     histo_args = list(alpha = 0.4)
+#' )
+#' print(p3)
+#'
+#' # 4. Ungrouped and customized plot: Analyze all fragments together,
+#' #    zoom in on the x-axis, and hide the nucleosome peak lines.
+#' p4 <- plot_size_distribution(
+#'     df_fragments = example_df_size,
+#'     col_z = NULL,
+#'     x_limits = c(50, 400),
+#'     show_nuc_peaks = FALSE
+#' )
+#' print(p4)
 plot_size_distribution <- function(df_fragments,
                                    size_col = "Fragment_Size",
                                    col_z = "Fragment_Status_Simple",
@@ -39,9 +101,15 @@ plot_size_distribution <- function(df_fragments,
                                    show_nuc_peaks = TRUE) {
     # --- 1. Input Validation and Setup ---
     if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
-    if (!is.null(col_z) && !col_z %in% names(df_fragments)) stop(paste("Column", col_z, "not found in the dataframe."))
-    if (!size_col %in% names(df_fragments)) stop(paste("Size column", size_col, "not found in the dataframe."))
-    if (!is.numeric(df_fragments[[size_col]])) stop(paste("Size column", size_col, "must be numeric."))
+    if (!is.null(col_z) && !col_z %in% names(df_fragments)) {
+        stop(sprintf("Column '%s' not found in the dataframe.", col_z))
+    }
+    if (!size_col %in% names(df_fragments)) {
+        stop(sprintf("Size column '%s' not found in the dataframe.", size_col))
+    }
+    if (!is.numeric(df_fragments[[size_col]])) {
+        stop(sprintf("Size column '%s' must be numeric.", size_col))
+    }
     if (!show_histogram && !show_density) stop("At least one of 'show_histogram' or 'show_density' must be TRUE.")
 
     # --- 2. Data Preparation and Legend Labels ---

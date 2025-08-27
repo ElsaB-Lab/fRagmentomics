@@ -1,4 +1,8 @@
-#' Retrieve a sequence from a FASTA
+#' Retrieve a genomic sequence from a FASTA source
+#'
+#' @description Fetches a DNA sequence for a specified genomic region. This function can
+#' operate in two modes: either by reading directly from an indexed FASTA file
+#' or by extracting a subsequence from a pre-loaded sequence object.
 #'
 #' @inheritParams normalize_to_vcf_rep
 #' @param start Start position to be retrieved
@@ -13,21 +17,29 @@
 #' @importFrom GenomicRanges GRanges
 #'
 #' @noRd
-get_seq_from_fasta <- function(chr, start, end, fasta_fafile=NULL, fasta_seq=NULL) {
-  if (!is.null(fasta_seq)){
+get_seq_from_fasta <- function(chr, start, end, fasta_fafile = NULL, fasta_seq = NULL) {
+  if (!is.null(fasta_seq)) {
     f_chr <- fasta_seq$chr
     f_start <- fasta_seq$start
     f_end <- fasta_seq$end
     f_seq <- fasta_seq$seq
-    if (f_chr != chr){
-      stop(paste("The requested reference sequence chromosome", chr, "does not match the available",
-                 "reference sequence chromosome", f_chr))
+    if (f_chr != chr) {
+      stop(sprintf(
+        "Requested chromosome '%s' does not match the available chromosome '%s'.",
+        chr,
+        f_chr
+      ))
     }
-    if (start < f_start || end > f_end){
-      stop(paste("The requested reference sequence", paste0(start, ":", end), "does not fit into the available",
-                 "reference sequence", paste0(f_start, ":", f_end)))
+    if (start < f_start || end > f_end) {
+      stop(sprintf(
+        "Requested sequence range %d:%d does not fit into the available reference sequence range %d:%d.",
+        start,
+        end,
+        f_start,
+        f_end
+      ))
     }
-    ref_seq <- substr(f_seq, start-f_start+1, end-f_start+1)
+    ref_seq <- substr(f_seq, start - f_start + 1, end - f_start + 1)
   } else {
     # Fetch a single nucleotide from the FASTA
     # using the chromosome, and start = end = position
@@ -46,9 +58,10 @@ get_seq_from_fasta <- function(chr, start, end, fasta_fafile=NULL, fasta_seq=NUL
 }
 
 
-#' Harmonize Chromosome Notation with FASTA Reference
-#' This function ensures that a given chr notation (e.g., `"1"` or `"chr1"`)
-#' matches the convention used in the provided FASTA.
+#' Harmonize chromosome notation to match a FASTA file
+#'
+#' @description This utility function adjusts a chromosome name to match the style used in a reference FASTA file's
+#' index (e.g., converting "1" to "chr1" or vice versa).
 #'
 #' @inheritParams normalize_to_vcf_rep
 #' @importFrom Rsamtools scanFaIndex
@@ -79,14 +92,14 @@ harmonize_chr_to_fasta <- function(chr, fasta_fafile) {
 
 #' Check that the reference allele matches with the FASTA sequence
 #'
-#' This function checks whether the reference allele (`ref`) at a given genomic
-#' position (`pos`) matches the corresponding nucleotide in the provided FASTA
+#' @description This function checks whether the reference allele ('ref') at a given genomic
+#' position ('pos') matches the corresponding nucleotide in the provided FASTA
 #' reference genome.
 #'
 #' @inheritParams normalize_to_vcf_rep
 #'
-#' @return Logical `TRUE` if the reference allele matches the FASTA nucleotide,
-#'   otherwise `FALSE` with a warning.
+#' @return Logical 'TRUE' if the reference allele matches the FASTA nucleotide,
+#'   otherwise 'FALSE' with a warning.
 #'
 #' @importFrom Biostrings getSeq
 #' @importFrom GenomicRanges GRanges
@@ -100,18 +113,18 @@ check_if_ref_matches_fasta <- function(chr, pos, ref, fasta_fafile) {
 
   # Check if the chrom existe in the Fasta
   if (!chr %in% seq_names) {
-    warning(paste0("Chromosome ", chr, " not found in FASTA."))
+    warning(sprintf("Chromosome '%s' not found in FASTA.", chr))
     return(FALSE)
   }
 
-  # Calculate the end position in the FASTA based on the length of `ref`
+  # Calculate the end position in the FASTA based on the length of 'ref'
   ref_length <- nchar(ref)
   end_pos <- pos + ref_length - 1
 
   # Retrieve the expected reference sequence from FASTA
-  fasta_seq <- get_seq_from_fasta(chr=chr, start=pos, end=end_pos, fasta_fafile=fasta_fafile)
+  fasta_seq <- get_seq_from_fasta(chr = chr, start = pos, end = end_pos, fasta_fafile = fasta_fafile)
 
-  # Compare the full `ref` to the fetched FASTA sequence
+  # Compare the full 'ref' to the fetched FASTA sequence
   if (identical(ref, fasta_seq)) {
     return(TRUE)
   } else {

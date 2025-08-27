@@ -1,6 +1,6 @@
 #' Plot 3-base motif proportions with various representations
 #'
-#' Creates a bar plot to visualize the proportion of 3-base motifs at fragment ends. Supports grouped analysis and
+#' @description Creates a bar plot to visualize the proportion of 3-base motifs at fragment ends. Supports grouped analysis and
 #' three different visual representations: hierarchical faceting by base, log2 fold change, or side-by-side motifs.
 #'
 #' @param df_fragments The input dataframe containing fragment sequence data.
@@ -26,9 +26,75 @@
 #' @importFrom tidyr drop_na pivot_wider
 #' @importFrom ggh4x facet_nested
 #' @importFrom RColorBrewer brewer.pal brewer.pal.info
+#' @importFrom stats setNames
 #' @import ggplot2
 #'
 #' @export
+#'
+#' @examples
+#' ## --- Create a dataset for demonstration ---
+#' # Set a seed for reproducibility
+#' set.seed(42)
+#'
+#' # Helper function to generate random DNA sequences with a bias
+#' generate_biased_dna <- function(n_seq, len, prob) {
+#'     bases <- c("A", "C", "G", "T")
+#'     replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
+#' }
+#'
+#' # Create 50 "MUT" fragments with a high proportion of motifs starting with 'C'
+#' df_mut <- data.frame(
+#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'     Fragment_Status_Simple = "MUT"
+#' )
+#'
+#' # Create 50 "WT" fragments with a high proportion of motifs starting with 'G'
+#' df_wt <- data.frame(
+#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'     Fragment_Status_Simple = "WT"
+#' )
+#'
+#' # Combine into a single dataframe
+#' example_df <- rbind(df_mut, df_wt)
+#'
+#' ## --- Function Calls for Each Representation ---
+#'
+#' # 1. Hierarchical Plot (representation = "split_by_base")
+#' # This is the default. It creates nested facets for each base position.
+#' p1 <- plot_motif_barplot(
+#'     df_fragments = example_df,
+#'     representation = "split_by_base"
+#' )
+#' print(p1)
+#'
+#' # You can also filter this plot to show only motifs starting with certain bases.
+#' p1_filtered <- plot_motif_barplot(
+#'     df_fragments = example_df,
+#'     representation = "split_by_base",
+#'     motif_start = c("C", "G")
+#' )
+#' print(p1_filtered)
+#'
+#' # 2. Differential Plot (representation = "differential")
+#' # This shows the log2 fold change in motif proportions between two groups.
+#' # It requires exactly two groups specified in `vals_z`.
+#' p2 <- plot_motif_barplot(
+#'     df_fragments = example_df,
+#'     representation = "differential",
+#'     vals_z = c("MUT", "WT")
+#' )
+#' print(p2)
+#'
+#' # 3. Side-by-side Motif Plot (representation = "split_by_motif")
+#' # This creates a more traditional bar plot with motifs on the x-axis and
+#' # bars for each group shown side-by-side.
+#' p3 <- plot_motif_barplot(
+#'     df_fragments = example_df,
+#'     representation = "split_by_motif"
+#' )
+#' print(p3)
 plot_motif_barplot <- function(df_fragments,
                                end_motif_5p = "Fragment_Bases_5p",
                                end_motif_3p = "Fragment_Bases_3p",
@@ -45,15 +111,19 @@ plot_motif_barplot <- function(df_fragments,
     # Validate representation argument
     valid_representations <- c("differential", "split_by_base", "split_by_motif")
     if (!representation %in% valid_representations) {
-        stop(paste("'representation' must be one of:", paste(valid_representations, collapse = ", ")))
+        stop(sprintf(
+            "'representation' must be one of: %s",
+            paste(valid_representations, collapse = ", ")
+        ))
     }
-
     # Store original col_z for later use in labels
     original_col_z <- col_z
 
     # Enforce consistent logic for grouping parameters
     if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
-    if (!is.null(col_z) && !col_z %in% names(df_fragments)) stop(paste("Column", col_z, "not found in the dataframe."))
+    if (!is.null(col_z) && !col_z %in% names(df_fragments)) {
+        stop(sprintf("Column '%s' not found in the dataframe.", col_z))
+    }
     if (representation == "differential" && is.null(col_z)) stop("Differential analysis requires a grouping column 'col_z'.")
 
     # Handle the case for no grouping (col_z is NULL)

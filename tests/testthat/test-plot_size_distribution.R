@@ -18,13 +18,15 @@ test_that("Function throws errors for invalid or missing columns", {
     # Test for error when the size column does not exist.
     expect_error(
         plot_size_distribution(df_sample, size_col = "NonExistentSizeCol"),
-        regexp = "Size column NonExistentSizeCol not found in the dataframe."
+        regexp = "Size column 'NonExistentSizeCol' not found in the dataframe.",
+        fixed = TRUE
     )
 
     # Test for error when the grouping column does not exist.
     expect_error(
         plot_size_distribution(df_sample, col_z = "NonExistentGroupCol"),
-        regexp = "Column NonExistentGroupCol not found in the dataframe."
+        regexp = "Column 'NonExistentGroupCol' not found in the dataframe.",
+        fixed = TRUE
     )
 
     # Test for error when the size column is not numeric.
@@ -32,7 +34,7 @@ test_that("Function throws errors for invalid or missing columns", {
     df_bad_type$Fragment_Size <- as.character(df_bad_type$Fragment_Size)
     expect_error(
         plot_size_distribution(df_bad_type, size_col = "Fragment_Size"),
-        regexp = "Size column Fragment_Size must be numeric."
+        regexp = "Size column 'Fragment_Size' must be numeric."
     )
 })
 
@@ -86,7 +88,7 @@ test_that("Ungrouped analysis (col_z = NULL) works correctly", {
     expect_true(grepl("All Fragments \\(N=\\d+\\)", p$data$placeholder_group[1]))
 })
 
-test_that("Filtering by `vals_z` works as expected", {
+test_that("Filtering by 'vals_z' works as expected", {
     # Filter to show only "Mono" and "Di" groups.
     groups_to_show <- c("Mono", "Di")
     p <- plot_size_distribution(df_sample, vals_z = groups_to_show)

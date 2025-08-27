@@ -1,5 +1,28 @@
 #' @title Analyze fragments
 #'
+#' @description
+#' This is the main function of the package. It provides an end-to-end pipeline for analyzing the allelic state of
+#' individual DNA fragments covering specific genomic variants. It takes a list of mutations and an aligned sequencing
+#' file (BAM) as input, processes each fragment in parallel, and returns a detailed data frame of results.
+#'
+#' @details
+#' The function executes a multi-step workflow for each variant provided in the
+#' 'mut' input:
+#' \enumerate{
+#'   \item **Input Validation**: All parameters are rigorously checked for correctness (e.g., file existence, data types).
+#'     Required file indices ('.bai', '.fai') are created automatically if missing.
+#'   \item **Variant Normalization**: The input variants are parsed and normalized into a canonical, left-aligned
+#'     representation using a combination of VCF-style indel padding and the external 'bcftools norm' command.
+#'   \item **BAM Read Extraction**: For each normalized variant, the function efficiently queries the BAM file to
+#'     retrieve all read pairs that cover the genomic locus.
+#'   \item **Parallel Fragment Processing**: The core analysis is performed in parallel using the 'future' framework.
+#'     Each unique DNA fragment is processed by the 'extract_fragment_features' worker function to determine
+#'     its size, quality metrics, and mutation status (e.g., "MUT", "WT", "DISCORDANT").
+#'   \item **VAF Calculation**: After all fragments for a variant are processed, the Variant Allele Frequency (VAF) is calculated.
+#'   \item **Output Generation**: Results from all variants are aggregated into a single data frame. If an 'output_file'
+#'     path is provided, this data frame is also written to a tab-separated file.
+#' }
+#'
 #' @param mut Path to a .vcf or .tsv file or string representation chr:pos:ref:alt of a mutation.
 #' @param bam Path to a BAM file.
 #' @param fasta Path to the FASTA file for the reference sequence used for generating the BAM file.
@@ -39,6 +62,29 @@
 #' @importFrom progressr with_progress progressor
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' # Load the package
+#' library(fRagmentomics)
+#'
+#' # Assuming you have your input files:
+#' mut_file <- "path/to/your/mutation.tsv"
+#' bam_file <- "path/to/your/alignment.bam"
+#' fasta_file <- "path/to/your/reference.fasta"
+#' output_path <- "path/to/your/results.tsv"
+#'
+#' # Run the analysis on 4 cores
+#' results_df <- analyze_fragments(
+#'   mut = mut_file,
+#'   bam = bam_file,
+#'   fasta = fasta_file,
+#'   output_file = output_path,
+#'   n_cores = 4
+#' )
+#'
+#' # View the first few results
+#' head(results_df)
+#' }
 analyze_fragments <- function(
     mut,
     bam,
@@ -141,11 +187,13 @@ analyze_fragments <- function(
 
     # Check read_bam
     if (is.null(df_sam)) {
-      warning_message <- paste0(
-        "No read covers the position of interest for the mutation ",
-        chr_norm, ":", pos_norm, ":", ref_norm, ">", alt_norm, ". Skipping."
+      warning(
+        sprintf(
+          "No read covers the position of interest for the mutation %s:%d:%s>%s. Skipping.",
+          chr_norm, pos_norm, ref_norm, alt_norm
+        ),
+        immediate. = TRUE, call. = FALSE
       )
-      warning(warning_message, immediate. = TRUE, call. = FALSE)
       next
     }
 

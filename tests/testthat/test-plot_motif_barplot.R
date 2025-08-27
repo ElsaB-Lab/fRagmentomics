@@ -41,7 +41,8 @@ test_that("Function stops for invalid arguments and inconsistent parameters", {
     # Error when col_z does not exist in the dataframe.
     expect_error(
         plot_motif_barplot(df_barplot_sample, col_z = "NonExistentColumn"),
-        regexp = "Column NonExistentColumn not found in the dataframe."
+        regexp = "Column 'NonExistentColumn' not found in the dataframe.",
+        fixed = TRUE
     )
 })
 
