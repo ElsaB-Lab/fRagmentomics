@@ -52,7 +52,7 @@ test_that("read mut", {
     "The parameter 'mut' ('chr1:123:A:T:extra') is not in the expected format (.tsv, .vcf, chr:pos:ref:alt).",
     fixed = TRUE
   )
-  
+
   # Invalid_format
   expect_error(
     read_mut("invalid_format"),

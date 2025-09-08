@@ -24,7 +24,7 @@ check_parameters <- function(
     cigar_free_indel_match,
     remove_softclip,
     tmp_folder,
-    output_file,
+    output_folder,
     n_cores) {
   check_mut(mut)
   check_bam(bam)
@@ -40,7 +40,7 @@ check_parameters <- function(
   check_cigar_free_indel_match(cigar_free_indel_match)
   check_remove_softclip(remove_softclip)
   check_tmp_folder(tmp_folder)
-  check_output_file(output_file)
+  check_output_folder(output_folder)
   check_n_cores(n_cores)
 }
 
@@ -280,31 +280,26 @@ check_tmp_folder <- function(tmp_folder) {
   }
 }
 
-#' Check if the output file's directory exists. If not, create it.
-#' Warn if the file already exists and will be overwritten.
+#' Check if a directory exists. If not, create it.
 #'
-#' @inheritParams check_parameters
+#' @param output_folder A single character string for the directory path.
 #'
 #' @noRd
-check_output_file <- function(output_file) {
-  if (is.na(output_file) || output_file == "") {
+check_output_folder <- function(output_folder) {
+  # Return silently if the path is empty, NA or NULL
+  if (is.null(output_folder) || is.na(output_folder) || output_folder == "") {
     return(invisible(NULL))
   }
 
-  if (!is.character(output_file) || length(output_file) != 1) {
-    stop("'output_file' must be a single character string even empty (or NA).")
+  # Validate the input type
+  if (!is.character(output_folder) || length(output_folder) != 1) {
+    stop("'output_folder' must be a single character string.")
   }
 
-  # Create folder if necessary
-  output_dir <- dirname(output_file)
-
-  if (!dir.exists(output_dir)) {
-    message(sprintf("Creating output directory: %s", output_dir))
-    dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-  }
-
-  if (file.exists(output_file)) {
-    warning(sprintf("The file '%s' already exists and will be overwritten.", output_file))
+  # Check if the directory exists and create it if not
+  if (!dir.exists(output_folder)) {
+    message(sprintf("Creating directory: %s", output_folder))
+    dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
   }
 }
 

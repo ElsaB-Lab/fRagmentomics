@@ -20,7 +20,7 @@ remove_bad_mut <- function(df_mut) {
 
     # Validate inputs
     if (!check_chr_input(chr) || !check_pos_input(pos) || !check_ref_alt_input(ref, alt)) {
-      warning(paste("Invalid row:", i, "- CHROM:", chr, "POS:", pos, "REF:", ref, "ALT:", alt))
+      warning(sprintf("Invalid row: %d - CHROM: %s POS: %s REF: %s ALT: %s", i, chr, pos, ref, alt))
       next
     }
 

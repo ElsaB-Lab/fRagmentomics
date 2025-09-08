@@ -14,7 +14,10 @@ plot_motif_barplot(
   vals_z = NULL,
   representation = "split_by_base",
   ...,
-  colors_z = c("#FD96A9", "#E88B00", "#0D539E", "#6CAE75")
+  colors_z = c("#FD96A9", "#E88B00", "#0D539E", "#6CAE75"),
+  sample_id = NA,
+  output_folder = NA,
+  ggsave_params = list()
 )
 }
 \arguments{
@@ -44,6 +47,13 @@ plot_motif_barplot(
 \item{colors_z}{For the "split_by_base" plot, a character vector of 4 colors for
 A, C, G, T, or a single string naming an RColorBrewer palette. For other plots,
 a suitable palette is chosen automatically.}
+
+\item{sample_id}{Sample identifier.}
+
+\item{output_folder}{Character vector for the output folder path.}
+
+\item{ggsave_params}{A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
+'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.}
 }
 \value{
 A ggplot object.
@@ -51,4 +61,87 @@ A ggplot object.
 \description{
 Creates a bar plot to visualize the proportion of 3-base motifs at fragment ends. Supports grouped analysis and
 three different visual representations: hierarchical faceting by base, log2 fold change, or side-by-side motifs.
+}
+\examples{
+## --- Create a dataset for demonstration ---
+# Set a seed for reproducibility
+set.seed(42)
+
+# Helper function to generate random DNA sequences with a bias
+generate_biased_dna <- function(n_seq, len, prob) {
+    bases <- c("A", "C", "G", "T")
+    replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
+}
+
+# Create 50 "MUT" fragments with a high proportion of motifs starting with 'C'
+df_mut <- data.frame(
+    Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+    Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+    Fragment_Status_Simple = "MUT"
+)
+
+# Create 50 "WT" fragments with a high proportion of motifs starting with 'G'
+df_wt <- data.frame(
+    Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+    Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+    Fragment_Status_Simple = "WT"
+)
+
+# Combine into a single dataframe
+example_df <- rbind(df_mut, df_wt)
+
+## --- Function Calls for Each Representation ---
+
+# 1. Hierarchical Plot (representation = "split_by_base")
+# This is the default. It creates nested facets for each base position.
+p1 <- plot_motif_barplot(
+    df_fragments = example_df,
+    representation = "split_by_base"
+)
+print(p1)
+
+# You can also filter this plot to show only motifs starting with certain bases.
+p1_filtered <- plot_motif_barplot(
+    df_fragments = example_df,
+    representation = "split_by_base",
+    motif_start = c("C", "G")
+)
+print(p1_filtered)
+
+# 2. Differential Plot (representation = "differential")
+# This shows the log2 fold change in motif proportions between two groups.
+# It requires exactly two groups specified in 'vals_z'.
+p2 <- plot_motif_barplot(
+    df_fragments = example_df,
+    representation = "differential",
+    vals_z = c("MUT", "WT")
+)
+print(p2)
+
+# 3. Side-by-side Motif Plot (representation = "split_by_motif")
+# This creates a more traditional bar plot with motifs on the x-axis and
+# bars for each group shown side-by-side.
+p3 <- plot_motif_barplot(
+    df_fragments = example_df,
+    representation = "split_by_motif"
+)
+print(p3)
+
+# 4. Save the default hierarchical plot.
+# plot_motif_barplot(
+#   df_fragments = example_df,
+#   sample_id = "test01_hierarchical",
+#   output_folder = tempdir()
+# )
+
+# 5. Save the differential plot with custom dimensions.
+# plot_motif_barplot(
+#   df_fragments = example_df,
+#   representation = "differential",
+#   vals_z = c("MUT", "WT"),
+#   sample_id = "test02_differential",
+#   output_folder = tempdir(),
+#   ggsave_params = list(width = 12, height = 8, units = "in")
+# )
+
 }

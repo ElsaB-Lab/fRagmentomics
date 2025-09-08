@@ -66,12 +66,12 @@ read_bam <- function(
   # ---------------------------------------
   get_cigar_width <- function(cigar) {
     matches <- gregexpr("\\d+[MDN=X]", cigar)
-    sapply(regmatches(cigar, matches), function(cigar_parts) {
+    vapply(regmatches(cigar, matches), function(cigar_parts) {
       if (length(cigar_parts) == 0) {
         return(0)
       }
       sum(as.numeric(gsub("[A-Z]", "", cigar_parts)))
-    })
+    }, FUN.VALUE = numeric(1))
   }
 
   # ---------------------------------------

@@ -12,7 +12,17 @@
 #' @param read_index_at_pos An integer representing the index of the nucleotide in sequence aligning with the position of interest.
 #' @param n_match_base_before Number of bases to be matched before the alt allele in the sequences comparison
 #' @param n_match_base_after Number of bases to be matched after the last alt allele in the sequences comparison
-#'
+#' 
+#' @return
+#' A character string indicating the mutational status of the read. Possible values include:
+#' \itemize{
+#'  \item '"WT"': Wild-Type. The read matches the reference sequence.
+#'  \item '"MUT"': Mutant. The read matches the alternate allele.
+#'  \item '"AMB"': Ambiguous. The read is too short or the context is too complex to definitively assign a status.
+#'  \item '"OTH"': Other. An alteration is found, but it is not the one of interest.
+#'  \item For INDELs, the status may be combined with a descriptive message (e.g., '"AMB by cigar-free search..."').
+#' }
+#' 
 #' @keywords internal
 get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile = NULL,
                                         fasta_seq = NULL, cigar_free_indel_match = FALSE, n_match_base_before = 1,

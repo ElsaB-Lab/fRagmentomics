@@ -18,6 +18,10 @@
 #' @param colors_z For the "split_by_base" plot, a character vector of 4 colors for
 #'   A, C, G, T, or a single string naming an RColorBrewer palette. For other plots,
 #'   a suitable palette is chosen automatically.
+#' @param sample_id Sample identifier.
+#' @param output_folder Character vector for the output folder path.
+#' @param ggsave_params A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
+#'   'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.
 #'
 #' @return A ggplot object.
 #'
@@ -79,7 +83,7 @@
 #'
 #' # 2. Differential Plot (representation = "differential")
 #' # This shows the log2 fold change in motif proportions between two groups.
-#' # It requires exactly two groups specified in `vals_z`.
+#' # It requires exactly two groups specified in 'vals_z'.
 #' p2 <- plot_motif_barplot(
 #'     df_fragments = example_df,
 #'     representation = "differential",
@@ -95,6 +99,24 @@
 #'     representation = "split_by_motif"
 #' )
 #' print(p3)
+#'
+#' # 4. Save the default hierarchical plot.
+#' # plot_motif_barplot(
+#' #   df_fragments = example_df,
+#' #   sample_id = "test01_hierarchical",
+#' #   output_folder = tempdir()
+#' # )
+#'
+#' # 5. Save the differential plot with custom dimensions.
+#' # plot_motif_barplot(
+#' #   df_fragments = example_df,
+#' #   representation = "differential",
+#' #   vals_z = c("MUT", "WT"),
+#' #   sample_id = "test02_differential",
+#' #   output_folder = tempdir(),
+#' #   ggsave_params = list(width = 12, height = 8, units = "in")
+#' # )
+#' 
 plot_motif_barplot <- function(df_fragments,
                                end_motif_5p = "Fragment_Bases_5p",
                                end_motif_3p = "Fragment_Bases_3p",
@@ -104,7 +126,10 @@ plot_motif_barplot <- function(df_fragments,
                                vals_z = NULL,
                                representation = "split_by_base",
                                ...,
-                               colors_z = c("#FD96A9", "#E88B00", "#0D539E", "#6CAE75")) {
+                               colors_z = c("#FD96A9", "#E88B00", "#0D539E", "#6CAE75"),
+                                sample_id = NA,
+                                output_folder = NA,
+                                ggsave_params = list()) {
     # --- 1. Input Validation and Setup ---
     motif_size <- 3 # This plot is specifically designed for 3-base motifs.
 
@@ -292,6 +317,51 @@ plot_motif_barplot <- function(df_fragments,
     if (representation == "split_by_motif") {
         legend_title <- if (is.null(original_col_z)) "placeholder_group" else original_col_z
         final_plot <- final_plot + labs(fill = legend_title)
+    }
+
+    # --- 6. Save the plot to a file if an output folder is provided ---
+    # Check if a valid output folder path was provided.
+    if (!is.null(output_folder) && all(!is.na(output_folder) & nzchar(output_folder))) {
+
+        # Validate that output_folder is a single character string before using it.
+        if (!is.character(output_folder) || length(output_folder) != 1) {
+            stop("'output_folder' must be a single character string.")
+        }
+
+        # Validate sample_id if provided
+        if (!is.na(sample_id) && (!is.character(sample_id) || length(sample_id) != 1)) {
+            stop("'sample_id' must be a single character string.")
+        }
+        
+        # Create directory if it doesn't exist
+        if (!dir.exists(output_folder)) {
+            message(sprintf("Creating output directory: %s", output_folder))
+            dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
+        }
+
+        # --- Filename Generation ---
+        file_suffix <- paste0("_motif_barplot_", representation, ".png")
+        output_filename <- if (!is.na(sample_id) && sample_id != "") {
+        paste0(sample_id, file_suffix)
+        } else {
+            # Remove leading underscore if no sample_id
+            sub("^_", "", file_suffix)
+        }
+        full_output_path <- file.path(output_folder, output_filename)
+
+        # --- Save Logic ---
+        if (file.exists(full_output_path)) {
+        message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
+        }
+
+        # --- Set ggsave parameters and save ---
+        default_save_params <- list(width = 8, height = 6, units = "in", dpi = 300)
+        final_save_params <- utils::modifyList(default_save_params, ggsave_params)
+        
+        ggsave_args <- c(list(plot = final_plot, filename = full_output_path), final_save_params)
+        
+        message(sprintf("Saving plot to: %s", full_output_path))
+        do.call("ggsave", ggsave_args)
     }
 
     return(final_plot)

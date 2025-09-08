@@ -82,7 +82,7 @@ test_that("check_parameters", {
     cigar_free_indel_match = FALSE,
     remove_softclip = FALSE,
     tmp_folder = tempdir(),
-    output_file = "./test.tsv",
+    output_folder = "./test",
     n_cores = 1L
   )
 
@@ -90,23 +90,25 @@ test_that("check_parameters", {
   # 1. Valid input: all files exist and required indexes are present.
   # ---------------------------------------------------------------------------
   expect_silent(
-    check_parameters(
-      mut = mut_existing,
-      bam = bam_existing,
-      fasta = fasta_with_index,
-      sample = valid_params$sample,
-      neg_offset_mate_search = valid_params$neg_offset_mate_search,
-      pos_offset_mate_search = valid_params$pos_offset_mate_search,
-      one_based = valid_params$one_based,
-      flag_bam_list = valid_params$flag_bam_list,
-      report_tlen = valid_params$report_tlen,
-      report_softclip = valid_params$report_softclip,
-      report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_indel_match = valid_params$cigar_free_indel_match,
-      remove_softclip = valid_params$remove_softclip,
-      tmp_folder = valid_params$tmp_folder,
-      output_file = valid_params$output_file,
-      n_cores = valid_params$n_cores
+    suppressMessages(
+      check_parameters(
+        mut = mut_existing,
+        bam = bam_existing,
+        fasta = fasta_with_index,
+        sample = valid_params$sample,
+        neg_offset_mate_search = valid_params$neg_offset_mate_search,
+        pos_offset_mate_search = valid_params$pos_offset_mate_search,
+        one_based = valid_params$one_based,
+        flag_bam_list = valid_params$flag_bam_list,
+        report_tlen = valid_params$report_tlen,
+        report_softclip = valid_params$report_softclip,
+        report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
+        cigar_free_indel_match = valid_params$cigar_free_indel_match,
+        remove_softclip = valid_params$remove_softclip,
+        tmp_folder = valid_params$tmp_folder,
+        output_folder = valid_params$output_folder,
+        n_cores = valid_params$n_cores
+      )
     )
   )
 
@@ -129,10 +131,10 @@ test_that("check_parameters", {
       cigar_free_indel_match = valid_params$cigar_free_indel_match,
       remove_softclip = valid_params$remove_softclip,
       tmp_folder = valid_params$tmp_folder,
-      output_file = valid_params$output_file,
+      output_folder = valid_params$output_folder,
       n_cores = valid_params$n_cores
     ),
-    "Error: The Mutation file does not exist",
+    "The Mutation file does not exist",
     fixed = TRUE
   )
 
@@ -155,10 +157,10 @@ test_that("check_parameters", {
       cigar_free_indel_match = valid_params$cigar_free_indel_match,
       remove_softclip = valid_params$remove_softclip,
       tmp_folder = valid_params$tmp_folder,
-      output_file = valid_params$output_file,
+      output_folder = valid_params$output_folder,
       n_cores = valid_params$n_cores
     ),
-    "Error: The BAM file does not exist",
+    "The BAM file does not exist",
     fixed = TRUE
   )
 
@@ -181,10 +183,10 @@ test_that("check_parameters", {
       cigar_free_indel_match = valid_params$cigar_free_indel_match,
       remove_softclip = valid_params$remove_softclip,
       tmp_folder = valid_params$tmp_folder,
-      output_file = valid_params$output_file,
+      output_folder = valid_params$output_folder,
       n_cores = valid_params$n_cores
     ),
-    "Error: The FASTA file does not exist",
+    "The FASTA file does not exist",
     fixed = TRUE
   )
 
@@ -210,7 +212,7 @@ test_that("check_parameters", {
       cigar_free_indel_match = valid_params$cigar_free_indel_match,
       remove_softclip = valid_params$remove_softclip,
       tmp_folder = valid_params$tmp_folder,
-      output_file = valid_params$output_file,
+      output_folder = valid_params$output_folder,
       n_cores = valid_params$n_cores
     ),
     "Creating BAM index..."
@@ -238,7 +240,7 @@ test_that("check_parameters", {
       cigar_free_indel_match = valid_params$cigar_free_indel_match,
       remove_softclip = valid_params$remove_softclip,
       tmp_folder = valid_params$tmp_folder,
-      output_file = valid_params$output_file,
+      output_folder = valid_params$output_folder,
       n_cores = valid_params$n_cores
     ),
     "Creating FASTA index..."
@@ -322,10 +324,10 @@ test_that("check_parameters individual parameter validations", {
   # Temporary folder
   expect_error(check_tmp_folder(TRUE), "must be a single character")
 
-  # Output file
-  expect_silent(check_output_file(NA))
-  expect_silent(check_output_file(""))
-  expect_error(check_output_file(42), "must be a single character string even empty")
+  # Output folder
+  expect_silent(check_output_folder(NA))
+  expect_silent(check_output_folder(""))
+  expect_error(check_output_folder(42), "'output_folder' must be a single character string.")
 
   # n_cores
   expect_error(check_n_cores(2), "must be integer")

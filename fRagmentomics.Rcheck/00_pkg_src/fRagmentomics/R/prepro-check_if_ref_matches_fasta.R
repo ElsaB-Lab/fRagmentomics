@@ -21,7 +21,7 @@ check_if_ref_matches_fasta <- function(chr, pos, ref, fasta) {
 
   # Check if the chrom existe in the Fasta
   if (!chr %in% seq_names) {
-    warning(paste0("Chromosome ", chr, " not found in FASTA."))
+    warning(sprintf("Chromosome '%s' not found in FASTA.", chr))
     return(FALSE)
   }
 

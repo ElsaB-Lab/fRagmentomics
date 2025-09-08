@@ -22,7 +22,7 @@ analyze_fragments(
   cigar_free_indel_match = FALSE,
   remove_softclip = FALSE,
   tmp_folder = tempdir(),
-  output_file = NA,
+  output_folder = NA,
   n_cores = 8
 )
 }
@@ -68,7 +68,7 @@ indel in the CIGAR does not match the norm of bcftools of the mutation being ana
 
 \item{tmp_folder}{Character vector for the folder temporary path.}
 
-\item{output_file}{Character vector for the output file path.}
+\item{output_folder}{Character vector for the output folder path.}
 
 \item{n_cores}{Number of cores for parallel computation.}
 }
@@ -94,7 +94,7 @@ retrieve all read pairs that cover the genomic locus.
 Each unique DNA fragment is processed by the 'extract_fragment_features' worker function to determine
 its size, quality metrics, and mutation status (e.g., "MUT", "WT", "DISCORDANT").
 \item \strong{VAF Calculation}: After all fragments for a variant are processed, the Variant Allele Frequency (VAF) is calculated.
-\item \strong{Output Generation}: Results from all variants are aggregated into a single data frame. If an 'output_file'
+\item \strong{Output Generation}: Results from all variants are aggregated into a single data frame. If an 'output_folder'
 path is provided, this data frame is also written to a tab-separated file.
 }
 }
@@ -124,7 +124,7 @@ results <- analyze_fragments(
   bam = bam_file,
   fasta = fasta_file,
   sample_id = "cfdna-test-01",
-  output_file = tempfile(fileext = ".tsv"),
+  output_folder = tempdir(),
   n_cores = 1L
 )
 

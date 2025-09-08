@@ -17,7 +17,10 @@ read_mut <- function(mut) {
   } else if (grepl("^[^:]+:[^:]+:[^:]+:[^:]+$", mut)) {
     df_mut <- read_str_input(mut)
   } else {
-    stop(paste0("Error: The parameter 'mut' (", mut, ") is not in the expected format (.tsv, .vcf, chr:pos:ref:alt)."))
+    stop(sprintf(
+      "The parameter 'mut' ('%s') is not in the expected format (.tsv, .vcf, chr:pos:ref:alt).",
+      mut
+    ))
   }
 
   df_mut
@@ -76,8 +79,11 @@ read_str_input <- function(mut) {
 
 #' Parse a VCF file for variant information
 #'
-#' @description This low-level parser reads a VCF file, performs basic structural checks, and extracts the essential
-#' 'CHROM', 'POS', 'REF', and 'ALT' columns. It does not expand multi-allelic sites.
+#' @description This low-level parser reads a VCF file, performs basic
+#' structural checks, and extracts the essential 'CHROM', 'POS', 'REF', and
+#' 'ALT' columns. It does not expand multi-allelic sites.
+#'
+#' @param vcf_file Path to the VCF file.
 #'
 #' @return A cleaned dataframe with required columns.
 #'
@@ -90,18 +96,30 @@ parser_vcf <- function(vcf_file) {
 
   # Read all lines while handling compressed files
   con <- if (is_compressed) gzfile(vcf_file, "rt") else vcf_file
-  lines <- suppressWarnings(readLines(con))
+  lines <- tryCatch(
+    readLines(con),
+    warning = function(w) {
+      # If the warning is the specific one about an incomplete final line,
+      # ignore it by invoking a restart that muffles the warning.
+      if (grepl("incomplete final line found", conditionMessage(w))) {
+        invokeRestart("muffleWarning")
+      } else {
+        # For any other warning, re-issue it as it might be important.
+        warning(w)
+      }
+    }
+  )
   if (inherits(con, "connection")) close(con)
 
-  # Keep only the useful info (header + data)
+  # Keep only the lines that are not metadata (##)
   data_lines <- lines[!grepl("^##", lines)]
 
-  # To do the read.table, we need at list one row of data
+  # A valid VCF must have at least a header (#) and one data row
   if (length(data_lines) < 2) {
-    stop("Error: The VCF file does not contain any mutation data.")
+    stop("The VCF file does not contain any mutation data.")
   }
 
-  # Get the header to create the final file and the expected columns
+  # Extract the header from the first non-metadata line
   header_line <- data_lines[1]
   header <- strsplit(header_line, "\t")[[1]]
   header[1] <- sub("^#", "", header[1])
@@ -119,36 +137,37 @@ parser_vcf <- function(vcf_file) {
     fill = TRUE
   )
 
-  # Name the columns
+  # Keep only the essential columns
   df_vcf <- df_vcf[, c("CHROM", "POS", "REF", "ALT"), drop = FALSE]
 
-  # Check if the read.table worked propely
+  # Check if the expected columns were found
   if (ncol(df_vcf) != 4) {
-    stop(paste(
-      "Error: The number of columns in the VCF file does not match the expected columns CHR POS REF ALT.",
-      "Found columns:", paste(colnames(df_vcf), collapse = ", ")
+    stop(sprintf(
+      "The VCF file does not seem to have the required columns (CHROM, POS, REF, ALT). Found columns: %s",
+      paste(colnames(df_vcf), collapse = ", ")
     ))
   }
 
-  # Convert POS column into int (Force to NA if str)
-  df_vcf[["POS"]] <- suppressWarnings(as.integer(df_vcf[["POS"]]))
+  # Identify rows with non-numeric values in the POS column before conversion
+  invalid_pos_mask <- !grepl("^[0-9]+$", df_vcf[["POS"]]) & !is.na(df_vcf[["POS"]])
 
-  # Check if there is NA in POS column after conversion
-  invalid_pos_rows <- df_vcf[is.na(df_vcf[["POS"]]), ]
-
-  # If line have no convertible POS value into int, print it
-  if (nrow(invalid_pos_rows) > 0) {
-    warning(paste0(
-      "Warning: The following rows have non-integer values in the POS column: ",
-      paste(invalid_pos_rows$row, collapse = ", ")
+  # If any are found, issue a single, clear warning
+  if (any(invalid_pos_mask)) {
+    invalid_rows <- which(invalid_pos_mask)
+    warning(sprintf(
+      "The following rows have non-integer values in the POS column and will be converted to NA: %s",
+      paste(invalid_rows, collapse = ", ")
     ))
   }
 
-  # Remove empty lines
+  # Convert the POS column to integer
+  df_vcf[["POS"]] <- as.integer(df_vcf[["POS"]])
+
+  # Remove any rows that are entirely empty or NA
   df_vcf <- df_vcf[rowSums(is.na(df_vcf) | df_vcf == "") != ncol(df_vcf), ]
 
   if (nrow(df_vcf) == 0) {
-    stop("Error: The VCF file does not contain any mutation data.")
+    stop("The VCF file does not contain any mutation data after parsing.")
   }
 
   df_vcf
@@ -183,38 +202,39 @@ parser_tsv <- function(tsv_file) {
       )
     },
     error = function(e) {
-      stop("Error: Failed to read the TSV file. Ensure it's properly formatted.")
+      stop("Failed to read the TSV file. Ensure it's properly formatted.")
     }
   )
 
   # Check if the read.table worked propely
   if (ncol(df_tsv) != 4) {
-    stop(paste(
-      "Error: The number of columns in the TSV file does not match the expected columns CHR POS REF ALT.",
-      "Found columns:", paste(colnames(df_tsv), collapse = ", ")
+    stop(sprintf(
+      "The number of columns in the TSV file does not match the expected columns CHR POS REF ALT. Found columns: %s",
+      paste(colnames(df_tsv), collapse = ", ")
     ))
   }
 
-  # Convert POS column into int (Force to NA if str)
-  df_tsv[["POS"]] <- suppressWarnings(as.integer(df_tsv[["POS"]]))
+  # Identify lines with non numeric values in POS
+  invalid_pos_mask <- !grepl("^[0-9]+$", df_tsv[["POS"]]) & !is.na(df_tsv[["POS"]])
 
-  # Check if there is NA in POS column after conversion
-  invalid_pos_rows <- df_tsv[is.na(df_tsv[["POS"]]), ]
-
-  # If line have no convertible POS value into int, print it
-  if (nrow(invalid_pos_rows) > 0) {
-    warning(paste0(
-      "Warning: The following rows have non-integer values in the POS column: ",
-      paste(invalid_pos_rows$row, collapse = ", ")
+  # Warning
+  if (any(invalid_pos_mask)) {
+    invalid_rows <- which(invalid_pos_mask)
+    warning(sprintf(
+      "The following rows have non-integer values in the POS column and will be converted to NA: %s",
+      paste(invalid_rows, collapse = ", ")
     ))
   }
+
+  # Conversion of the position in integer
+  df_tsv[["POS"]] <- as.integer(df_tsv[["POS"]])
 
   # Remove empty rows
   df_tsv <- df_tsv[rowSums(is.na(df_tsv) | df_tsv == "") != ncol(df_tsv), ]
 
   # Check if the TSV has data
   if (nrow(df_tsv) == 0) {
-    stop("Error: The TSV file does not contain any mutation data.")
+    stop("The TSV file does not contain any mutation data.")
   }
 
   df_tsv
@@ -242,16 +262,20 @@ parser_str <- function(mut) {
 
   # Check if mutation contains exactly these parts (CHR, POS, REF, ALT)
   if (length(parts) != 4) {
-    stop(paste0("Error: The parameter 'mut' (", mut, ") is not in the expected format (.tsv, .vcf, chr:pos:ref:alt)."))
+    stop(sprintf(
+      "The parameter 'mut' ('%s') is not in the expected format (.tsv, .vcf, chr:pos:ref:alt).",
+      mut
+    ))
   }
 
   chr <- parts[1]
 
   # Only take into account integer
   if (!grepl("^[0-9]+$", parts[2])) {
+    warning(sprintf("Position value '%s' is not a valid integer and will be treated as NA.", parts[2]))
     pos <- NA
   } else {
-    pos <- suppressWarnings(as.integer(parts[2]))
+    pos <- as.integer(parts[2])
   }
 
   ref <- ref <- parts[3]
@@ -262,7 +286,7 @@ parser_str <- function(mut) {
 
   # Check if the TSV has data
   if (nrow(mut_df) == 0) {
-    stop("Error: The mutation string does not contain any mutation data.")
+    stop("The mutation string does not contain any mutation data.")
   }
 
   mut_df
@@ -279,46 +303,31 @@ parser_str <- function(mut) {
 #'
 #' @return A dataframe where each row contains only a single alternative allele.
 #'
+#' @importFrom tidyr separate_rows
 #' @noRd
 expand_multiallelics <- function(df) {
-  expanded_rows <- list()
+  # Identify rows where REF contains a comma
+  is_multi_ref <- grepl(",", df$REF)
 
-  for (i in seq_len(nrow(df))) {
-    # If ALT is empty, add "-"
-    if (is.na(df$ALT[i]) || df$ALT[i] == "") {
-      df$ALT[i] <- "-"
-    } else if (grepl(",$", df$ALT[i])) {
-      # Before doing the strsplit, we have to be sure ALT doesn't finish by ","
-      df$ALT[i] <- paste0(df$ALT[i], "-")
-    }
-
-    if (grepl(",", df$REF[i])) {
-      warning("REF can not be multiallelic")
-      next
-    }
-
-    # Devide all the alternatives alleles
-    alts <- unlist(strsplit(df$ALT[i], ","))
-
-    for (alt in alts) {
-      expanded_rows <- append(expanded_rows, list(
-        data.frame(
-          CHROM = df$CHROM[i],
-          POS = df$POS[i],
-          REF = df$REF[i],
-          ALT = alt,
-          stringsAsFactors = FALSE
-        )
-      ))
-    }
+  # If any such rows exist, issue a warning and remove them
+  if (any(is_multi_ref)) {
+    warning("REF can not be multiallelic. These variants have been removed.")
+    df <- df[!is_multi_ref, ]
   }
 
-  # Stop and error if no data after multiallelic verification
-  if (length(expanded_rows) == 0) {
-    stop("After reading, the mutation information is empty. No valid mutation data found.")
+  # If no data remains after filtering, stop
+  if (nrow(df) == 0) {
+    stop("After reading and filtering, the mutation information is empty. No valid mutation data found.")
   }
 
-  # Recreate the df with one line for each alt. Return empty df if
-  expanded_df <- do.call(rbind, expanded_rows)
-  expanded_df
+  # Replace NA or "" with "-"
+  df$ALT[is.na(df$ALT) | df$ALT == ""] <- "-"
+  # Append a "-" if the string ends with a comma (e.g., "A," becomes "A,-")
+  df$ALT <- sub(",$", ",-", df$ALT)
+
+  # Split alternative alleles and expand the dataframe
+  expanded_df <- tidyr::separate_rows(df, ALT, sep = ",")
+
+  # Return the df
+  return(as.data.frame(expanded_df))
 }

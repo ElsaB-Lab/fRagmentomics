@@ -81,11 +81,11 @@ extract_fragment_features <- function(df_sam,
   # Sanity check that the fragment is a valid pair.
   # It must contain exactly one "first mate" read.
   if (sum(flag_matrix[, "isFirstMateRead"]) != 1) {
-    stop(paste("Fragment", fragment_name, "is not a valid R1/R2 pair."))
+    stop(sprintf("Fragment '%s' is not a valid R1/R2 pair.", fragment_name))
   }
   # It must contain one forward and one reverse read.
   if (sum(flag_matrix[, "isMinusStrand"]) != 1) {
-    stop(paste("Fragment", fragment_name, "does not have one forward and one reverse read."))
+    stop(sprintf("Fragment '%s' does not have one forward and one reverse read.", fragment_name))
   }
 
   # Identify the row index of the 5p read (forward strand, where isMinusStrand is 0).
@@ -203,7 +203,7 @@ extract_fragment_features <- function(df_sam,
   # -------------------------------
   if (report_tlen) {
     if (is.null(read_stats_5p$TLEN) || is.na(read_stats_5p$TLEN)) {
-      message("Warning: TLEN is NULL")
+      warning("TLEN is NULL or missing, cannot be reported.")
       final_row_fragment$TLEN <- "Warning: TLEN is NULL"
     } else {
       final_row_fragment$TLEN <- abs(read_stats_5p$TLEN)

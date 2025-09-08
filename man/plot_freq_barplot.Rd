@@ -13,7 +13,10 @@ plot_freq_barplot(
   col_z = "Fragment_Status_Simple",
   vals_z = NULL,
   ...,
-  colors_z = "Set2"
+  colors_z = "Set2",
+  sample_id = NA,
+  output_folder = NA,
+  ggsave_params = list()
 )
 }
 \arguments{
@@ -36,6 +39,13 @@ If NULL, all unique groups in 'col_z' are used.}
 
 \item{colors_z}{A character vector of colors for the groups, or a single string
 naming an RColorBrewer palette (e.g., "Set2").}
+
+\item{sample_id}{Sample identifier.}
+
+\item{output_folder}{Character vector for the output folder path.}
+
+\item{ggsave_params}{A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
+'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.}
 }
 \value{
 A 'ggplot' object.
@@ -101,4 +111,22 @@ p4 <- plot_freq_barplot(
     vals_z = c("MUT", "WT")
 )
 print(p4)
+
+# 5. Save the default plot to a temporary folder.
+# plot_freq_barplot(
+#   df_fragments = example_df,
+#   sample_id = "test01_freq",
+#   output_folder = tempdir()
+# )
+
+# 6. Save a customized plot with specific dimensions.
+# plot_freq_barplot(
+#   df_fragments = example_df,
+#   motif_type = "Start",
+#   motif_size = 1,
+#   sample_id = "test02_freq_custom",
+#   output_folder = tempdir(),
+#   ggsave_params = list(width = 7, height = 5, units = "in")
+# )
+
 }

@@ -270,3 +270,106 @@ test_that("Custom axis labels are generated correctly for each motif_type", {
     expected_labels <- as.character(c(1:2, "", (-2):-1))
     expect_equal(label_data_both$label, expected_labels)
 })
+
+
+# ============== 6. File Saving Tests ==============
+
+test_that("File saving functionality works correctly", {
+  # Use a temporary directory to avoid creating files in the project
+  temp_dir <- tempdir()
+
+  # --- Test 1: Directory creation ---
+  output_subdir <- file.path(temp_dir, "new_seqlogo_dir")
+  # Ensure the directory does not exist initially
+  if (dir.exists(output_subdir)) unlink(output_subdir, recursive = TRUE)
+  expect_false(dir.exists(output_subdir))
+
+  suppressWarnings({
+    plot_qqseqlogo_meme(
+      df_motif_sample,
+      output_folder = output_subdir,
+      sample_id = "dir_creation_test"
+    )
+  })
+
+  # Check that the directory was created...
+  expect_true(dir.exists(output_subdir))
+  # ...and that the file was saved inside it with the correct name.
+  expected_file_1 <- file.path(output_subdir, "dir_creation_test_motif_plot.png")
+  expect_true(file.exists(expected_file_1))
+  # Clean up
+  unlink(output_subdir, recursive = TRUE)
+
+
+  # --- Test 2: Correct filename generation (with and without sample_id) ---
+  # With sample_id
+  suppressWarnings({
+    plot_qqseqlogo_meme(
+      df_motif_sample,
+      output_folder = temp_dir,
+      sample_id = "sample_abc"
+    )
+  })
+  expected_file_2 <- file.path(temp_dir, "sample_abc_motif_plot.png")
+  expect_true(file.exists(expected_file_2))
+  file.remove(expected_file_2)
+
+  # Without sample_id (NA)
+  suppressWarnings({
+    plot_qqseqlogo_meme(
+      df_motif_sample,
+      output_folder = temp_dir,
+      sample_id = NA
+    )
+  })
+  expected_file_3 <- file.path(temp_dir, "motif_plot.png")
+  expect_true(file.exists(expected_file_3))
+
+
+  # --- Test 3: Overwrite message ---
+  # Create a dummy file first
+  file.create(expected_file_3)
+  expect_true(file.exists(expected_file_3))
+
+  # Expect a message warning about the overwrite
+  suppressWarnings({
+    expect_message(
+      plot_qqseqlogo_meme(
+        df_motif_sample,
+        output_folder = temp_dir,
+        sample_id = NA
+      ),
+      regexp = "already exists and will be overwritten"
+    )
+  })
+  file.remove(expected_file_3)
+
+
+  # --- Test 4: Custom ggsave_params are used ---
+  suppressWarnings({
+    plot_qqseqlogo_meme(
+      df_motif_sample,
+      output_folder = temp_dir,
+      sample_id = "custom_dims_test",
+      ggsave_params = list(width = 5, height = 5, units = "in")
+    )
+  })
+  # The file should now be created correctly as a PNG.
+  expected_file_4 <- file.path(temp_dir, "custom_dims_test_motif_plot.png")
+  expect_true(file.exists(expected_file_4))
+  file.remove(expected_file_4)
+})
+
+test_that("File saving input validation works", {
+  # Error if output_folder is not a single string
+  expect_error(
+    suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, output_folder = c("path1", "path2"))),
+    regexp = "'output_folder' must be a single character string."
+  )
+
+  # Error if sample_id is not a single string (and not NA)
+  expect_error(
+    suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, output_folder = tempdir(), sample_id = 123)),
+    regexp = "'sample_id' must be a single character string."
+  )
+})

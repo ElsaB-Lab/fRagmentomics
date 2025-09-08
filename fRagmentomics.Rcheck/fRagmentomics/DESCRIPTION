@@ -3,7 +3,7 @@ Title: Extract Fragmentomics Features and Mutational Status
 Version: 0.2.8
 Authors@R: c(
     person("Killian", "Maudet", email = "killian.maudet@gustaveroussy.fr",
-	   role = c("aut", "cre")),
+        role = c("aut", "cre"), comment = c(ORCID = "0009-0003-3237-092X")),
     person("Yoann", "Pradat", email = "yoann.pradat@gustaveroussy.fr",
 	    role = "aut", comment = c(ORCID = "0000-0002-4647-5779")),
     person("Juliette", "Samaniego", email = "juliette.samaniego@gustaveroussy.fr",
@@ -20,10 +20,13 @@ Description: A user-friendly R package that enables the characterization
     and accepts any reference file and species in FASTA format. For each cfDNA
     fragment, fRagmentomics outputs its size, its 3’ and 5’ sequences, and its
     mutational status.
+URL: https://github.com/ElsaB-Lab/fRagmentomics
+BugReports: https://github.com/ElsaB-Lab/fRagmentomics/issues
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+biocViews: Software, IndelDetection
 Suggests: covr, testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: Biostrings, dplyr, future, future.apply, GenomeInfoDb,
@@ -31,10 +34,10 @@ Imports: Biostrings, dplyr, future, future.apply, GenomeInfoDb,
         progressr, purrr, RColorBrewer, readr, Rsamtools, scales,
         stringr, tibble, tidyr
 NeedsCompilation: no
-Packaged: 2025-08-26 11:38:54 UTC; root
-Author: Killian Maudet [aut, cre],
+Packaged: 2025-09-08 10:25:51 UTC; root
+Author: Killian Maudet [aut, cre] (<https://orcid.org/0009-0003-3237-092X>),
   Yoann Pradat [aut] (<https://orcid.org/0000-0002-4647-5779>),
   Juliette Samaniego [aut],
   Elsa Bernard [aut] (<https://orcid.org/0000-0002-2057-7187>)
 Maintainer: Killian Maudet <killian.maudet@gustaveroussy.fr>
-Built: R 4.4.3; ; 2025-08-26 11:39:43 UTC; unix
+Built: R 4.4.3; ; 2025-09-08 10:26:09 UTC; unix

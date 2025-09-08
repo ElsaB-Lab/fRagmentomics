@@ -14,7 +14,10 @@ plot_motif_barplot(
   vals_z = NULL,
   representation = "split_by_base",
   ...,
-  colors_z = c("#FD96A9", "#E88B00", "#0D539E", "#6CAE75")
+  colors_z = c("#FD96A9", "#E88B00", "#0D539E", "#6CAE75"),
+  sample_id = NA,
+  output_folder = NA,
+  ggsave_params = list()
 )
 }
 \arguments{
@@ -44,6 +47,13 @@ plot_motif_barplot(
 \item{colors_z}{For the "split_by_base" plot, a character vector of 4 colors for
 A, C, G, T, or a single string naming an RColorBrewer palette. For other plots,
 a suitable palette is chosen automatically.}
+
+\item{sample_id}{Sample identifier.}
+
+\item{output_folder}{Character vector for the output folder path.}
+
+\item{ggsave_params}{A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
+'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.}
 }
 \value{
 A ggplot object.
@@ -100,7 +110,7 @@ print(p1_filtered)
 
 # 2. Differential Plot (representation = "differential")
 # This shows the log2 fold change in motif proportions between two groups.
-# It requires exactly two groups specified in `vals_z`.
+# It requires exactly two groups specified in 'vals_z'.
 p2 <- plot_motif_barplot(
     df_fragments = example_df,
     representation = "differential",
@@ -116,4 +126,22 @@ p3 <- plot_motif_barplot(
     representation = "split_by_motif"
 )
 print(p3)
+
+# 4. Save the default hierarchical plot.
+# plot_motif_barplot(
+#   df_fragments = example_df,
+#   sample_id = "test01_hierarchical",
+#   output_folder = tempdir()
+# )
+
+# 5. Save the differential plot with custom dimensions.
+# plot_motif_barplot(
+#   df_fragments = example_df,
+#   representation = "differential",
+#   vals_z = c("MUT", "WT"),
+#   sample_id = "test02_differential",
+#   output_folder = tempdir(),
+#   ggsave_params = list(width = 12, height = 8, units = "in")
+# )
+
 }

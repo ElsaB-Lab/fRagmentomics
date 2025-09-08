@@ -22,7 +22,7 @@ analyze_fragments(
   cigar_free_indel_match = FALSE,
   remove_softclip = FALSE,
   tmp_folder = tempdir(),
-  output_file = NA,
+  output_folder = NA,
   n_cores = 8
 )
 }
@@ -68,7 +68,7 @@ indel in the CIGAR does not match the norm of bcftools of the mutation being ana
 
 \item{tmp_folder}{Character vector for the folder temporary path.}
 
-\item{output_file}{Character vector for the output file path.}
+\item{output_folder}{Character vector for the output folder path.}
 
 \item{n_cores}{Number of cores for parallel computation.}
 }
@@ -94,31 +94,42 @@ retrieve all read pairs that cover the genomic locus.
 Each unique DNA fragment is processed by the 'extract_fragment_features' worker function to determine
 its size, quality metrics, and mutation status (e.g., "MUT", "WT", "DISCORDANT").
 \item \strong{VAF Calculation}: After all fragments for a variant are processed, the Variant Allele Frequency (VAF) is calculated.
-\item \strong{Output Generation}: Results from all variants are aggregated into a single data frame. If an 'output_file'
+\item \strong{Output Generation}: Results from all variants are aggregated into a single data frame. If an 'output_folder'
 path is provided, this data frame is also written to a tab-separated file.
 }
 }
 \examples{
-\dontrun{
-# Load the package
-library(fRagmentomics)
+# --- 1. Locate Example Files ---
+# The package includes small example files to demonstrate its functionality.
+# We locate them using system.file().
+mut_file <- system.file(
+  "extdata", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv",
+  package = "fRagmentomics"
+)
+bam_file <- system.file(
+  "extdata", "cfdna-test-01_chr1_27433000_27435000.bam",
+  package = "fRagmentomics"
+)
+fasta_file <- system.file(
+  "extdata", "hg19_chr1_27433000_27435000.fa",
+  package = "fRagmentomics"
+)
 
-# Assuming you have your input files:
-mut_file <- "path/to/your/mutation.tsv"
-bam_file <- "path/to/your/alignment.bam"
-fasta_file <- "path/to/your/reference.fasta"
-output_path <- "path/to/your/results.tsv"
-
-# Run the analysis on 4 cores
-results_df <- analyze_fragments(
+# --- 2. Run the Analysis ---
+# This single call runs the full analysis pipeline on the example data.
+# The output file is written to a temporary location to avoid cluttering
+# the working directory. We use n_cores = 1L for examples.
+results <- analyze_fragments(
   mut = mut_file,
   bam = bam_file,
   fasta = fasta_file,
-  output_file = output_path,
-  n_cores = 4
+  sample_id = "cfdna-test-01",
+  output_folder = tempdir(),
+  n_cores = 1L
 )
 
-# View the first few results
-head(results_df)
-}
+# --- 3. View the Results ---
+# Print the first few rows of the output data frame to see the results.
+print(head(results))
+
 }

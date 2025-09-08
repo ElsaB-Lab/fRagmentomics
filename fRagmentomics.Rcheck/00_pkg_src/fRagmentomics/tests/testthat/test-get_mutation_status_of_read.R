@@ -22,20 +22,6 @@ test_that("get_mutation_status_of_read works", {
   )
   expect_equal(mstat, "WT")
 
-  mstat <- get_mutation_status_of_read(
-    chr                    = "chr1",
-    pos                    = 500,
-    ref                    = "A",
-    alt                    = "AGT",
-    read_index_at_pos      = 1,
-    read_stats             = list(SEQ = "AGTCC", CIGAR = "5M", POS = 500),
-    fasta_fafile           = fasta_fafile,
-    cigar_free_indel_match = TRUE,
-    n_match_base_before    = 1,
-    n_match_base_after     = 1
-  )
-  expect_equal(mstat, "WT")
-
   # REF: AGTCCC
   # MUT: A > AGT
   # READ: AGTGTC

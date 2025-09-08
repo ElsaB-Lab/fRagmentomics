@@ -18,6 +18,10 @@
 #' @param colors_z For the "split_by_base" plot, a character vector of 4 colors for
 #'   A, C, G, T, or a single string naming an RColorBrewer palette. For other plots,
 #'   a suitable palette is chosen automatically.
+#' @param sample_id Sample identifier.
+#' @param output_folder Character vector for the output folder path.
+#' @param ggsave_params A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
+#'   'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.
 #'
 #' @return A ggplot object.
 #'
@@ -30,6 +34,89 @@
 #' @import ggplot2
 #'
 #' @export
+#'
+#' @examples
+#' ## --- Create a dataset for demonstration ---
+#' # Set a seed for reproducibility
+#' set.seed(42)
+#'
+#' # Helper function to generate random DNA sequences with a bias
+#' generate_biased_dna <- function(n_seq, len, prob) {
+#'     bases <- c("A", "C", "G", "T")
+#'     replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
+#' }
+#'
+#' # Create 50 "MUT" fragments with a high proportion of motifs starting with 'C'
+#' df_mut <- data.frame(
+#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'     Fragment_Status_Simple = "MUT"
+#' )
+#'
+#' # Create 50 "WT" fragments with a high proportion of motifs starting with 'G'
+#' df_wt <- data.frame(
+#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'     Fragment_Status_Simple = "WT"
+#' )
+#'
+#' # Combine into a single dataframe
+#' example_df <- rbind(df_mut, df_wt)
+#'
+#' ## --- Function Calls for Each Representation ---
+#'
+#' # 1. Hierarchical Plot (representation = "split_by_base")
+#' # This is the default. It creates nested facets for each base position.
+#' p1 <- plot_motif_barplot(
+#'     df_fragments = example_df,
+#'     representation = "split_by_base"
+#' )
+#' print(p1)
+#'
+#' # You can also filter this plot to show only motifs starting with certain bases.
+#' p1_filtered <- plot_motif_barplot(
+#'     df_fragments = example_df,
+#'     representation = "split_by_base",
+#'     motif_start = c("C", "G")
+#' )
+#' print(p1_filtered)
+#'
+#' # 2. Differential Plot (representation = "differential")
+#' # This shows the log2 fold change in motif proportions between two groups.
+#' # It requires exactly two groups specified in 'vals_z'.
+#' p2 <- plot_motif_barplot(
+#'     df_fragments = example_df,
+#'     representation = "differential",
+#'     vals_z = c("MUT", "WT")
+#' )
+#' print(p2)
+#'
+#' # 3. Side-by-side Motif Plot (representation = "split_by_motif")
+#' # This creates a more traditional bar plot with motifs on the x-axis and
+#' # bars for each group shown side-by-side.
+#' p3 <- plot_motif_barplot(
+#'     df_fragments = example_df,
+#'     representation = "split_by_motif"
+#' )
+#' print(p3)
+#'
+#' # 4. Save the default hierarchical plot.
+#' # plot_motif_barplot(
+#' #   df_fragments = example_df,
+#' #   sample_id = "test01_hierarchical",
+#' #   output_folder = tempdir()
+#' # )
+#'
+#' # 5. Save the differential plot with custom dimensions.
+#' # plot_motif_barplot(
+#' #   df_fragments = example_df,
+#' #   representation = "differential",
+#' #   vals_z = c("MUT", "WT"),
+#' #   sample_id = "test02_differential",
+#' #   output_folder = tempdir(),
+#' #   ggsave_params = list(width = 12, height = 8, units = "in")
+#' # )
+#' 
 plot_motif_barplot <- function(df_fragments,
                                end_motif_5p = "Fragment_Bases_5p",
                                end_motif_3p = "Fragment_Bases_3p",
@@ -39,22 +126,29 @@ plot_motif_barplot <- function(df_fragments,
                                vals_z = NULL,
                                representation = "split_by_base",
                                ...,
-                               colors_z = c("#FD96A9", "#E88B00", "#0D539E", "#6CAE75")) {
+                               colors_z = c("#FD96A9", "#E88B00", "#0D539E", "#6CAE75"),
+                                sample_id = NA,
+                                output_folder = NA,
+                                ggsave_params = list()) {
     # --- 1. Input Validation and Setup ---
     motif_size <- 3 # This plot is specifically designed for 3-base motifs.
 
     # Validate representation argument
     valid_representations <- c("differential", "split_by_base", "split_by_motif")
     if (!representation %in% valid_representations) {
-        stop(paste("'representation' must be one of:", paste(valid_representations, collapse = ", ")))
+        stop(sprintf(
+            "'representation' must be one of: %s",
+            paste(valid_representations, collapse = ", ")
+        ))
     }
-
     # Store original col_z for later use in labels
     original_col_z <- col_z
 
     # Enforce consistent logic for grouping parameters
     if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
-    if (!is.null(col_z) && !col_z %in% names(df_fragments)) stop(paste("Column", col_z, "not found in the dataframe."))
+    if (!is.null(col_z) && !col_z %in% names(df_fragments)) {
+        stop(sprintf("Column '%s' not found in the dataframe.", col_z))
+    }
     if (representation == "differential" && is.null(col_z)) stop("Differential analysis requires a grouping column 'col_z'.")
 
     # Handle the case for no grouping (col_z is NULL)
@@ -223,6 +317,51 @@ plot_motif_barplot <- function(df_fragments,
     if (representation == "split_by_motif") {
         legend_title <- if (is.null(original_col_z)) "placeholder_group" else original_col_z
         final_plot <- final_plot + labs(fill = legend_title)
+    }
+
+    # --- 6. Save the plot to a file if an output folder is provided ---
+    # Check if a valid output folder path was provided.
+    if (!is.null(output_folder) && all(!is.na(output_folder) & nzchar(output_folder))) {
+
+        # Validate that output_folder is a single character string before using it.
+        if (!is.character(output_folder) || length(output_folder) != 1) {
+            stop("'output_folder' must be a single character string.")
+        }
+
+        # Validate sample_id if provided
+        if (!is.na(sample_id) && (!is.character(sample_id) || length(sample_id) != 1)) {
+            stop("'sample_id' must be a single character string.")
+        }
+        
+        # Create directory if it doesn't exist
+        if (!dir.exists(output_folder)) {
+            message(sprintf("Creating output directory: %s", output_folder))
+            dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
+        }
+
+        # --- Filename Generation ---
+        file_suffix <- paste0("_motif_barplot_", representation, ".png")
+        output_filename <- if (!is.na(sample_id) && sample_id != "") {
+        paste0(sample_id, file_suffix)
+        } else {
+            # Remove leading underscore if no sample_id
+            sub("^_", "", file_suffix)
+        }
+        full_output_path <- file.path(output_folder, output_filename)
+
+        # --- Save Logic ---
+        if (file.exists(full_output_path)) {
+        message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
+        }
+
+        # --- Set ggsave parameters and save ---
+        default_save_params <- list(width = 8, height = 6, units = "in", dpi = 300)
+        final_save_params <- utils::modifyList(default_save_params, ggsave_params)
+        
+        ggsave_args <- c(list(plot = final_plot, filename = full_output_path), final_save_params)
+        
+        message(sprintf("Saving plot to: %s", full_output_path))
+        do.call("ggsave", ggsave_args)
     }
 
     return(final_plot)

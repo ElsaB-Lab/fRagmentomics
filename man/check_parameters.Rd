@@ -19,7 +19,7 @@ check_parameters(
   cigar_free_indel_match,
   remove_softclip,
   tmp_folder,
-  output_file,
+  output_folder,
   n_cores
 )
 }
@@ -65,7 +65,7 @@ indel in the CIGAR does not match the norm of bcftools of the mutation being ana
 
 \item{tmp_folder}{Character vector for the folder temporary path.}
 
-\item{output_file}{Character vector for the output file path.}
+\item{output_folder}{Character vector for the output folder path.}
 
 \item{n_cores}{Number of cores for parallel computation.}
 }

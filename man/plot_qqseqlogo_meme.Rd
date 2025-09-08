@@ -12,7 +12,10 @@ plot_qqseqlogo_meme(
   motif_size = 3,
   col_z = "Fragment_Status_Simple",
   vals_z = NULL,
-  colors_z = NULL
+  colors_z = NULL,
+  sample_id = NA,
+  output_folder = NA,
+  ggsave_params = list()
 )
 }
 \arguments{
@@ -32,6 +35,13 @@ plot_qqseqlogo_meme(
 
 \item{colors_z}{The color scheme for nucleotides. Can be NULL (default ggseqlogo colors), a character string naming
 an RColorBrewer palette (e.g., "Dark2"), or a named character vector (e.g., c("A"="blue", "C"="red", ...)).}
+
+\item{sample_id}{Sample identifier.}
+
+\item{output_folder}{Character vector for the output folder path.}
+
+\item{ggsave_params}{A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
+'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.}
 }
 \value{
 A 'ggplot' object.
@@ -104,4 +114,20 @@ print(p4)
 # 4. Ungrouped plot: Analyzes all fragments together as a single group.
 p5 <- plot_qqseqlogo_meme(example_df, col_z = NULL)
 print(p5)
+
+# 5. Save plot with default settings.
+# plot_qqseqlogo_meme(
+#   df_fragments = example_df,
+#   sample_id = "test01_motif",
+#   output_folder = tempdir()
+# )
+
+# 6. Save plot with custom dimensions.
+# plot_qqseqlogo_meme(
+#   df_fragments = example_df,
+#   sample_id = "test02_motif_custom",
+#   output_folder = tempdir(),
+#   ggsave_params = list(width = 15, height = 10, units = "cm")
+# )
+
 }

@@ -12,6 +12,10 @@
 #' @param vals_z A character vector of group names to include. If NULL, all groups in 'col_z' are used.
 #' @param colors_z The color scheme for nucleotides. Can be NULL (default ggseqlogo colors), a character string naming
 #' an RColorBrewer palette (e.g., "Dark2"), or a named character vector (e.g., c("A"="blue", "C"="red", ...)).
+#' @param sample_id Sample identifier.
+#' @param output_folder Character vector for the output folder path.
+#' @param ggsave_params A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
+#'   'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.
 #'
 #' @return A 'ggplot' object.
 #'
@@ -91,6 +95,22 @@
 #' # 4. Ungrouped plot: Analyzes all fragments together as a single group.
 #' p5 <- plot_qqseqlogo_meme(example_df, col_z = NULL)
 #' print(p5)
+#' 
+#' # 5. Save plot with default settings.
+#' # plot_qqseqlogo_meme(
+#' #   df_fragments = example_df,
+#' #   sample_id = "test01_motif",
+#' #   output_folder = tempdir()
+#' # )
+#'
+#' # 6. Save plot with custom dimensions.
+#' # plot_qqseqlogo_meme(
+#' #   df_fragments = example_df,
+#' #   sample_id = "test02_motif_custom",
+#' #   output_folder = tempdir(),
+#' #   ggsave_params = list(width = 15, height = 10, units = "cm")
+#' # )
+#' 
 plot_qqseqlogo_meme <- function(df_fragments,
                                 end_motif_5p = "Fragment_Bases_5p",
                                 end_motif_3p = "Fragment_Bases_3p",
@@ -98,7 +118,10 @@ plot_qqseqlogo_meme <- function(df_fragments,
                                 motif_size = 3,
                                 col_z = "Fragment_Status_Simple",
                                 vals_z = NULL,
-                                colors_z = NULL) {
+                                colors_z = NULL, 
+                                sample_id = NA,
+                                output_folder = NA,
+                                ggsave_params = list()) {
     # --- 1. Input Validation ---
     if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
     if (!is.null(col_z) && !col_z %in% names(df_fragments)) {
@@ -310,5 +333,48 @@ plot_qqseqlogo_meme <- function(df_fragments,
         )
     }
 
-    return(p)
+    # --- 7. Save the plot to a file if an output folder is provided ---
+    # Check if a valid output folder path was provided.
+    if (!is.null(output_folder) && all(!is.na(output_folder) & nzchar(output_folder))) {
+    
+        # Validate that output_folder is a single character string before using it.
+        if (!is.character(output_folder) || length(output_folder) != 1) {
+            stop("'output_folder' must be a single character string.")
+        }
+
+        # Validate sample_id if provided
+        if (!is.na(sample_id) && (!is.character(sample_id) || length(sample_id) != 1)) {
+            stop("'sample_id' must be a single character string.")
+        }
+        
+        # Create directory if it doesn't exist
+        if (!dir.exists(output_folder)) {
+            message(sprintf("Creating output directory: %s", output_folder))
+            dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
+        }
+
+        # --- Filename Generation ---
+        output_filename <- if (!is.na(sample_id) && sample_id != "") {
+            paste0(sample_id, "_motif_plot.png")
+        } else {
+            "motif_plot.png"
+        }
+        full_output_path <- file.path(output_folder, output_filename)
+        
+        if (file.exists(full_output_path)) {
+            message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
+        }
+
+        # --- Set ggsave parameters and save ---
+        default_save_params <- list(width = 8, height = 6, units = "in", dpi = 300)
+        final_save_params <- utils::modifyList(default_save_params, ggsave_params)
+
+        ggsave_args <- c(list(plot = p, filename = full_output_path), final_save_params)
+        
+        message(sprintf("Saving plot to: %s", full_output_path))
+        do.call("ggsave", ggsave_args)
+    }
+  
+  # Return the plot object regardless of whether it was saved
+  return(p)
 }

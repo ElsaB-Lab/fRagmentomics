@@ -19,7 +19,7 @@
 #'     Each unique DNA fragment is processed by the 'extract_fragment_features' worker function to determine
 #'     its size, quality metrics, and mutation status (e.g., "MUT", "WT", "DISCORDANT").
 #'   \item **VAF Calculation**: After all fragments for a variant are processed, the Variant Allele Frequency (VAF) is calculated.
-#'   \item **Output Generation**: Results from all variants are aggregated into a single data frame. If an 'output_file'
+#'   \item **Output Generation**: Results from all variants are aggregated into a single data frame. If an 'output_folder'
 #'     path is provided, this data frame is also written to a tab-separated file.
 #' }
 #'
@@ -50,7 +50,7 @@
 #'  indel in the CIGAR does not match the norm of bcftools of the mutation being analyzed.
 #' @param remove_softclip Boolean. For all analyses, trim soft-clipped bases from the 5′ end of Read 5p and from the 3′ end of Read 3p.
 #' @param tmp_folder Character vector for the folder temporary path.
-#' @param output_file Character vector for the output file path.
+#' @param output_folder Character vector for the output folder path.
 #' @param n_cores Number of cores for parallel computation.
 #'
 #' @return A dataframe containing extracted fragment-level information.
@@ -88,7 +88,7 @@
 #'   bam = bam_file,
 #'   fasta = fasta_file,
 #'   sample_id = "cfdna-test-01",
-#'   output_file = tempfile(fileext = ".tsv"),
+#'   output_folder = tempdir(),
 #'   n_cores = 1L
 #' )
 #'
@@ -124,7 +124,7 @@ analyze_fragments <- function(
     cigar_free_indel_match = FALSE,
     remove_softclip = FALSE,
     tmp_folder = tempdir(),
-    output_file = NA,
+    output_folder = NA,
     n_cores = 8) {
   # Load inputs, check parameters and normalize ========================================================================
 
@@ -151,7 +151,7 @@ analyze_fragments <- function(
     cigar_free_indel_match,
     remove_softclip,
     tmp_folder,
-    output_file,
+    output_folder,
     n_cores
   )
 
@@ -299,17 +299,36 @@ analyze_fragments <- function(
   # -------------------------------
   # Write output file if output directory specified
   # -------------------------------
-  if (!(is.na(output_file) || output_file == "")) {
-    # Write file
+  # Only proceed with file writing if an output_folder is specified
+  if (!is.null(output_folder) && !is.na(output_folder) && output_folder != "") {
+    # Define the output filename, with a fallback for a missing sample_id
+    if (!is.null(sample_id) && !is.na(sample_id) && sample_id != "") {
+      # If a sample_id is provided, use it for a dynamic filename
+      output_filename <- paste0(sample_id, "_df_fRagmentomics.tsv")
+    } else {
+      # Otherwise, use a generic, default filename
+      output_filename <- "df_fRagmentomics.tsv"
+      message("No sample_id provided, using default filename: 'df_fRagmentomics.tsv'")
+    }
+
+    # Construct the full, safe output file path
+    full_output_path <- file.path(output_folder, output_filename)
+
+    # Check if the file already exists and warn the user if it will be overwritten
+    if (file.exists(full_output_path)) {
+      message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
+    }
+
+    # Write the data frame to the file
+    message(sprintf("Writing results to: %s", full_output_path))
     write.table(
       df_fragments_info_final,
-      output_file,
+      file = full_output_path,
       sep = "\t",
       quote = FALSE,
       row.names = FALSE
     )
   }
 
-  # Return final dataframe
-  df_fragments_info_final
+  return(df_fragments_info_final)
 }

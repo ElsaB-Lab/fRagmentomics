@@ -68,6 +68,7 @@ After these steps are complete, you can load the package into your R session wit
     * It applies a default filter to keep only primary, paired reads while removing unmapped, secondary, supplementary, and duplicate alignments. This corresponds to the default settings of the `flag_bam_list` argument.
     **Note**: All of these filtering parameters can be customized when calling the `analyze_fragments()` function.
 <br>
+
 2.  **`mut`**: Specifies the mutations to be analyzed. Three input formats are supported:
     * A path to a **VCF** file (e.g., `variants.vcf` or `variants.vcf.gz`).
     * A path to a **TSV** file (e.g., `mutations.tsv` or `mutations.tsv.gz`) containing at least the columns `CHROM`, `POS`, `REF`, and `ALT`.
@@ -86,7 +87,8 @@ After these steps are complete, you can load the package into your R session wit
 
     **Important**: Regardless of the input format, fRagmentomics normalizes all variants using **`bcftools norm`**. This process ensures that indels are **left-aligned** and have a **standardized representation**. This is critical for matching the variant to sequences observed in the BAM file. After normalization, the position of an indel will correspond to the base preceding the event, and both `REF` and `ALT` alleles will be padded with this anchor base, following the VCF standard. For more details, see [Tan A, et al. 2015](https://doi.org/10.1093/bioinformatics/btv112).
 <br>
-1.  **`fasta`**: A path to the reference genome FASTA file. This must be the same reference file that was used to align the BAM file. An index (`.fai`) is required and will be created if not found.
+
+3.  **`fasta`**: A path to the reference genome FASTA file. This must be the same reference file that was used to align the BAM file. An index (`.fai`) is required and will be created if not found.
 
 ---
 
@@ -94,7 +96,7 @@ After these steps are complete, you can load the package into your R session wit
 
 The main function is `analyze_fragments()`.
 
-<img src="man/figure/workflow.PNG" align="center" width="1000" />
+<img src="man/figure/workflow.png" align="center" width="1000" />
 
 ---
 

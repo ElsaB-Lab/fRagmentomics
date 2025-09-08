@@ -16,6 +16,9 @@ build-cran:
 check: build-cran
 	$(R) CMD check $(PKGNAME)_$(PKGVERS).tar.gz --as-cran --no-timestamp
 
+biocheck:
+	$(R) -e 'BiocCheck::BiocCheck()'
+
 manual:
 	$(R) -e 'devtools::document();devtools::build_manual(path=".")'
 

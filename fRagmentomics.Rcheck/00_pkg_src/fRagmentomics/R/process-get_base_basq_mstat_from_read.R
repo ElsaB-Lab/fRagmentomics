@@ -49,10 +49,13 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
           } else if (mstat_large == "MUT") {
             mstat <- "MUT"
           } else {
-            stop(paste(
-              "If the mutation status on the alt sequence is 'MUT', then the mutation status on extended",
-              "sequence cannot be", paste0("'", mstat_large, "'"), "for",
-              paste0(chr, ":", pos, ":", ref, ">", alt)
+            stop(sprintf(
+              "If the mutation status on the alt sequence is 'MUT', then the mutation status on extended sequence cannot be '%s' for %s:%d:%s>%s",
+              mstat_large,
+              chr,
+              pos,
+              ref,
+              alt
             ))
           }
         } else {

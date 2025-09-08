@@ -12,6 +12,10 @@
 #' @param vals_z A character vector of group names to include. If NULL, all groups in 'col_z' are used.
 #' @param colors_z The color scheme for nucleotides. Can be NULL (default ggseqlogo colors), a character string naming
 #' an RColorBrewer palette (e.g., "Dark2"), or a named character vector (e.g., c("A"="blue", "C"="red", ...)).
+#' @param sample_id Sample identifier.
+#' @param output_folder Character vector for the output folder path.
+#' @param ggsave_params A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
+#'   'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.
 #'
 #' @return A 'ggplot' object.
 #'
@@ -26,6 +30,87 @@
 #' @importFrom RColorBrewer brewer.pal brewer.pal.info
 #'
 #' @export
+#'
+#' @examples
+#' ## --- Create a dataset for demonstration ---
+#' # Set a seed for reproducibility
+#' set.seed(42)
+#'
+#' # Helper function to generate random DNA sequences with a bias
+#' generate_biased_dna <- function(n_seq, len, prob) {
+#'     bases <- c("A", "C", "G", "T")
+#'     replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
+#' }
+#'
+#' # Create 50 "MUT" fragments with a high proportion of 'C' at the ends
+#' df_mut <- data.frame(
+#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'     Fragment_Status_Simple = "MUT"
+#' )
+#'
+#' # Create 50 "WT" fragments with a high proportion of 'G' at the ends
+#' df_wt <- data.frame(
+#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'     Fragment_Status_Simple = "WT"
+#' )
+#'
+#' # Combine into a single dataframe
+#' example_df <- rbind(df_mut, df_wt)
+#'
+#' ## --- Function Calls ---
+#'
+#' # 1. Default plot: Shows a 3-base motif from both 5' and 3' ends,
+#' #    separated by a dash, for each group ("MUT" and "WT").
+#' p1 <- plot_qqseqlogo_meme(example_df)
+#' print(p1)
+#'
+#' # 2. Analyze a longer, single-end motif: Shows a 5-base motif
+#' #    from only the 5' end ('motif_type = "Start"').
+#' p2 <- plot_qqseqlogo_meme(
+#'     df_fragments = example_df,
+#'     motif_type = "Start",
+#'     motif_size = 5
+#' )
+#' print(p2)
+#'
+#' # 3. Customizing colors: Use a named RColorBrewer palette.
+#' #    Note the separator "-" is not a nucleotide and won't be colored.
+#' p3 <- plot_qqseqlogo_meme(
+#'     df_fragments = example_df,
+#'     colors_z = "Set1"
+#' )
+#' print(p3)
+#'
+#' # You can also provide a named vector for full control over colors.
+#' custom_cols <- c("A" = "#1B9E77", "C" = "#D95F02", "G" = "#7570B3", "T" = "#E7298A")
+#' p4 <- plot_qqseqlogo_meme(
+#'     df_fragments = example_df,
+#'     motif_type = "Start",
+#'     colors_z = custom_cols
+#' )
+#' print(p4)
+#'
+#' # 4. Ungrouped plot: Analyzes all fragments together as a single group.
+#' p5 <- plot_qqseqlogo_meme(example_df, col_z = NULL)
+#' print(p5)
+#' 
+#' # 5. Save plot with default settings.
+#' # plot_qqseqlogo_meme(
+#' #   df_fragments = example_df,
+#' #   sample_id = "test01_motif",
+#' #   output_folder = tempdir()
+#' # )
+#'
+#' # 6. Save plot with custom dimensions.
+#' # plot_qqseqlogo_meme(
+#' #   df_fragments = example_df,
+#' #   sample_id = "test02_motif_custom",
+#' #   output_folder = tempdir(),
+#' #   ggsave_params = list(width = 15, height = 10, units = "cm")
+#' # )
+#' 
 plot_qqseqlogo_meme <- function(df_fragments,
                                 end_motif_5p = "Fragment_Bases_5p",
                                 end_motif_3p = "Fragment_Bases_3p",
@@ -33,10 +118,15 @@ plot_qqseqlogo_meme <- function(df_fragments,
                                 motif_size = 3,
                                 col_z = "Fragment_Status_Simple",
                                 vals_z = NULL,
-                                colors_z = NULL) {
+                                colors_z = NULL, 
+                                sample_id = NA,
+                                output_folder = NA,
+                                ggsave_params = list()) {
     # --- 1. Input Validation ---
     if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
-    if (!is.null(col_z) && !col_z %in% names(df_fragments)) stop(paste("Column", col_z, "not found in the dataframe."))
+    if (!is.null(col_z) && !col_z %in% names(df_fragments)) {
+        stop(sprintf("Column '%s' not found in the dataframe.", col_z))
+    }
     if (!motif_type %in% c("Start", "End", "Both")) stop("motif_type must be one of 'Start', 'End', or 'Both'.")
 
     # --- 2. Data Filtering and Preparation ---
@@ -99,7 +189,7 @@ plot_qqseqlogo_meme <- function(df_fragments,
 
         if (motif_type == "Both") {
             common_length <- min(length(start_motifs), length(end_motifs))
-            return(paste0(start_motifs[1:common_length], "-", end_motifs[1:common_length]))
+            return(paste0(start_motifs[seq_len(common_length)], "-", end_motifs[seq_len(common_length)]))
         } else if (motif_type == "Start") {
             return(start_motifs)
         } else {
@@ -118,7 +208,10 @@ plot_qqseqlogo_meme <- function(df_fragments,
     new_counts <- map_int(list_of_motifs, length)
     total_removed <- sum(original_counts - new_counts)
     if (total_removed > 0) {
-        warning(paste(total_removed, "motifs containing 'N' were found and removed before plotting."))
+        warning(sprintf(
+            "%d motifs containing 'N' were found and removed before plotting.",
+            total_removed
+        ))
     }
     list_of_motifs <- list_of_motifs[map_int(list_of_motifs, length) > 0]
 
@@ -142,14 +235,20 @@ plot_qqseqlogo_meme <- function(df_fragments,
         if (is.character(colors_z) && length(colors_z) == 1 && colors_z %in% rownames(brewer.pal.info)) {
             max_palette_colors <- brewer.pal.info[colors_z, "maxcolors"]
             if (n_colors_needed > max_palette_colors) {
-                stop(paste0("Palette '", colors_z, "' only has ", max_palette_colors, " colors, but ", n_colors_needed, " are needed."))
+                stop(sprintf(
+                    "Palette '%s' only has %d colors, but %d are needed.",
+                    colors_z, max_palette_colors, n_colors_needed
+                ))
             }
             palette_cols <- brewer.pal(n_colors_needed, colors_z)
             color_scheme <- make_col_scheme(chars = unique_nucleotides, cols = palette_cols)
         } else if (is.character(colors_z) && !is.null(names(colors_z))) {
             if (!all(unique_nucleotides %in% names(colors_z))) {
                 missing_nucs <- setdiff(unique_nucleotides, names(colors_z))
-                stop(paste("Custom colors provided, but missing definitions for nucleotide(s):", paste(missing_nucs, collapse = ", ")))
+                stop(sprintf(
+                    "Custom colors provided, but missing definitions for nucleotide(s): %s",
+                    paste(missing_nucs, collapse = ", ")
+                ))
             }
             color_scheme <- make_col_scheme(chars = names(colors_z), cols = colors_z)
         } else {
@@ -177,11 +276,11 @@ plot_qqseqlogo_meme <- function(df_fragments,
     motif_len <- nchar(list_of_motifs[[1]][1])
     custom_labels <- NULL
     if (motif_type == "Start") {
-        custom_labels <- as.character(1:motif_len)
+        custom_labels <- as.character(seq_len(motif_len))
     } else if (motif_type == "End") {
         custom_labels <- as.character((-motif_len):-1)
     } else if (motif_type == "Both") {
-        start_labels <- 1:motif_size
+        start_labels <- seq_len(motif_size)
         end_labels <- (-motif_size):-1
         custom_labels <- as.character(c(start_labels, "", end_labels))
     }
@@ -189,7 +288,7 @@ plot_qqseqlogo_meme <- function(df_fragments,
     # Create a robust annotation dataframe for custom labels
     facet_names <- names(list_of_motifs)
     base_annotation_df <- tibble(
-        x_pos = 1:motif_len,
+        x_pos = seq_len(motif_len),
         label = custom_labels
     )
     annotation_df <- tidyr::crossing(
@@ -234,5 +333,48 @@ plot_qqseqlogo_meme <- function(df_fragments,
         )
     }
 
-    return(p)
+    # --- 7. Save the plot to a file if an output folder is provided ---
+    # Check if a valid output folder path was provided.
+    if (!is.null(output_folder) && all(!is.na(output_folder) & nzchar(output_folder))) {
+    
+        # Validate that output_folder is a single character string before using it.
+        if (!is.character(output_folder) || length(output_folder) != 1) {
+            stop("'output_folder' must be a single character string.")
+        }
+
+        # Validate sample_id if provided
+        if (!is.na(sample_id) && (!is.character(sample_id) || length(sample_id) != 1)) {
+            stop("'sample_id' must be a single character string.")
+        }
+        
+        # Create directory if it doesn't exist
+        if (!dir.exists(output_folder)) {
+            message(sprintf("Creating output directory: %s", output_folder))
+            dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
+        }
+
+        # --- Filename Generation ---
+        output_filename <- if (!is.na(sample_id) && sample_id != "") {
+            paste0(sample_id, "_motif_plot.png")
+        } else {
+            "motif_plot.png"
+        }
+        full_output_path <- file.path(output_folder, output_filename)
+        
+        if (file.exists(full_output_path)) {
+            message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
+        }
+
+        # --- Set ggsave parameters and save ---
+        default_save_params <- list(width = 8, height = 6, units = "in", dpi = 300)
+        final_save_params <- utils::modifyList(default_save_params, ggsave_params)
+
+        ggsave_args <- c(list(plot = p, filename = full_output_path), final_save_params)
+        
+        message(sprintf("Saving plot to: %s", full_output_path))
+        do.call("ggsave", ggsave_args)
+    }
+  
+  # Return the plot object regardless of whether it was saved
+  return(p)
 }

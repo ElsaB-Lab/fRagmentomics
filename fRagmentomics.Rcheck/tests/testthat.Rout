@@ -31,26 +31,44 @@ Reference allele matches FASTA
 Reference allele matches FASTA
 Reference allele matches FASTA
 Reference allele matches FASTA
+Writing results to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/test_sample_df_fRagmentomics.tsv
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Processing bcftools norm normalisation for variant: chr1:685 C>T
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Writing results to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/df_fRagmentomics.tsv
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+No sample_id provided, using default filename: 'df_fRagmentomics.tsv'
+Writing results to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/df_fRagmentomics.tsv
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Reference allele matches FASTA
+Processing bcftools norm normalisation for variant: chr1:1 A>T
+Reference allele matches FASTA
+Processing bcftools norm normalisation for variant: chr1:685 C>T
+Reference allele matches FASTA
+Processing bcftools norm normalisation for variant: chr1:1 A>T
 Processing bcftools norm normalisation for variant: chr17:126 TG>TGT
-Lines   total/split/joined/realigned/removed/skipped:	1/0/0/1/0/0
 Processing bcftools norm normalisation for variant: chr17:126 TGTA>TG
-Lines   total/split/joined/realigned/removed/skipped:	1/0/0/1/0/0
 Processing bcftools norm normalisation for variant: chr17:126 TGT>TGTAGG
-Lines   total/split/joined/realigned/removed/skipped:	1/0/0/1/0/0
 Processing bcftools norm normalisation for variant: chr17:126 AGT>A
-Reference allele mismatch at chr17:126 .. REF_SEQ:'TGT' vs VCF:'AGT'
 Processing bcftools norm normalisation for variant: chr17:126 TAT>TA
-Reference allele mismatch at chr17:126 .. REF_SEQ:'TGT' vs VCF:'TAT'
 Processing bcftools norm normalisation for variant: chr17:126 T>
-Non-ACGTN alternate allele at chr17:126 .. VCF:'.'
 Processing bcftools norm normalisation for variant: chr17:126 T>-
-Non-ACGTN alternate allele at chr17:126 .. VCF:'-'
 Processing bcftools norm normalisation for variant: chr17:126 >GG
-Non-ACGTN reference allele at chr17:126 .. REF_SEQ:'T' vs VCF:'.'
 Processing bcftools norm normalisation for variant: chr17:126 .>G
-Non-ACGTN reference allele at chr17:126 .. REF_SEQ:'T' vs VCF:'.'
 Processing bcftools norm normalisation for variant: chr17:126 ->GG
-Non-ACGTN reference allele at chr17:126 .. REF_SEQ:'T' vs VCF:'-'
 Reference allele matches FASTA
 Reference allele matches FASTA
 Reference allele matches FASTA
@@ -60,10 +78,32 @@ Reference allele matches FASTA
 Reference allele matches FASTA
 Reference allele matches FASTA
 Reference allele matches FASTA
-[1] "Warning: The following rows have non-integer values in the POS column: "
-[2] "REF can not be multiallelic"                                            
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 453 ]
+Creating output directory: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/new_test_dir
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/new_test_dir/dir_creation_test_nucleotide_frequency.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/sample123_nucleotide_frequency.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/nucleotide_frequency.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/nucleotide_frequency.png
+Creating output directory: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/new_motif_dir
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/new_motif_dir/dir_creation_test_motif_barplot_split_by_base.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/sample123_motif_barplot_differential.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/motif_barplot_split_by_base.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/motif_barplot_split_by_base.png
+Creating output directory: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/new_seqlogo_dir
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/new_seqlogo_dir/dir_creation_test_motif_plot.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/sample_abc_motif_plot.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/motif_plot.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/motif_plot.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/custom_dims_test_motif_plot.png
+Creating output directory: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/new_size_dist_dir
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/new_size_dist_dir/dir_creation_test_size_distribution.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/sample123_size_distribution.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/size_distribution.png
+Saving plot to: /tmp/RtmppHX5WK/working_dir/Rtmp0dTNZN/size_distribution.png
+[1] "The following rows have non-integer values in the POS column and will be converted to NA: 13"
+[2] "NAs introduced by coercion"                                                                  
+[3] "REF can not be multiallelic. These variants have been removed."                              
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 470 ]
 > 
 > proc.time()
    user  system elapsed 
- 19.539   0.946  49.859 
+ 33.710   1.053  52.736 

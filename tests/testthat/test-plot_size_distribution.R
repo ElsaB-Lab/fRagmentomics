@@ -169,3 +169,85 @@ test_that("Axis limits are set correctly", {
     coord_limits <- ggplot_build(p)$layout$coord$limits$x
     expect_equal(coord_limits, custom_limits)
 })
+
+
+# ============== 4. File Saving Tests ==============
+
+test_that("File saving functionality works correctly", {
+  # Use a temporary directory to avoid creating files in the project
+  temp_dir <- tempdir()
+
+  # --- Test 1: Directory creation ---
+  output_subdir <- file.path(temp_dir, "new_size_dist_dir")
+  # Ensure the directory does not exist initially
+  if (dir.exists(output_subdir)) unlink(output_subdir, recursive = TRUE)
+  expect_false(dir.exists(output_subdir))
+
+  plot_size_distribution(
+    df_sample,
+    output_folder = output_subdir,
+    sample_id = "dir_creation_test"
+  )
+
+  # Check that the directory was created...
+  expect_true(dir.exists(output_subdir))
+  # ...and that the file was saved inside it.
+  expected_file_1 <- file.path(output_subdir, "dir_creation_test_size_distribution.png")
+  expect_true(file.exists(expected_file_1))
+  # Clean up
+  unlink(output_subdir, recursive = TRUE)
+
+
+  # --- Test 2: Correct filename generation (with and without sample_id) ---
+  # With sample_id
+  plot_size_distribution(
+    df_sample,
+    output_folder = temp_dir,
+    sample_id = "sample123"
+  )
+  expected_file_2 <- file.path(temp_dir, "sample123_size_distribution.png")
+  expect_true(file.exists(expected_file_2))
+  file.remove(expected_file_2)
+
+  # Without sample_id (NA)
+  plot_size_distribution(
+    df_sample,
+    output_folder = temp_dir,
+    sample_id = NA
+  )
+  expected_file_3 <- file.path(temp_dir, "size_distribution.png")
+  expect_true(file.exists(expected_file_3))
+
+
+  # --- Test 3: Overwrite message ---
+  # Create a dummy file first
+  file.create(expected_file_3)
+  expect_true(file.exists(expected_file_3))
+
+  # Expect a message warning about the overwrite
+  expect_message(
+    plot_size_distribution(
+      df_sample,
+      output_folder = temp_dir,
+      sample_id = NA
+    ),
+    regexp = "already exists and will be overwritten"
+  )
+  file.remove(expected_file_3)
+})
+
+  # --- Test 4: Custom ggsave_params are used ---
+test_that("File saving input validation works", {
+  # Add the 'perfected' validation checks from the function source code
+  # Error if output_folder is not a single string
+  expect_error(
+    plot_size_distribution(df_sample, output_folder = c("path1", "path2")),
+    regexp = "'output_folder' must be a single character string."
+  )
+
+  # Error if sample_id is not a single string (and not NA)
+  expect_error(
+    plot_size_distribution(df_sample, output_folder = tempdir(), sample_id = 123),
+    regexp = "'sample_id' must be a single character string."
+  )
+})

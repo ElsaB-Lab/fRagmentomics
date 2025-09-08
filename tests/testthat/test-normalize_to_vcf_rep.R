@@ -68,7 +68,7 @@ test_that("normalize_to_vcf_rep", {
     chr = "chr1",
     pos = 502,
     ref = "GGTT",
-    alt = "G---",
+    alt = "G_",
     fasta = fasta_loaded_19,
     one_based = TRUE
   )

@@ -100,8 +100,7 @@ normalize_to_vcf_rep <- function(
     # Return the final normalized values
     return(list(chr = chr_norm, pos = pos_norm, ref = ref_norm, alt = alt_norm))
   } else {
-    warning(paste0("Mismatch found between ref and fasta
-    for (", chr, " ", pos, " ", ref, ")."))
+    warning(sprintf("Mismatch found between ref and fasta for (%s %d %s).", chr, pos, ref))
     return(NULL)
   }
 }

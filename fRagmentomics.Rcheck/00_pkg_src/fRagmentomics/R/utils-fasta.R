@@ -24,15 +24,19 @@ get_seq_from_fasta <- function(chr, start, end, fasta_fafile = NULL, fasta_seq =
     f_end <- fasta_seq$end
     f_seq <- fasta_seq$seq
     if (f_chr != chr) {
-      stop(paste(
-        "The requested reference sequence chromosome", chr, "does not match the available",
-        "reference sequence chromosome", f_chr
+      stop(sprintf(
+        "Requested chromosome '%s' does not match the available chromosome '%s'.",
+        chr,
+        f_chr
       ))
     }
     if (start < f_start || end > f_end) {
-      stop(paste(
-        "The requested reference sequence", paste0(start, ":", end), "does not fit into the available",
-        "reference sequence", paste0(f_start, ":", f_end)
+      stop(sprintf(
+        "Requested sequence range %d:%d does not fit into the available reference sequence range %d:%d.",
+        start,
+        end,
+        f_start,
+        f_end
       ))
     }
     ref_seq <- substr(f_seq, start - f_start + 1, end - f_start + 1)
@@ -109,7 +113,7 @@ check_if_ref_matches_fasta <- function(chr, pos, ref, fasta_fafile) {
 
   # Check if the chrom existe in the Fasta
   if (!chr %in% seq_names) {
-    warning(paste0("Chromosome ", chr, " not found in FASTA."))
+    warning(sprintf("Chromosome '%s' not found in FASTA.", chr))
     return(FALSE)
   }
 

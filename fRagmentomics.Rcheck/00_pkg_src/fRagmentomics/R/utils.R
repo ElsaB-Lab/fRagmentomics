@@ -69,7 +69,7 @@ get_pos_indels_from_read <- function(read_stats) {
   current_ref_pos <- read_stats$POS
 
   # Iterate over each CIGAR operation
-  for (i in 1:nrow(cigar_ops)) {
+  for (i in seq_len(nrow(cigar_ops))) {
     op_len <- cigar_ops$length[i]
     op_type <- cigar_ops$type[i]
 
@@ -91,7 +91,7 @@ get_pos_indels_from_read <- function(read_stats) {
       pos_before_insertion <- current_ref_pos - 1
 
       # Create the custom positions for each inserted base
-      inserted_positions <- as.numeric(paste0(pos_before_insertion, ".", 1:op_len))
+      inserted_positions <- as.numeric(paste0(pos_before_insertion, ".", seq_len(op_len)))
       list_pos_ins <- c(list_pos_ins, inserted_positions)
       # current_ref_pos does not change
     } else if (op_type == "N") {

@@ -24,7 +24,7 @@ check_parameters <- function(
     cigar_free_indel_match,
     remove_softclip,
     tmp_folder,
-    output_file,
+    output_folder,
     n_cores) {
   check_mut(mut)
   check_bam(bam)
@@ -40,7 +40,7 @@ check_parameters <- function(
   check_cigar_free_indel_match(cigar_free_indel_match)
   check_remove_softclip(remove_softclip)
   check_tmp_folder(tmp_folder)
-  check_output_file(output_file)
+  check_output_folder(output_folder)
   check_n_cores(n_cores)
 }
 
@@ -52,7 +52,7 @@ check_parameters <- function(
 check_mut <- function(mut) {
   # Check that mut is a single value, whether a filepath or a str representation
   if (length(mut) != 1) {
-    stop("Error: The parameter 'mut' should be a single value, not multiple elements.")
+    stop("The parameter 'mut' should be a single value, not multiple elements.")
   }
 
   # Check if mut is a valid file format (VCF, TSV, or their compressed versions)
@@ -60,7 +60,7 @@ check_mut <- function(mut) {
 
   # If it's a file, check if it exists
   if (is_file_format && !file.exists(mut)) {
-    stop("Error: The Mutation file does not exist: ", mut)
+    stop("The Mutation file does not exist: ", mut)
   }
 }
 
@@ -74,12 +74,12 @@ check_mut <- function(mut) {
 check_bam <- function(bam) {
   # Check if the bam have a correct extension
   if (!grepl("\\.bam$", bam)) {
-    stop("Error: The file does not have a valid BAM extension (.bam): ", bam)
+    stop("The file does not have a valid BAM extension (.bam): ", bam)
   }
 
   # Check if the BAM file exists
   if (!file.exists(bam)) {
-    stop("Error: The BAM file does not exist: ", bam)
+    stop("The BAM file does not exist: ", bam)
   }
 
   # Define the expected BAM index file (.bai)
@@ -101,11 +101,11 @@ check_bam <- function(bam) {
 #' @noRd
 check_fasta <- function(fasta) {
   if (!grepl("\\.fa(sta)?$", fasta)) {
-    stop("Error: The file does not have a valid FASTA extension (.fa or .fasta): ", fasta)
+    stop("The file does not have a valid FASTA extension (.fa or .fasta): ", fasta)
   }
 
   if (!file.exists(fasta)) {
-    stop("Error: The FASTA file does not exist: ", fasta)
+    stop("The FASTA file does not exist: ", fasta)
   }
 
   fasta_index <- paste0(fasta, ".fai")
@@ -122,7 +122,7 @@ check_fasta <- function(fasta) {
 #' @noRd
 check_sample <- function(sample_id) {
   if (!is.na(sample_id) && sample_id == "") {
-    stop("Error: sample ID cannot be empty. Can be NA.")
+    stop("sample ID cannot be empty. Can be NA.")
   }
 }
 
@@ -133,10 +133,10 @@ check_sample <- function(sample_id) {
 #' @noRd
 check_neg_offset_mate_search <- function(neg_offset_mate_search) {
   if (!is.integer(neg_offset_mate_search)) {
-    stop("Error: neg_offset_mate_search must be integer.")
+    stop("neg_offset_mate_search must be integer.")
   }
   if (neg_offset_mate_search > 0) {
-    stop("Error: neg_offset_mate_search must be negative or equal to 0.")
+    stop("neg_offset_mate_search must be negative or equal to 0.")
   }
 }
 
@@ -147,10 +147,10 @@ check_neg_offset_mate_search <- function(neg_offset_mate_search) {
 #' @noRd
 check_pos_offset_mate_search <- function(pos_offset_mate_search) {
   if (!is.integer(pos_offset_mate_search)) {
-    stop("Error: pos_offset_mate_search must be interger.")
+    stop("pos_offset_mate_search must be interger.")
   }
   if (pos_offset_mate_search < 0) {
-    stop("Error: pos_offset_mate_search must be positive or equal to 0..")
+    stop("pos_offset_mate_search must be positive or equal to 0..")
   }
 }
 
@@ -161,7 +161,7 @@ check_pos_offset_mate_search <- function(pos_offset_mate_search) {
 #' @noRd
 check_one_based <- function(one_based) {
   if (!is.logical(one_based) || length(one_based) != 1) {
-    stop("Error: one_based must be a single logical value.")
+    stop("one_based must be a single logical value.")
   }
 }
 
@@ -175,13 +175,13 @@ check_one_based <- function(one_based) {
 check_flag_bam_list <- function(flag_bam_list) {
   # Check if the input is a list
   if (!is.list(flag_bam_list)) {
-    stop("Error: 'flag_bam_list' must be a list.")
+    stop("'flag_bam_list' must be a list.")
   }
 
   # Check if all values in the list are logical (TRUE, FALSE, or NA)
   all_values_logical <- all(vapply(flag_bam_list, is.logical, logical(1)))
   if (!all_values_logical) {
-    stop("Error: All values in 'flag_bam_list' must be logical (TRUE, FALSE, or NA).")
+    stop(" All values in 'flag_bam_list' must be logical (TRUE, FALSE, or NA).")
   }
 
   # Check if the list items are named and if the names are valid
@@ -190,16 +190,15 @@ check_flag_bam_list <- function(flag_bam_list) {
     user_flag_names <- names(flag_bam_list)
 
     if (is.null(user_flag_names) || any(user_flag_names == "")) {
-      stop("Error: All elements in a non-empty 'flag_bam_list' must be named.")
+      stop("All elements in a non-empty 'flag_bam_list' must be named.")
     }
 
     invalid_names <- user_flag_names[!user_flag_names %in% valid_flag_names]
     if (length(invalid_names) > 0) {
-      stop(
-        "Error: Invalid name(s) found in 'flag_bam_list': ",
-        paste(shQuote(invalid_names), collapse = ", "),
-        ".\n\nSee ?Rsamtools::scanBamFlag for a list of valid flag names."
-      )
+      stop(sprintf(
+        "Invalid name(s) found in 'flag_bam_list': %s.\n\nSee ?Rsamtools::scanBamFlag for a list of valid flag names.",
+        paste(shQuote(invalid_names), collapse = ", ")
+      ))
     }
   }
 }
@@ -211,10 +210,10 @@ check_flag_bam_list <- function(flag_bam_list) {
 #' @noRd
 check_report_bases_fragm_5p_3p <- function(report_5p_3p_bases_fragment) {
   if (!is.integer(report_5p_3p_bases_fragment)) {
-    stop("Error: report_bases_fragment_5p_3p must be integer.")
+    stop("report_bases_fragment_5p_3p must be integer.")
   }
   if (report_5p_3p_bases_fragment < 0) {
-    stop("Error: report_bases_fragment_5p_3p must be non-negative.")
+    stop("report_bases_fragment_5p_3p must be non-negative.")
   }
 }
 
@@ -225,7 +224,7 @@ check_report_bases_fragm_5p_3p <- function(report_5p_3p_bases_fragment) {
 #' @noRd
 check_report_tlen <- function(report_tlen) {
   if (!is.logical(report_tlen) || length(report_tlen) != 1) {
-    stop("Error: report_tlen must be a single logical value.")
+    stop("report_tlen must be a single logical value.")
   }
 }
 
@@ -236,7 +235,7 @@ check_report_tlen <- function(report_tlen) {
 #' @noRd
 check_report_softclip <- function(report_softclip) {
   if (!is.logical(report_softclip) || length(report_softclip) != 1) {
-    stop("Error: report_softclip must be a single logical value.")
+    stop("report_softclip must be a single logical value.")
   }
 }
 
@@ -247,7 +246,7 @@ check_report_softclip <- function(report_softclip) {
 #' @noRd
 check_cigar_free_indel_match <- function(cigar_free_indel_match) {
   if (!is.logical(cigar_free_indel_match) || length(cigar_free_indel_match) != 1) {
-    stop("Error: cigar_free_indel_match must be a single logical value.")
+    stop("cigar_free_indel_match must be a single logical value.")
   }
 }
 
@@ -258,7 +257,7 @@ check_cigar_free_indel_match <- function(cigar_free_indel_match) {
 #' @noRd
 check_remove_softclip <- function(remove_softclip) {
   if (!is.logical(remove_softclip) || length(remove_softclip) != 1) {
-    stop("Error: remove_softclip must be a single logical value.")
+    stop("remove_softclip must be a single logical value.")
   }
 }
 
@@ -273,7 +272,7 @@ check_tmp_folder <- function(tmp_folder) {
   }
 
   if (!is.character(tmp_folder) || length(tmp_folder) != 1) {
-    stop("Error: tmp_folder must be a single character string or NA.")
+    stop("tmp_folder must be a single character string or NA.")
   }
 
   if (!dir.exists(tmp_folder)) {
@@ -281,31 +280,26 @@ check_tmp_folder <- function(tmp_folder) {
   }
 }
 
-#' Check if the output file's directory exists. If not, create it.
-#' Warn if the file already exists and will be overwritten.
+#' Check if a directory exists. If not, create it.
 #'
-#' @inheritParams check_parameters
+#' @param output_folder A single character string for the directory path.
 #'
 #' @noRd
-check_output_file <- function(output_file) {
-  if (is.na(output_file) || output_file == "") {
+check_output_folder <- function(output_folder) {
+  # Return silently if the path is empty, NA or NULL
+  if (is.null(output_folder) || is.na(output_folder) || output_folder == "") {
     return(invisible(NULL))
   }
 
-  if (!is.character(output_file) || length(output_file) != 1) {
-    stop("Error: 'output_file' must be a single character string even empty (or NA).")
+  # Validate the input type
+  if (!is.character(output_folder) || length(output_folder) != 1) {
+    stop("'output_folder' must be a single character string.")
   }
 
-  # Create folder if necessary
-  output_dir <- dirname(output_file)
-
-  if (!dir.exists(output_dir)) {
-    message(sprintf("Creating output directory: %s", output_dir))
-    dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-  }
-
-  if (file.exists(output_file)) {
-    message(sprintf("Warning: The file '%s' already exists and will be overwritten.", output_file))
+  # Check if the directory exists and create it if not
+  if (!dir.exists(output_folder)) {
+    message(sprintf("Creating directory: %s", output_folder))
+    dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
   }
 }
 
@@ -316,9 +310,9 @@ check_output_file <- function(output_file) {
 #' @noRd
 check_n_cores <- function(n_cores) {
   if (!is.integer(n_cores)) {
-    stop("Error: n_cores must be integer.")
+    stop("n_cores must be integer.")
   }
   if (n_cores <= 0) {
-    stop("Error: n_cores must be positive.")
+    stop("n_cores must be positive.")
   }
 }
