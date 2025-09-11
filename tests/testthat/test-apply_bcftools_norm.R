@@ -40,4 +40,6 @@ test_that("apply_bcftools_norm", {
   expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "", "GG", fasta_38, tempdir())))
   expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, ".", "G", fasta_38, tempdir())))
   expect_null(suppressWarnings(apply_bcftools_norm("chr17", 126, "-", "GG", fasta_38, tempdir())))
+
+  close(fasta_loaded_38)
 })

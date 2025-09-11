@@ -14,6 +14,7 @@ author:
     affiliation: "Gustave Roussy"
     email: "elsa.bernard@gustaveroussy.fr"
 date: "`r Sys.Date()`"
+package: fRagmentomics
 output:
   BiocStyle::html_document:
     toc: true
@@ -42,11 +43,11 @@ Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. W
 
 **fRagmentomics** addresses this need by providing a robust and flexible R package to integrate cfDNA fragment features with their mutational status. By standardizing the analysis of both SNVs and indels at the single-fragment level, fRagmentomics supports the interpretation of liquid biopsies to distinguish tumoral origin.
 
-This vignette provides a step-by-step walkthrough of the main analysis workflow using the `analyze_fragments()` function and demonstrates the package's core visualization capabilities. 
+This vignette provides a step-by-step walkthrough of the main analysis workflow using the `analyze_fragments()` function and demonstrates the package's core visualization capabilities thank to the visualisation functions: `plot_size_distribution()`, `plot_qqseqlogo_meme()`, `plot_freq_barplot()`, `plot_motif_barplot()`.
 
 # Installation
 
-To run this vignette, you will need the `fRagmentomics` package and its dependencies installed. Please refer to the `README.md` file on the package's [GitHub repository](https://github.com/ElsaB-Lab/fRagmentomics) for full installation instructions.
+To run this vignette, you will need the `fRagmentomics` package and its dependencies installed.
 
 ```{r install, eval=FALSE}
 # This command, from the README, installs all necessary dependencies
@@ -59,11 +60,19 @@ BiocManager::install("ElsaB-Lab/fRagmentomics")
 
 # A Complete Analysis Workflow
 
-The entire analysis is performed by a single function: `analyze_fragments()`. We will use the example data included with the package to demonstrate a typical workflow.
+To make it user-friendly, the entire analysis is performed by a single function: `analyze_fragments()`. We will use the example data included with the package to demonstrate a typical workflow.
+
+For a deeper dive into the package's methodology, please refer to the `README.md` file on the project's [GitHub repository](https://github.com/ElsaB-Lab/fRagmentomics).
+
+The README provides detailed explanations of:
+* The normalization for converting indel representations into a standardized VCF format.
+* The context-aware algorithm for determining read status.
+* The formulas used for precise fragment size calculation.
+* The logic for classifying fragments into different mutational groups.
 
 ## 1. Loading the Package and Example Data
 
-First, we load the `fRagmentomics` library. The package includes a small BAM file, a corresponding FASTA reference, and a list of mutations to make testing easy. We locate these files using `system.file()`.
+First, we load the `fRagmentomics` library. The package includes a small BAM file, a corresponding FASTA reference, and a list of mutations to make testing easy.
 
 ```{r load_data}
 library(fRagmentomics)
@@ -88,6 +97,24 @@ print(bam_file)
 print(fasta_file)
 ```
 
+During the processing, fRagmentomics will standardize your indel representation and position because of the different possibiles of representation.
+The following table summarizes the accepted formats:
+
+**Simple Format**
+
+| To describe a...         | `REF` Column                      | `ALT` Column                      | `POS` Column                               |
+|:-------------------------|:----------------------------------|:----------------------------------|:-------------------------------------------|
+| Deletion of **"AT"** | `AT`                              | `""` (empty), `-`, `.`, `_`, `NA`  | Position of the first deleted base (`A`)   |
+| Insertion of **"CT"** | `""` (empty), `-`, `.`, `_`, `NA`  | `CT`                              | Position of the base *before* the insertion |
+
+**VCF-Style Padded Format**
+
+| To describe a...                   | `REF` Column | `ALT` Column | `POS` Column                                |
+|:-----------------------------------|:-------------|:-------------|:--------------------------------------------|
+| Deletion of **"AT"** from "G**AT**"  | `GAT`        | `G`          | Position of the anchor base (`G`)           |
+| Insertion of **"CT**" after "A"    | `A`          | `ACT`        | Position of the anchor base (`A`)           |
+
+
 ## 2. Running the Analysis
 
 Next, we call `analyze_fragments()` with the paths to our three input files. We also provide a `sample_id` for annotation and specify the number of cores for parallel processing.
@@ -102,6 +129,9 @@ results_df <- analyze_fragments(
   n_cores = 2
 )
 ```
+
+
+To only considers reads within a 1600 bp window around the variant's position thanks ot the parameters `neg_offset_mate_search` and `pos_offset_mate_search`.
 
 ## 3. Exploring the Output
 
