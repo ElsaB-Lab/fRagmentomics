@@ -40,6 +40,7 @@ __pycache__/
 # R
 *.Rproj.user
 *.Rproj
+*.RData
 renv.lock
 activate.R
 renv/
