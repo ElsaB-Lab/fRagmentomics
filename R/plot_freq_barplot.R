@@ -106,7 +106,7 @@
 #' #   output_folder = tempdir(),
 #' #   ggsave_params = list(width = 7, height = 5, units = "in")
 #' # )
-#' 
+#'
 plot_freq_barplot <- function(df_fragments,
                               end_motif_5p = "Fragment_Bases_5p",
                               end_motif_3p = "Fragment_Bases_3p",
@@ -184,7 +184,7 @@ plot_freq_barplot <- function(df_fragments,
         select(-motif) %>%
         pivot_longer(
             cols = all_of(nucleotide_cols),
-            names_to = "nucleotide", 
+            names_to = "nucleotide",
             values_to = "count"
         ) %>%
         group_by(group, nucleotide) %>%
@@ -256,7 +256,6 @@ plot_freq_barplot <- function(df_fragments,
     # --- 7. Save the plot to a file if an output folder is provided ---
     # Check if a valid output folder path was provided.
     if (!is.null(output_folder) && all(!is.na(output_folder) & nzchar(output_folder))) {
-        
         # Validate that output_folder is a single character string before using it.
         if (!is.character(output_folder) || length(output_folder) != 1) {
             stop("'output_folder' must be a single character string.")
@@ -266,13 +265,13 @@ plot_freq_barplot <- function(df_fragments,
         if (!is.na(sample_id) && (!is.character(sample_id) || length(sample_id) != 1)) {
             stop("'sample_id' must be a single character string.")
         }
-        
+
         # Create directory if it doesn't exist
         if (!dir.exists(output_folder)) {
             message(sprintf("Creating output directory: %s", output_folder))
             dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
         }
-        
+
         # --- Filename Generation ---
         output_filename <- if (!is.na(sample_id) && sample_id != "") {
             paste0(sample_id, "_nucleotide_frequency.png")
@@ -280,17 +279,17 @@ plot_freq_barplot <- function(df_fragments,
             "nucleotide_frequency.png"
         }
         full_output_path <- file.path(output_folder, output_filename)
-        
+
         if (file.exists(full_output_path)) {
             message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
         }
-        
+
         # --- Set ggsave parameters and save ---
         default_save_params <- list(width = 8, height = 6, units = "in", dpi = 300)
         final_save_params <- utils::modifyList(default_save_params, ggsave_params)
-        
+
         ggsave_args <- c(list(plot = final_plot, filename = full_output_path), final_save_params)
-        
+
         message(sprintf("Saving plot to: %s", full_output_path))
         do.call("ggsave", ggsave_args)
     }

@@ -7,9 +7,9 @@
 
 Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. The majority of cfDNA originates from hematopoietic cells, which complicates the interpretation of circulating tumor DNA (ctDNA) in the absence of matched sequencing from white blood cells. Recent work has demonstrated that ctDNA fragments have distinct size distribution profiles and 5’/3’ end sequences compared to healthy cfDNA fragments.
 
-However, there is currently no published tool that standardizes an in-depth analysis of these fragmentomic features in direct relation to the mutational status of each fragment for SNV and Insertion/Deletion (Indels). This presents significant technical challenges, such as the lack of consensus on the representation and positioning of indels and the multiple approaches to calculating fragment size.
+However, there is currently no published tool that standardizes an in-depth analysis of these fragmentomic features in relation to the mutational status of each fragment for SNV and Insertion/Deletion (Indels). This presents significant technical challenges, such as the lack of consensus on the representation and positioning of indels and the multiple approaches to calculating fragment size.
 
-**fRagmentomics** addresses this need by providing a standardized and user-friendly R package that integrates cfDNA fragment features (size, end sequences) with their specific mutational status (for both SNVs and indels). By providing a framework for per-fragment analysis, fRagmentomics aims to support the interpretation of liquid biopsies and to help determine the origin of cfDNA fragments.
+**fRagmentomics** provides a standardized and user-friendly R package that integrates cfDNA fragment features (size, end sequences) with their specific mutational status (for both SNVs and indels). By providing a framework for per-fragment analysis, fRagmentomics aims to support the interpretation of liquid biopsies and to help determine the origin of cfDNA fragments.
 
 ---
 
@@ -21,7 +21,7 @@ fRagmentomics is built and tested under **R version 4.4.3**.
 
 ### System Dependencies
 
-fRagmentomics requires **`bcftools` (version 1.21 recommended)** for variant normalization. Please ensure it is installed and accessible in your system's PATH.
+fRagmentomics requires **`bcftools` (version 1.21 recommended)** for variant normalization. Please, ensure it is installed and accessible in your system's PATH.
 
 We recommend using mamba for faster installation, but you can also use conda by replacing mamba by conda in the command:
 
@@ -109,7 +109,7 @@ fRagmentomics can extract mutational informations and fragmentomics features for
    * **`Chromosome`**/**`Position`**/**`Ref`**/**`Alt`**: Mutation information **after** the normalisation.
    * **`Input_Mutation`**: Input mutation information.
 
-<br>
+
 
 ### Fragment mutational status
 
@@ -131,14 +131,12 @@ For more details, see [Definition of Fragment Status](#definition-of-fragment-st
        >**VAF** = 100 * (`Number of MUT Fragments`) / (`Number of MUT Fragments` + `Number of NON-TARGET MUT Fragments`)
 
        **Important Note on the Calculation:**
-       * Fragments with an `AMB` (Ambiguous) or `DISCORDANT` status are **excluded** from the VAF calculation.
        * The denominator includes **all** fragments that cover the position but do not carry the specific mutation of interest (`NON-TARGET MUT`). This means it counts both:
            1.  Fragments that match the **reference (wild-type) allele**.
            2.  Fragments that carry **another different mutation** at the same position (a third allele).
+           3.  Fragments that carry **discordant informations** but never with the mutation of interest (WT/OTH).
 
        This approach differs from another conventional VAF calculation that might only use reference-matching fragments in the denominator.
-
-<br>
 
 ### Fragmentomics features of the fragment
 
@@ -146,8 +144,6 @@ For more details, see [Definition of Fragment Size](#definition-of-fragment-size
 
    * **`Fragment_Size`**
    * **`Fragment_Bases_5p/3p`** & **`Fragment_Basqs_5p/3p`**: The first and last `n` bases/qualities of the fragment's ends. The number `n` is set by the `report_5p_3p_bases_fragment` argument (included if `n` > 0).
-
-<br>
 
 ### Other informations
 
@@ -168,7 +164,7 @@ A key feature of fRagmentomics is its method for determining the mutational stat
 
 ### The Challenge: Ambiguity in Short Reads
 
-Interpreting a variant requires analyzing its surrounding nucleotide context, not just the variant site itself. For SNVs and MNVs, this means checking the adjacent bases to ensure a simple mutation is not part of a larger event. Similarly, for MNVs and indels, a read is  considered truly informative if it covers the entire variant and some of its flanking sequence, which is essential for resolving potential ambiguities.
+Interpreting a variant requires analyzing its surrounding nucleotide context, not just the variant site itself. For SNVs and MNVs, this means checking the adjacent bases to ensure a simple mutation is not part of a larger event. For MNVs and indels, a read is considered truly informative if it covers the entire variant and some of its flanking sequence, which is essential for resolving potential ambiguities.
 
 **An Example of Indel Ambiguity**
 
@@ -181,10 +177,10 @@ Mutant Allele: A G G G G G T C C
 ```
 
 Now, imagine a read aligns to this position at the end of it's sequence. If the read sequence is `AGGG`, which of these is correct?
-1.  It perfectly matches the **reference** allele (`A G G G` T C C ).
-2.  It partially matches the **mutant** allele (`A G G G` G G T C C).
+1.  It perfectly matches the **reference** allele (`A G G G T C C`).
+2.  It partially matches the **mutant** allele (`A G G G G G T C C`).
 
-Without seeing the `T` that follows the repeat, it's impossible to be certain. The read is **ambiguous**.
+Without seeing the first nucleotide that breaks the repeted sequence, here `T`, it's impossible to be certain. The read is **ambiguous**.
 
 ### The fRagmentomics Solution: Context-Aware Comparison
 
@@ -254,21 +250,32 @@ The concept of fragment length can be ambiguous as noted in the [official SAM/BA
 
 The size is calculated by summing the lengths of the 5' and 3' reads and the inner distance (gap or overlap) between them. If the reads overlap, the formula makes a correction for any indels within that region to avoid miscounting them.
 
-> **Fragment Size** = (Read 1 Length) + (Read 2 Length) + (Inner Distance) + (Shared Deletions in Overlap) - (Shared Insertions in Overlap)
+To calculate the fragment size, `fRagmentomics` first determines the inner boundaries of each read's alignment on the reference genome.
+
+> **1. Read 5' Inner Boundary** = (`Read 5' Start POS`) + (`5' Matched Bases`) + (`5' Deletions`) + (`5' Right Soft-clips`) - 1
+> **2. Read 3' Inner Boundary** = (`Read 3' Start POS`) - (`3' Left Soft-clips`)
+> **3. Inner Distance** = (`Read 3' Inner Boundary`) - (`Read 5' Inner Boundary`) - 1
+
+> **Fragment Size** = (`Read 5' Length`) + (`Inner Distance`) + (`Shared Deletions in Overlap`) - (`Shared Insertions in Overlap`) + (`Read 3' Length`)
 
 ### Handling Soft-Clipped Bases
 
-Soft-clipped bases at the external ends of a fragment (the 5' end of the 5' read and the 3' end of the 3' read) can be ambiguous. They may represent:
+Soft-clipped bases at the ends of a fragment can be ambiguous. They may represent:
+
 * **Technical artifacts**.
 * **True biological variation**, like a terminal indel that was classified as a soft-clip by the aligner.
 
-fRagmentomics gives you control over how to interpret these bases via the `remove_softclip` argument:
+The fragment size calculation first determines the full alignment span of each read on the reference genome. This span is calculated from the CIGAR string and **includes all soft-clipped bases**, both at the "internal" ends (3'-end of the 5' read, 5'-end of the 3' read) and the "external" ends of the fragment.
 
-* **`remove_softclip = FALSE`** (Default): Soft-clipped bases are considered **part of the original DNA fragment**. The size calculation will include them in the fragment's total span.
+This method handles complex cases. For example, when a DNA fragment is shorter than the read length, the sequencer reads into the adapter sequence, which the aligner then soft-clips ([see documentation](https://knowledge.illumina.com/library-preparation/general/library-preparation-general-reference_material-list/000003874)). In this scenario, the "internal" soft-clip defines the read's full alignment span on the reference. The `Inner Distance` calculation then  identifies a large overlap, and the final `Fragment Size` formula resolves to the true, short fragment length.
 
-* **`remove_softclip = TRUE`**: Soft-clipped bases are treated as **technical artifacts**. They are trimmed from the reads *before* any analysis. The fragment size will be calculated based on the trimmed read lengths.
+The `remove_softclip` argument gives you control over how to treat the **external soft-clips only**:
 
-<img src="man/figure/fragment_size.png" align="center" />
+* **`remove_softclip = FALSE`** (Default): External soft-clipped bases are considered part of the original DNA molecule. The size calculation will include them in the fragment's total span.
+
+* **`remove_softclip = TRUE`**: External soft-clipped bases are treated as technical artifacts. They are trimmed from the reads *before* any size calculation or other analysis occurs.
+
+<img src="man/figure/fragment_size.png" align="center" width="800"/>
 
 ---
 
@@ -326,8 +333,18 @@ The `plot_size_distribution()` function generates density plots or histograms to
 
 ```r
 # Assuming 'results_df' is the output from analyze_fragments()
-plot_size_distribution(results_df)
+plot_size_distribution(
+  df_fragments = results_df,
+  vals_z = c("MUT", "NON-TARGET MUT"),
+  show_histogram = TRUE,
+  show_density = FALSE,
+  x_limits = c(100, 420),
+  density_args = list(linewidth = 1.4),
+  histo_args = list(alpha = 0.2)
+)
 ```
+
+<img src="man/figure/distribution_size.png" align="center" />
 
 ### 2. End Motif Sequence Logos
 
@@ -335,8 +352,14 @@ The `plot_qqseqlogo_meme()` function creates sequence logo plots to visualize th
 
 ```r
 # Plot the sequence logo for the first 6 bases of the 5' end
-plot_qqseqlogo_meme(results_df, motif_type = "Start", motif_size = 6)
+plot_qqseqlogo_meme(
+  df_fragments = results_df,
+  motif_size = 3,
+  vals_z = c("MUT", "NON-TARGET MUT")
+)
 ```
+
+<img src="man/figure/ggseqlogo.png" align="center" />
 
 ### 3. Overall Nucleotide Frequency
 
@@ -344,8 +367,13 @@ The `plot_freq_barplot()` function creates a faceted bar plot to show the overal
 
 ```r
 # Analyze the overall nucleotide frequency in the first 5 bases
-plot_freq_barplot(results_df, motif_size = 5)
+plot_freq_barplot(
+  df_fragments = results_df,
+  motif_size = 5
+)
 ```
+
+<img src="man/figure/freq_plot.png" align="center" />
 
 ### 4. Detailed 3-Base Motif Proportions
 
@@ -353,8 +381,14 @@ The `plot_motif_barplot()` function shows the frequency of specific 3-base motif
 
 ```r
 # Use the default hierarchical representation to visualize 3-mer proportions
-plot_motif_barplot(results_df, representation = "split_by_base")
+plot_motif_barplot(
+  results_df,
+  representation = "differential", 
+  vals_z = c("MUT", "NON-TARGET MUT")
+)
 ```
+
+<img src="man/figure/differential_plot.png" align="center" />
 
 ---
 
@@ -368,4 +402,4 @@ If you encounter a bug or have an idea for a new feature, please open an issue o
 
 ## License
 
-This project is licensed under the **GPL-3.0 License**. See the `LICENSE` file for more details.
+This project is licensed under the **GPL-3.0 License**. See the LICENSE file for more details.

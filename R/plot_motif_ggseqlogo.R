@@ -95,7 +95,7 @@
 #' # 4. Ungrouped plot: Analyzes all fragments together as a single group.
 #' p5 <- plot_qqseqlogo_meme(example_df, col_z = NULL)
 #' print(p5)
-#' 
+#'
 #' # 5. Save plot with default settings.
 #' # plot_qqseqlogo_meme(
 #' #   df_fragments = example_df,
@@ -110,7 +110,7 @@
 #' #   output_folder = tempdir(),
 #' #   ggsave_params = list(width = 15, height = 10, units = "cm")
 #' # )
-#' 
+#'
 plot_qqseqlogo_meme <- function(df_fragments,
                                 end_motif_5p = "Fragment_Bases_5p",
                                 end_motif_3p = "Fragment_Bases_3p",
@@ -118,7 +118,7 @@ plot_qqseqlogo_meme <- function(df_fragments,
                                 motif_size = 3,
                                 col_z = "Fragment_Status_Simple",
                                 vals_z = NULL,
-                                colors_z = NULL, 
+                                colors_z = NULL,
                                 sample_id = NA,
                                 output_folder = NA,
                                 ggsave_params = list()) {
@@ -142,6 +142,36 @@ plot_qqseqlogo_meme <- function(df_fragments,
     } else {
         df_filtered$placeholder_group <- "All Fragments"
         col_z <- "placeholder_group"
+    }
+
+    # Find the length of the shortest sequence in the relevant columns.
+    min_len_available <- Inf
+
+    # Check sequences if they are part of the analysis.
+    if (motif_type %in% c("Start", "Both") && end_motif_5p %in% names(df_filtered)) {
+        sequences_5p <- na.omit(df_filtered[[end_motif_5p]])
+        if (length(sequences_5p) > 0) {
+            min_len_available <- min(min_len_available, min(nchar(sequences_5p)))
+        }
+    }
+
+    if (motif_type %in% c("End", "Both") && end_motif_3p %in% names(df_filtered)) {
+        sequences_3p <- na.omit(df_filtered[[end_motif_3p]])
+        if (length(sequences_3p) > 0) {
+            min_len_available <- min(min_len_available, min(nchar(sequences_3p)))
+        }
+    }
+
+    # If the requested motif_size is larger than the data supports, adjust it.
+    if (motif_size > min_len_available) {
+        # Warn the user that motif_size has been automatically reduced.
+        warning(sprintf(
+            "Requested 'motif_size' (%d) is larger than the shortest available sequence (%d). Size has been adjusted to %d.",
+            motif_size, min_len_available, min_len_available
+        ), call. = FALSE)
+
+        # Cap the motif_size at the maximum possible value.
+        motif_size <- min_len_available
     }
 
     # --- 3. Motif Extraction to a Named List ---
@@ -336,7 +366,6 @@ plot_qqseqlogo_meme <- function(df_fragments,
     # --- 7. Save the plot to a file if an output folder is provided ---
     # Check if a valid output folder path was provided.
     if (!is.null(output_folder) && all(!is.na(output_folder) & nzchar(output_folder))) {
-    
         # Validate that output_folder is a single character string before using it.
         if (!is.character(output_folder) || length(output_folder) != 1) {
             stop("'output_folder' must be a single character string.")
@@ -346,7 +375,7 @@ plot_qqseqlogo_meme <- function(df_fragments,
         if (!is.na(sample_id) && (!is.character(sample_id) || length(sample_id) != 1)) {
             stop("'sample_id' must be a single character string.")
         }
-        
+
         # Create directory if it doesn't exist
         if (!dir.exists(output_folder)) {
             message(sprintf("Creating output directory: %s", output_folder))
@@ -360,7 +389,7 @@ plot_qqseqlogo_meme <- function(df_fragments,
             "motif_plot.png"
         }
         full_output_path <- file.path(output_folder, output_filename)
-        
+
         if (file.exists(full_output_path)) {
             message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
         }
@@ -370,11 +399,11 @@ plot_qqseqlogo_meme <- function(df_fragments,
         final_save_params <- utils::modifyList(default_save_params, ggsave_params)
 
         ggsave_args <- c(list(plot = p, filename = full_output_path), final_save_params)
-        
+
         message(sprintf("Saving plot to: %s", full_output_path))
         do.call("ggsave", ggsave_args)
     }
-  
-  # Return the plot object regardless of whether it was saved
-  return(p)
+
+    # Return the plot object regardless of whether it was saved
+    return(p)
 }

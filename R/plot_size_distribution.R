@@ -47,12 +47,12 @@
 #'
 #' # Combine into a single dataframe
 #' example_df_size <- data.frame(
-#'   Fragment_Size = c(mut_sizes, wt_sizes, di_nuc_sizes),
-#'   Fragment_Status_Simple = c(
-#'     rep("MUT", 100),
-#'     rep("WT", 150),
-#'     sample(c("MUT", "WT"), 30, replace = TRUE)
-#'   )
+#'     Fragment_Size = c(mut_sizes, wt_sizes, di_nuc_sizes),
+#'     Fragment_Status_Simple = c(
+#'         rep("MUT", 100),
+#'         rep("WT", 150),
+#'         sample(c("MUT", "WT"), 30, replace = TRUE)
+#'     )
 #' )
 #' # Ensure all fragment sizes are positive
 #' example_df_size <- example_df_size[example_df_size$Fragment_Size > 0, ]
@@ -66,29 +66,29 @@
 #' # 2. Histogram plot: Show distributions as histograms instead of density curves.
 #' #    We add transparency (alpha) so overlapping bars are visible.
 #' p2 <- plot_size_distribution(
-#'   df_fragments = example_df_size,
-#'   show_histogram = TRUE,
-#'   show_density = FALSE,
-#'   histo_args = list(alpha = 0.6)
+#'     df_fragments = example_df_size,
+#'     show_histogram = TRUE,
+#'     show_density = FALSE,
+#'     histo_args = list(alpha = 0.6)
 #' )
 #' print(p2)
 #'
 #' # 3. Combined plot: Overlay both density curves and histograms.
 #' p3 <- plot_size_distribution(
-#'   df_fragments = example_df_size,
-#'   show_histogram = TRUE,
-#'   show_density = TRUE,
-#'   histo_args = list(alpha = 0.4)
+#'     df_fragments = example_df_size,
+#'     show_histogram = TRUE,
+#'     show_density = TRUE,
+#'     histo_args = list(alpha = 0.4)
 #' )
 #' print(p3)
 #'
 #' # 4. Ungrouped and customized plot: Analyze all fragments together,
 #' #    zoom in on the x-axis, and hide the nucleosome peak lines.
 #' p4 <- plot_size_distribution(
-#'   df_fragments = example_df_size,
-#'   col_z = NULL,
-#'   x_limits = c(50, 400),
-#'   show_nuc_peaks = FALSE
+#'     df_fragments = example_df_size,
+#'     col_z = NULL,
+#'     x_limits = c(50, 400),
+#'     show_nuc_peaks = FALSE
 #' )
 #' print(p4)
 #'
@@ -106,7 +106,7 @@
 #' #   output_folder = tempdir(),
 #' #   ggsave_params = list(width = 20, height = 10, units = "cm", bg = "white")
 #' # )
-#' 
+#'
 plot_size_distribution <- function(df_fragments,
                                    size_col = "Fragment_Size",
                                    col_z = "Fragment_Status_Simple",
@@ -192,7 +192,8 @@ plot_size_distribution <- function(df_fragments,
         theme_bw(base_size = 14) +
         theme(
             plot.title = element_text(hjust = 0.5, face = "bold"), legend.title = element_text(face = "bold"),
-            panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "bottom"
+            panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "bottom",
+            panel.border = element_blank(), axis.line = element_line(colour = "black")
         )
     if (!is.null(x_limits)) {
         p <- p + coord_cartesian(xlim = x_limits)
@@ -201,7 +202,6 @@ plot_size_distribution <- function(df_fragments,
     # --- 6. Save the plot to a file if an output folder is provided ---
     # Check if a valid output folder path was provided.
     if (!is.null(output_folder) && all(!is.na(output_folder) & nzchar(output_folder))) {
-
         # Validate that output_folder is a single character string before using it.
         if (!is.character(output_folder) || length(output_folder) != 1) {
             stop("'output_folder' must be a single character string.")
@@ -222,20 +222,20 @@ plot_size_distribution <- function(df_fragments,
         output_filename <- if (!is.na(sample_id) && sample_id != "") {
             paste0(sample_id, "_size_distribution.png")
         } else {
-        "size_distribution.png"
+            "size_distribution.png"
         }
         full_output_path <- file.path(output_folder, output_filename)
 
         if (file.exists(full_output_path)) {
-        message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
+            message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
         }
 
         # --- Set ggsave parameters and save ---
         default_save_params <- list(width = 8, height = 6, units = "in", dpi = 300)
         final_save_params <- utils::modifyList(default_save_params, ggsave_params)
-        
+
         ggsave_args <- c(list(plot = p, filename = full_output_path), final_save_params)
-        
+
         message(sprintf("Saving plot to: %s", full_output_path))
         do.call("ggsave", ggsave_args)
     }

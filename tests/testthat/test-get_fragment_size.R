@@ -346,4 +346,15 @@ test_that("test get fragment size", {
     POS = 5, CIGAR = r_cigar_3p_s9, read_length = calculate_read_length(r_cigar_3p_s9)
   )
   expect_equal(get_fragment_size(read_stats_5p_s9, read_stats_3p_s9), 3)
+
+  # Soft clipping 10
+  r_cigar_5p_s10 <- "3S4M2S"
+  r_cigar_3p_s10 <- "3S4M3S"
+  read_stats_5p_s10 <- list(
+    POS = 4, CIGAR = r_cigar_5p_s10, read_length = calculate_read_length(r_cigar_5p_s10)
+  )
+  read_stats_3p_s10 <- list(
+    POS = 19, CIGAR = r_cigar_3p_s10, read_length = calculate_read_length(r_cigar_3p_s10)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_s10, read_stats_3p_s10), 25)
 })

@@ -1,0 +1,191 @@
+---
+title: "Introduction to fRagmentomics: A Per-Fragment Analysis Workflow"
+author:
+  - name: "Killian Maudet"
+    affiliation: "Gustave Roussy"
+    email: "killian.maudet@gustaveroussy.fr"
+  - name: "Yoann Pradat"
+    affiliation: "Gustave Roussy"
+    email: "yoann.pradat@gustaveroussy.fr"
+  - name: "Juliette Samaniego"
+    affiliation: "Gustave Roussy"
+    email: "juliette.samaniego@gustaveroussy.fr"
+  - name: "Elsa Bernard"
+    affiliation: "Gustave Roussy"
+    email: "elsa.bernard@gustaveroussy.fr"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{Introduction to fRagmentomics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  fig.align = "center"
+)
+```
+
+# Introduction
+
+<img src="../man/figure/logo.svg" align="right" width="200">
+
+Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. While recent work has shown that ctDNA fragments have distinct features (size, end motifs) compared to healthy cfDNA, few tools offer a standardized framework for an in-depth analysis that links these features to the specific mutational status of each DNA fragment.
+
+**fRagmentomics** addresses this need by providing a robust and flexible R package to integrate cfDNA fragment features with their mutational status. By standardizing the analysis of both SNVs and indels at the single-fragment level, fRagmentomics supports the interpretation of liquid biopsies to distinguish tumoral origin.
+
+This vignette provides a step-by-step walkthrough of the main analysis workflow using the `analyze_fragments()` function and demonstrates the package's core visualization capabilities. 
+
+# Installation
+
+To run this vignette, you will need the `fRagmentomics` package and its dependencies installed. Please refer to the `README.md` file on the package's [GitHub repository](https://github.com/ElsaB-Lab/fRagmentomics) for full installation instructions.
+
+```{r install, eval=FALSE}
+# This command, from the README, installs all necessary dependencies
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+BiocManager::install("ElsaB-Lab/fRagmentomics")
+```
+
+# A Complete Analysis Workflow
+
+The entire analysis is performed by a single function: `analyze_fragments()`. We will use the example data included with the package to demonstrate a typical workflow.
+
+## 1. Loading the Package and Example Data
+
+First, we load the `fRagmentomics` library. The package includes a small BAM file, a corresponding FASTA reference, and a list of mutations to make testing easy. We locate these files using `system.file()`.
+
+```{r load_data}
+library(fRagmentomics)
+
+# Locate the example files bundled with the package
+mut_file <- system.file(
+  "testdata/mutations", "mutations_cfdna-test-01_chr17_7576000_7579000.tsv",
+  package = "fRagmentomics"
+)
+bam_file <- system.file(
+  "testdata/bam", "cfdna-test-01_chr17_7576000_7579000.bam",
+  package = "fRagmentomics"
+)
+fasta_file <- system.file(
+  "testdata/fasta/hg19", "hg19_chr17_7576000_7579000.fa",
+  package = "fRagmentomics"
+)
+
+# Print the file paths to confirm they were found
+print(mut_file)
+print(bam_file)
+print(fasta_file)
+```
+
+## 2. Running the Analysis
+
+Next, we call `analyze_fragments()` with the paths to our three input files. We also provide a `sample_id` for annotation and specify the number of cores for parallel processing.
+
+```{r run_analysis, message=TRUE, warning=TRUE}
+# Run the full analysis pipeline
+results_df <- analyze_fragments(
+  mut = mut_file,
+  bam = bam_file,
+  fasta = fasta_file,
+  sample_id = "cfdna-test-01",
+  n_cores = 2
+)
+```
+
+## 3. Exploring the Output
+
+The function returns a rich `data.frame` where each row represents the analysis of a single fragment for a single mutation. Let's inspect its structure and key columns.
+
+```{r explore_output}
+# View the dimensions and column names
+dim(results_df)
+colnames(results_df)
+
+# Print the first few rows to see the results
+head(results_df)
+```
+
+The output contains detailed information, including:
+* **`Fragment_Status_Simple`**: The high-level classification (`MUT`, `NON-TARGET MUT`, etc.).
+* **`Fragment_Status_Detail`**: A more detailed classification showing the combined evidence from both reads (e.g., "MUT & AMB").
+* **`Read_3p_Status`** and **`Read_5p_Status`**: Read mutation informations.
+* **`Fragment_Size`**: The biological size of the fragment, calculated by a formula that accounts for indels and soft-clipping. 
+* **`Fragment_Bases_5p`** and **`Fragment_Bases_3p`**: The DNA sequences of the fragment's 5' and 3' ends.
+* **`VAF`**: The Variant Allele Frequency for the mutation, calculated from all informative fragments.
+
+For more informations about the output, please refer to the `README.md` file on the package's [GitHub repository](https://github.com/ElsaB-Lab/fRagmentomics).
+
+# Visualizing Fragmentomic Features
+
+The `results_df` object can be directly used with the package's suite of plotting functions to visualize the results.
+
+### Fragment Size Distribution
+
+We can compare the size distribution of mutant fragments versus non-mutant fragments using `plot_size_distribution()`.
+
+```{r plot_size}
+plot_size_distribution(
+  df_fragments = results_df,
+  vals_z = c("MUT", "NON-TARGET MUT"),
+  show_histogram = TRUE,
+  x_limits = c(100, 420),
+  histo_args = list(alpha = 0.5)
+)
+```
+
+### End Motif Sequence Logos
+
+`plot_qqseqlogo_meme()` creates sequence logos to visualize nucleotide preferences at the ends of fragments.
+
+```{r plot_logo}
+# Plot the sequence logo for the first 6 bases of the 5' end
+plot_qqseqlogo_meme(
+  df_fragments = results_df,
+  motif_type = "Start",
+  motif_size = 6
+)
+```
+
+### Overall Nucleotide Frequency
+
+`plot_freq_barplot()` provides a high-level summary of the overall A/C/G/T content at fragment ends.
+
+```{r plot_freq}
+# Analyze the overall nucleotide frequency in the first 5 bases
+plot_freq_barplot(
+  df_fragments = results_df,
+  motif_size = 5
+)
+```
+
+### Detailed 3-Base Motif Proportions
+
+`plot_motif_barplot()` allows for a deep dive into 3-mer motif frequencies, for example, by showing the differential usage between two groups.
+
+```{r plot_motif}
+# Use the "differential" representation to visualize 3-mer log2 fold change
+plot_motif_barplot(
+  results_df,
+  representation = "differential",
+  vals_z = c("MUT", "NON-TARGET MUT")
+)
+```
+
+# Session Information
+
+This section provides details about the R session and package versions used to generate this vignette, ensuring reproducibility.
+
+```{r session_info}
+sessionInfo()
+```

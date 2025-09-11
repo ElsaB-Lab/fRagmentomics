@@ -116,7 +116,7 @@
 #' #   output_folder = tempdir(),
 #' #   ggsave_params = list(width = 12, height = 8, units = "in")
 #' # )
-#' 
+#'
 plot_motif_barplot <- function(df_fragments,
                                end_motif_5p = "Fragment_Bases_5p",
                                end_motif_3p = "Fragment_Bases_3p",
@@ -127,9 +127,9 @@ plot_motif_barplot <- function(df_fragments,
                                representation = "split_by_base",
                                ...,
                                colors_z = c("#FD96A9", "#E88B00", "#0D539E", "#6CAE75"),
-                                sample_id = NA,
-                                output_folder = NA,
-                                ggsave_params = list()) {
+                               sample_id = NA,
+                               output_folder = NA,
+                               ggsave_params = list()) {
     # --- 1. Input Validation and Setup ---
     motif_size <- 3 # This plot is specifically designed for 3-base motifs.
 
@@ -322,7 +322,6 @@ plot_motif_barplot <- function(df_fragments,
     # --- 6. Save the plot to a file if an output folder is provided ---
     # Check if a valid output folder path was provided.
     if (!is.null(output_folder) && all(!is.na(output_folder) & nzchar(output_folder))) {
-
         # Validate that output_folder is a single character string before using it.
         if (!is.character(output_folder) || length(output_folder) != 1) {
             stop("'output_folder' must be a single character string.")
@@ -332,7 +331,7 @@ plot_motif_barplot <- function(df_fragments,
         if (!is.na(sample_id) && (!is.character(sample_id) || length(sample_id) != 1)) {
             stop("'sample_id' must be a single character string.")
         }
-        
+
         # Create directory if it doesn't exist
         if (!dir.exists(output_folder)) {
             message(sprintf("Creating output directory: %s", output_folder))
@@ -342,7 +341,7 @@ plot_motif_barplot <- function(df_fragments,
         # --- Filename Generation ---
         file_suffix <- paste0("_motif_barplot_", representation, ".png")
         output_filename <- if (!is.na(sample_id) && sample_id != "") {
-        paste0(sample_id, file_suffix)
+            paste0(sample_id, file_suffix)
         } else {
             # Remove leading underscore if no sample_id
             sub("^_", "", file_suffix)
@@ -351,15 +350,15 @@ plot_motif_barplot <- function(df_fragments,
 
         # --- Save Logic ---
         if (file.exists(full_output_path)) {
-        message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
+            message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
         }
 
         # --- Set ggsave parameters and save ---
         default_save_params <- list(width = 8, height = 6, units = "in", dpi = 300)
         final_save_params <- utils::modifyList(default_save_params, ggsave_params)
-        
+
         ggsave_args <- c(list(plot = final_plot, filename = full_output_path), final_save_params)
-        
+
         message(sprintf("Saving plot to: %s", full_output_path))
         do.call("ggsave", ggsave_args)
     }
