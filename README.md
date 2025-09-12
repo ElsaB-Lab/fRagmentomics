@@ -5,11 +5,33 @@
 
 ## Overview
 
-Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. The majority of cfDNA originates from hematopoietic cells, which complicates the interpretation of circulating tumor DNA (ctDNA) in the absence of matched sequencing from white blood cells. Recent work has demonstrated that ctDNA fragments have distinct size distribution profiles and 5’/3’ end sequences compared to healthy cfDNA fragments.
+Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. However, the majority of cfDNA originates
+from hematopoietic cells (see [Mattox et al. Cancer Discov.
+2023](https://aacrjournals.org/cancerdiscovery/article/13/10/2166/729365/The-Origin-of-Highly-Elevated-Cell-Free-DNA-in)
+and references therein), which complicates the interpretation of circulating tumor DNA (ctDNA) in the absence of matched
+sequencing tumor-free blood cells (e.g white blood cells). Multiple studies in the past have demonstrated that ctDNA
+fragments have distinct size distribution profiles and 5’/3’ end sequences compared to healthy cfDNA fragments (see
+[Snyder et al. Cancer Cell. 2026](https://pubmed.ncbi.nlm.nih.gov/26771485/), [Mouliere et al. Sci Trans Med.
+2018](https://pubmed.ncbi.nlm.nih.gov/30404863/),
+[Cristiano et al. Nature. 2019](https://pubmed.ncbi.nlm.nih.gov/31142840/))
 
-However, there is currently no published tool that standardizes an in-depth analysis of these fragmentomic features in relation to the mutational status of each fragment for SNV and Insertion/Deletion (Indels). This presents significant technical challenges, such as the lack of consensus on the representation and positioning of indels and the multiple approaches to calculating fragment size.
+In spite of the growing interest in the characteristics of cfDNA fragments ("fragmentomics"), there is currently no
+published tool that can, at the same time, extract fragmentomics features (fragment length, starting and end motifs, inner
+distance, aligned position, etc) and determine the mutation status from a user-specified list of mutations of any type
+(SNV, MNV, insertions, or deletions). The main reason for this is that the genotyping of each individual fragment using
+predefined mutations is quite challenging for indels due to the ambiguity of their representation and the fact that
+fragments can, in some instances, only partially cover the region of the indel. Additionally, the calculation of the exact
+fragment size is in practice more involved than a simple difference between the aligned positions of the fragment
+boundaries, and this caveat has, to our knowledge, never been properly addressed. For instance, a recently published
+tool with similar goals ([Wang et al. Genome Biol.
+2025](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-025-03607-5)), though focusing only on SNV
+mutations, reports a fragment length that becomes erroneous for fragments harboring indels.
 
-**fRagmentomics** provides a standardized and user-friendly R package that integrates cfDNA fragment features (size, end sequences) with their specific mutational status (for both SNVs and indels). By providing a framework for per-fragment analysis, fRagmentomics aims to support the interpretation of liquid biopsies and to help determine the origin of cfDNA fragments.
+**fRagmentomics** provides a standardized and user-friendly R package that reports fragment features (size, end
+motifs, position) and mutational status using a BAM file with sequenced fragments and a user-defined list of SNV, MNV,
+or indel mutations. By providing a framework allowing a per-fragment analysis, fRagmentomics aims to support the
+interpretation of liquid biopsy results and the discovery of new associations between fragments characteristics and
+fragment tissue of origin or human diseases, particularly cancer.
 
 ---
 
@@ -23,7 +45,8 @@ fRagmentomics is built and tested under **R version 4.4.3**.
 
 fRagmentomics requires **`bcftools` (version 1.21 recommended)** for variant normalization. Please, ensure it is installed and accessible in your system's PATH.
 
-We recommend using mamba for faster installation, but you can also use conda by replacing mamba by conda in the command:
+We recommend using a conda environment with bcftools and other dependencies installed but you can also use any other
+environment manager or rely on tools already installed in your system:
 
 ```sh
 # conda install -c bioconda mamba
@@ -60,18 +83,70 @@ After these steps are complete, you can load the package into your R session wit
 
 ---
 
+## Quick Start
+
+This example demonstrates a basic workflow using the main `analyze_fragments()` function. We will use the example data files included with the fRagmentomics package.
+
+First, load the library and locate the example files using `system.file()`.
+
+```r
+library(fRagmentomics)
+
+# Locate the example files bundled with the package
+mut_file <- system.file(
+  "extdata", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv",
+  package = "fRagmentomics"
+)
+bam_file <- system.file(
+  "extdata", "cfdna-test-01_chr1_27433000_27435000.bam",
+  package = "fRagmentomics"
+)
+fasta_file <- system.file(
+  "extdata", "hg19_chr1_27433000_27435000.fa",
+  package = "fRagmentomics"
+)
+```
+
+Now, run the main analysis function with these files. We'll use 2 cores for this example.
+
+```r
+# Run the full analysis pipeline
+df_results <- analyze_fragments(
+    mut = mut_file,
+    bam = bam_file,
+    fasta = fasta_file,
+    sample_id = "cfdna-test-01",
+    n_cores = 2
+)
+
+# View the first few rows of the output data frame
+head(df_results)
+```
+
+The resulting `df_results` data frame contains the per-fragment analysis, ready for exploration and visualization with the package's plotting functions. You can also save this data frame to a tab-separated (`.tsv`) file by providing a path to the `output_file` argument.
+
+---
+
+
 ## Input
 
-1.  **`bam`**: Path to BAM file containing **paired-end** reads from a **targeted sequencing panel**.
+1.  **`bam`**: Path to BAM file containing **paired-end** reads (the package has so far only been tested on BAM files
+    from experiments of targeted sequencing of cfDNA).
     The function `analyze_fragments` preprocesses the BAM file to select reads relevant to each mutation. By default:
-    * It only considers reads within a **2000 bp window** around the variant's position (configurable with `neg_offset_mate_search = -1000` and `pos_offset_mate_search = 1000`).
+    * It only considers reads within a user-configurable window (default=2000 bp window, 1000 bp before - `neg_offset_mate_search` and 1000bp after - `pos_offset_mate_search`).
     * It applies a default filter to keep only primary, paired reads while removing unmapped, secondary, supplementary, and duplicate alignments. This corresponds to the default settings of the `flag_bam_list` argument.
     **Note**: All of these filtering parameters can be customized when calling the `analyze_fragments()` function.
 <br>
 
 2.  **`mut`**: Specifies the mutations to be analyzed. Three input formats are supported:
-    * A path to a **VCF** file (e.g., `variants.vcf` or `variants.vcf.gz`).
+    * A path to a **VCF** file (e.g., `variants.vcf` or `variants.vcf.gz`)
+
+    or
+
     * A path to a **TSV** file (e.g., `mutations.tsv` or `mutations.tsv.gz`) containing at least the columns `CHROM`, `POS`, `REF`, and `ALT`.
+
+    or
+
     * A single **string** in the format `"chr:pos:ref:alt"`.
 
     The package accepts mutation positions in either **1-based** or **0-based** coordinates and normalizes them to the conventional 1-based system for analysis.
@@ -82,14 +157,14 @@ After these steps are complete, you can load the package into your R session wit
 
     **Simple Format**
 
-    | To describe a...         | `REF` Column                      | `ALT` Column                      | `POS` Column                               |
+    | Mutation         | `REF` Column                      | `ALT` Column                      | `POS` Column                               |
     |:-------------------------|:----------------------------------|:----------------------------------|:-------------------------------------------|
-    | Deletion of **"AT"** | `AT`                              | `""` (empty), `-`, `.`, `_`, `NA`  | Position of the first deleted base (`A`)   |
-    | Insertion of **"CT"** | `""` (empty), `-`, `.`, `_`, `NA`  | `CT`                              | Position of the base *before* the insertion |
+    | Deletion of **"AT"** | `AT`                              | `""`, `-`, `.`, `_`, `NA`  | Position of the first deleted base (`A`)   |
+    | Insertion of **"CT"** | `""`, `-`, `.`, `_`, `NA`  | `CT`                              | Position of the base *before* the insertion |
 
     **VCF-Style Padded Format**
 
-    | To describe a...                   | `REF` Column | `ALT` Column | `POS` Column                                |
+    | Mutation                   | `REF` Column | `ALT` Column | `POS` Column                                |
     |:-----------------------------------|:-------------|:-------------|:--------------------------------------------|
     | Deletion of **"AT"** from "G**AT**"  | `GAT`        | `G`          | Position of the anchor base (`G`)           |
     | Insertion of **"CT**" after "A"    | `A`          | `ACT`        | Position of the anchor base (`A`)           |
@@ -170,49 +245,6 @@ For more details, see [Definition of Fragment Size](#definition-of-fragment-size
 
 ---
 
-## Quick Start
-
-This example demonstrates a basic workflow using the main `analyze_fragments()` function. We will use the example data files included with the fRagmentomics package.
-
-First, load the library and locate the example files using `system.file()`.
-
-```r
-library(fRagmentomics)
-
-# Locate the example files bundled with the package
-mut_file <- system.file(
-  "extdata", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv",
-  package = "fRagmentomics"
-)
-bam_file <- system.file(
-  "extdata", "cfdna-test-01_chr1_27433000_27435000.bam",
-  package = "fRagmentomics"
-)
-fasta_file <- system.file(
-  "extdata", "hg19_chr1_27433000_27435000.fa",
-  package = "fRagmentomics"
-)
-```
-
-Now, run the main analysis function with these files. We'll use 2 cores for this example.
-
-```r
-# Run the full analysis pipeline
-results_df <- analyze_fragments(
-    mut = mut_file,
-    bam = bam_file,
-    fasta = fasta_file,
-    sample_id = "cfdna-test-01",
-    n_cores = 2
-)
-
-# View the first few rows of the output data frame
-head(results_df)
-```
-
-The resulting `results_df` data frame contains the per-fragment analysis, ready for exploration and visualization with the package's plotting functions. You can also save this data frame to a tab-separated (`.tsv`) file by providing a path to the `output_file` argument.
-
----
 
 ## Visualizations
 
@@ -223,9 +255,9 @@ fRagmentomics includes plotting functions to help you visualize the fragmentomic
 The `plot_size_distribution()` function generates density plots or histograms to compare the distribution of fragment lengths between different groups (e.g., `MUT` vs. `NON-TARGET MUT`).
 
 ```r
-# Assuming 'results_df' is the output from analyze_fragments()
+# Assuming 'df_results' is the output from analyze_fragments()
 plot_size_distribution(
-  df_fragments = results_df,
+  df_fragments = df_results,
   vals_z = c("MUT", "NON-TARGET MUT"),
   show_histogram = TRUE,
   show_density = FALSE,
@@ -244,7 +276,7 @@ The `plot_qqseqlogo_meme()` function creates sequence logo plots to visualize th
 ```r
 # Plot the sequence logo for the first 6 bases of the 5' end
 plot_qqseqlogo_meme(
-  df_fragments = results_df,
+  df_fragments = df_results,
   motif_size = 3,
   vals_z = c("MUT", "NON-TARGET MUT")
 )
@@ -257,9 +289,10 @@ plot_qqseqlogo_meme(
 The `plot_freq_barplot()` function creates a faceted bar plot to show the overall proportion of A, C, G, and T within the terminal motifs of fragments.
 
 ```r
-# Analyze the overall nucleotide frequency in the first 5 bases
+# Analyze the overall nucleotide frequency in the bases of the 5-bases start and end sequences
 plot_freq_barplot(
-  df_fragments = results_df,
+  df_fragments = df_results,
+  motif_type = "Both", # can be changed to "Start" or "End"
   motif_size = 5
 )
 ```
@@ -273,8 +306,8 @@ The `plot_motif_barplot()` function shows the frequency of specific 3-base motif
 ```r
 # Use the default hierarchical representation to visualize 3-mer proportions
 plot_motif_barplot(
-  results_df,
-  representation = "differential", 
+  df_results,
+  representation = "differential",
   vals_z = c("MUT", "NON-TARGET MUT")
 )
 ```
@@ -283,29 +316,68 @@ plot_motif_barplot(
 
 ---
 
-## Explanation of Mutational Status
+## Explanation of Mutational Status assignment
 
-A key feature of fRagmentomics is its method for determining the mutational status of each read. A simple check of the base at a variant's position is often insufficient.
+A key feature of fRagmentomics is its method for determining the mutational status of each read. A simple check of the
+base at a variant's position is sufficient only for SNVs.
 
 ### The Challenge: Ambiguity in Short Reads
 
-Interpreting a variant requires analyzing its surrounding nucleotide context, not just the variant site itself. For SNVs and MNVs, this means checking the adjacent bases to ensure a simple mutation is not part of a larger event. For MNVs and indels, a read is considered truly informative if it covers the entire variant and some of its flanking sequence, which is essential for resolving potential ambiguities.
+Interpreting a variant requires analyzing its surrounding nucleotide context, not just the variant site itself. For SNVs
+and MNVs, this means checking the adjacent bases to check if the mutation is not part of a larger event. For indels,
+a read is considered truly informative if it covers the entire variant and some of its flanking sequence, which is
+essential for resolving potential ambiguities.
 
-**An Example of Indel Ambiguity**
+**Examples of Indel Ambiguity**
 
 Consider a 2 bp insertion (`GG`) in a repetitive sequence context:
 
 ```
-Reference:   A G G G T C C
-Variant:     Pos 1, A > AGG (an insertion of 'GG')
-Mutant Allele: A G G G G G T C C
+Variant:    Pos 5, A > AGG (an insertion of 'GG' after anchor base 'A' at position 5)
+Reference:  A T A G T A G G G T C C
+Mutant:     A T A G T A G G G G G T C C
+Read:       A T A G T A G G G
+Read:       A T A G T A G G G G
+Read:       A T A G T A G G G G G
+Read:       A T A G T A G G G G G T
 ```
 
-Now, imagine a read aligns to this position at the end of it's sequence. If the read sequence is `AGGG`, which of these is correct?
-1.  It perfectly matches the **reference** allele (`A G G G T C C`).
-2.  It partially matches the **mutant** allele (`A G G G G G T C C`).
+Now, imagine a read covering the positions of the insertion at the end of its sequence. Considering the read
+sequence starting from the insertion anchor base, i.e `AGGG`, which of these is correct?
 
-Without seeing the first nucleotide that breaks the repeted sequence, here `T`, it's impossible to be certain. The read is **ambiguous**.
+1.  It supports the **reference** allele (`A G G G T C C`).
+2.  It supports the **mutant** allele    (`A G G G G G T C C`).
+
+Without seeing the first nucleotide that breaks the repeated sequence, here `T`, it's impossible to be certain. The
+mutation status of the read is set to **ambiguous**.
+
+Consider now a 3 bp deletion `(ACA)` in a repetitive context
+
+```
+Variant:    Pos 3, GACA > G (a deletion of 'ACA' after anchor base 'G' at position 3)
+Reference:  G T G A C A A C A A G T C
+Mutant:     G T G A C A A G T C
+Read 1:     G T G A C A
+Read 2:     G T G A C A A
+Read 3:     G T G A C A A G
+```
+
+Now, imagine the three reads above covering the positions of the deletion at the end of its sequence. Considering the read
+sequence starting from the deletion anchor base, i.e `GACA` for read 1, `GACAA` for read 2, and `GACAAG` for read3, which
+of these is correct for each read?
+
+1.  It supports the **reference** allele (`G A C A A C A A G T C`).
+2.  It supports the **mutant** allele (`G A C A A G T C`).
+
+How far should the read cover after the position of the anchor base to solve the ambiguity? The answer is to cover the
+first nucleotide that breaks the repeated sequence (`ACA`), i.e here the `G` at position 11. Therefore the ambiguity can
+only be resolved for read 3 here. The
+mutation statuses of read 1 and 2 will be set to `ambiguous` while read 3 will be marked mutated (MUT). Of note, we
+cannot rule a simple mutation `C>G` at position 8 which would result in the same read 3 as the deletion of `ACA` but we choose
+to prioritize the variant specified by the user which often consist in a variant known to exist in the sample and with
+therefore an priori much higher likelihood.
+
+
 
 ### The fRagmentomics Solution: Context-Aware Comparison
 
