@@ -12,8 +12,8 @@
 #'         \itemize{
 #'           \item 'Fragment_Status_Detail': A detailed status reflecting the combination,
 #'                 retaining original text where applicable (e.g., "MUT & AMB_low_coverage").
-#'           \item 'Fragment_Status_Simple': A simplified status (e.g., "MUT", "NON-TARGET MUT",
-#'                 "DISCORDANT", "AMB", "ERROR").
+#'           \item 'Fragment_Status_Simple': A simplified status (e.g., "MUT", "WT", "OTH",
+#'                 "DIS", "AMB", "ERR").
 #'         }
 #'
 #' @importFrom stats na.omit
@@ -79,8 +79,8 @@ get_fragment_mutation_statuses <- function(mstat_5p, mstat_3p) {
 
   # 1. NA / NA
   if (is_na1 && is_na2) {
-    fragment_status_detail <- "ERROR"
-    fragment_status_simple <- "ERROR"
+    fragment_status_detail <- "ERR"
+    fragment_status_simple <- "ERR"
   }
   # 2. NA / MUT (and symmetrical)
   else if ((is_na1 && is_mut2) || (is_mut1 && is_na2)) {
@@ -90,7 +90,7 @@ get_fragment_mutation_statuses <- function(mstat_5p, mstat_3p) {
   # 3. NA / WT (and symmetrical)
   else if ((is_na1 && is_wt2) || (is_wt1 && is_na2)) {
     fragment_status_detail <- ifelse(is_na1, mstat_3p, mstat_5p)
-    fragment_status_simple <- "NON-TARGET MUT"
+    fragment_status_simple <- "WT"
   }
   # 4. NA / AMB (and symmetrical)
   else if ((is_na1 && is_amb2) || (is_amb1 && is_na2)) {
@@ -100,7 +100,7 @@ get_fragment_mutation_statuses <- function(mstat_5p, mstat_3p) {
   # 5. NA / OTH (and symmetrical)
   else if ((is_na1 && is_other_mut2) || (is_other_mut1 && is_na2)) {
     fragment_status_detail <- ifelse(is_na1, mstat_3p, mstat_5p)
-    fragment_status_simple <- "NON-TARGET MUT"
+    fragment_status_simple <- "OTH"
   }
   # 6. MUT / MUT
   else if (is_mut1 && is_mut2) {
@@ -110,7 +110,7 @@ get_fragment_mutation_statuses <- function(mstat_5p, mstat_3p) {
   # 7. MUT / WT (and symmetrical) - DISCORDANT
   else if ((is_mut1 && is_wt2) || (is_wt1 && is_mut2)) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "DISCORDANT"
+    fragment_status_simple <- "DIS"
   }
   # 8. MUT / AMB (and symmetrical) - Prioritize MUT
   else if ((is_mut1 && is_amb2) || (is_amb1 && is_mut2)) {
@@ -120,22 +120,22 @@ get_fragment_mutation_statuses <- function(mstat_5p, mstat_3p) {
   # 9. MUT / OTH (and symmetrical) - DISCORDANT
   else if ((is_mut1 && is_other_mut2) || (is_other_mut1 && is_mut2)) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "DISCORDANT"
+    fragment_status_simple <- "DIS"
   }
   # 10. WT / WT
   else if (is_wt1 && is_wt2) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "NON-TARGET MUT"
+    fragment_status_simple <- "WT"
   }
   # 11. WT / AMB (and symmetrical) - Prioritize WT
   else if ((is_wt1 && is_amb2) || (is_amb1 && is_wt2)) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "NON-TARGET MUT"
+    fragment_status_simple <- "WT"
   }
-  # 12. WT / OTH (and symmetrical) - DISCORDANT for detail, NON-TARGET MUT for simple
+  # 12. WT / OTH (and symmetrical) - DISCORDANT
   else if ((is_wt1 && is_other_mut2) || (is_other_mut1 && is_wt2)) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "NON-TARGET MUT"
+    fragment_status_simple <- "DIS"
   }
   # 13. AMB / AMB
   else if (is_amb1 && is_amb2) {
@@ -145,17 +145,17 @@ get_fragment_mutation_statuses <- function(mstat_5p, mstat_3p) {
   # 14. AMB / OTH (and symmetrical) - Prioritize OTH
   else if ((is_amb1 && is_other_mut2) || (is_other_mut1 && is_amb2)) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "NON-TARGET MUT"
+    fragment_status_simple <- "OTH"
   }
   # 15. OTH / OTH
   else if (is_other_mut1 && is_other_mut2) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "NON-TARGET MUT"
+    fragment_status_simple <- "OTH"
   }
   # Fallback for any unhandled or unexpected combination (should not happen)
   else {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "UNKNOWN"
+    fragment_status_simple <- "UNK"
   }
 
   # Return the results as a list

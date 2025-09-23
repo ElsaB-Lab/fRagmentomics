@@ -12,7 +12,7 @@
 #' @param read_index_at_pos An integer representing the index of the nucleotide in sequence aligning with the position of interest.
 #' @param n_match_base_before Number of bases to be matched before the alt allele in the sequences comparison
 #' @param n_match_base_after Number of bases to be matched after the last alt allele in the sequences comparison
-#' 
+#'
 #' @return
 #' A character string indicating the mutational status of the read. Possible values include:
 #' \itemize{
@@ -22,7 +22,7 @@
 #'  \item '"OTH"': Other. An alteration is found, but it is not the one of interest.
 #'  \item For INDELs, the status may be combined with a descriptive message (e.g., '"AMB by cigar-free search..."').
 #' }
-#' 
+#'
 #' @keywords internal
 get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile = NULL,
                                         fasta_seq = NULL, cigar_free_indel_match = FALSE, n_match_base_before = 1,
@@ -90,6 +90,8 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     status <- compare_read_to_ref_wt_and_mut(read_seq, ref_seq_wt, ref_seq_mut, compare_len_wt, compare_len_mut)
 
     if (status == "MUT" && incomplete_comparison_mut) {
+      # An incomplete comparison compatible with the mutated allele and not compatible with the reference allele
+      # will be labelled "AMB" because we don't observe completely the alternative allele
       return("AMB")
     } else {
       return(status)
@@ -118,33 +120,38 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     #   REF: TGAGAGAT
     #   MUT: TGA > T
     #   REF_AFTER_ONE_MOTIF: GAGAT
-    ref_seq_after_one_motif <- substr(
-      ref_seq_wt, n_match_base_before + motif_len + n_match_base_after,
-      nchar(ref_seq_wt)
-    )
 
-    # Identify the number of repeats within the region of the maximum comparison size
-    repeat_count <- 1
-    while (substr(ref_seq_after_one_motif, (repeat_count - 1) * motif_len + 1, repeat_count * motif_len) == motif) {
-      repeat_count <- repeat_count + 1
+    # if the sequence contains the searched motif at least once
+    if (grepl(paste0("^", alt), substr(ref_seq_wt, n_match_base_before, nchar(ref_seq_wt)))){
+      repeat_count <- 1
+      ref_seq_after_one_motif <- substr(ref_seq_wt, n_match_base_before + motif_len + 1, nchar(ref_seq_wt))
+
+      # identify the number of repeats within the region of the maximum comparison size
+      while (substr(ref_seq_after_one_motif, (repeat_count - 1) * motif_len + 1, repeat_count * motif_len) == motif) {
+        repeat_count <- repeat_count + 1
+      }
+
+      # Identify how many additional bases need to be included in the comparison
+      # This number is the number of bases of the motif that match with the reference sequence  after the last repeat
+      # of the motif
+      # As examples,
+      #   - If REF is A A T C A T C A G T and we are looking for the insertion A > AATC
+      #   Here the motif "ATC" is repeated twice. The sequence after the last repeat is AGT. This sequence shares one
+      #   common base with the motif, i.e "A"
+      #
+      #   - If REF is A A T C A T C A T T and we are looking for the insertion A > AATC
+      #   Here the motif "ATC" is repeated twice. The sequence after the last repeat is ATT. This sequence shares two
+      #   common bases with the motif, i.e "AT"
+      ref_seq_after_last_motif <- substr(
+        ref_seq_after_one_motif, (repeat_count - 1) * motif_len + n_match_base_after,
+        repeat_count * motif_len + n_match_base_after - 1
+      )
+      n_bases_shared_with_motif <- get_number_of_common_first_char(ref_seq_after_last_motif, motif)
+
+    } else {
+      repeat_count <- 0
+      n_bases_shared_with_motif <- 0
     }
-
-    # Identify how many additional bases need to be included in the comparison
-    # This number is the number of bases of the motif that match with the reference sequence  after the last repeat
-    # of the motif
-    # As examples,
-    #   - If REF is A A T C A T C A G T and we are looking for the insertion A > AATC
-    #   Here the motif "ATC" is repeated twice. The sequence after the last repeat is AGT. This sequence shares one
-    #   common base with the motif, i.e "A"
-    #
-    #   - If REF is A A T C A T C A T T and we are looking for the insertion A > AATC
-    #   Here the motif "ATC" is repeated twice. The sequence after the last repeat is ATT. This sequence shares two
-    #   common bases with the motif, i.e "AT"
-    ref_seq_after_last_motif <- substr(
-      ref_seq_after_one_motif, (repeat_count - 1) * motif_len + n_match_base_after,
-      repeat_count * motif_len + n_match_base_after - 1
-    )
-    n_bases_shared_with_motif <- get_number_of_common_first_char(ref_seq_after_last_motif, motif)
 
     # Compute the size of the comparisons to wild-type ref and mutated ref
     if (alt_len > ref_len) {
@@ -190,37 +197,110 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     indel_found_in_cigar <- indel_search[[1]]
     other_found_in_cigar <- indel_search[[2]]
 
-    if (indel_found_in_cigar) {
-      return("MUT")
-    } else {
-      if (cigar_free_indel_match) {
-        # set to ambiguous when the comparison is incomplete
-        if (status_cigar_free == "MUT" && incomplete_comparison_mut) {
-          status_cigar_free <- "AMB"
-        }
+    # complete_comparison
+    #   mutation found by CIGAR
+    #   -> MUT by comparison -> "MUT"
+    #   -> WT by comparison -> "MUT by CIGAR but potentially WT"
+    #   -> AMB by comparison -> "IMPOSSIBLE"
+    #   -> OTH by comparison -> "MUT by CIGAR but potentially OTH"
 
-        # print special messages for cases where the indel is not found in the CIGAR but where the comparison to
-        # wild-type and mutated reference sequence reveals the mutation is potentially present
-        if (status_cigar_free %in% c("AMB", "MUT")) {
-          if (other_found_in_cigar) {
-            return(paste(status_cigar_free, "by cigar-free search and other MUT found in CIGAR"))
-          } else {
-            return(paste(status_cigar_free, "by cigar-free search and MUT not found in CIGAR"))
-          }
+    #   other found by CIGAR
+    #   -> MUT by comparison -> "OTH by CIGAR but potentially MUT"
+    #   -> WT by comparison -> "OTH by CIGAR but potentially WT"
+    #   -> AMB by comparison -> "IMPOSSIBLE"
+    #   -> OTH by comparison -> "OTH"
+
+    #   mutation not found by CIGAR
+    #   -> MUT by comparison -> "MUT but not in CIGAR"
+    #   -> WT by comparison -> "WT"
+    #   -> AMB by comparison -> "IMPOSSIBLE"
+    #   -> OTH by comparison -> "OTH"
+
+    # incomplete_comparison
+    #   mutation found by CIGAR
+    #   -> MUT by comparison -> "MUT by CIGAR but AMB"
+    #   -> WT by comparison -> "MUT by CIGAR but potentially WT"
+    #   -> AMB by comparison -> "MUT by CIGAR but AMB"
+    #   -> OTH by comparison -> "MUT by CIGAR but potentially OTH"
+
+    #   other found by CIGAR
+    #   -> MUT by comparison -> "OTH by CIGAR but potentially MUT"
+    #   -> WT by comparison -> "OTH by CIGAR but potentially WT"
+    #   -> AMB by comparison -> "OTH by CIGAR but AMB"
+    #   -> OTH by comparison -> "OTH"
+    #
+    #   mutation not found by CIGAR
+    #   -> MUT by comparison -> "MUT but not in CIGAR and AMB"
+    #   -> WT by comparison -> "WT"
+    #   -> AMB by comparison -> "AMB"
+    #   -> OTH by comparison -> "OTH"
+
+    #
+    # T > TGTA
+    # REF: ACT   GTAGTAT
+    # SEQ: ACTGTAGTAG
+    #      M-MIIIM--M
+
+    # REF-WT: TGTAGTAT
+    # SEQ-WT: TGTAGTAG
+
+    # REF-MT: TGTAGTAG(TAT)
+    # SEQ-MT: TGTAGTAG
+
+    if (indel_found_in_cigar) {
+      # we found the right indel at the anchor position
+      if (!incomplete_comparison_mut) {
+        # complete comparison
+        if (status_cigar_free=="MUT"){
+          return("MUT")
         } else {
-          return(status_cigar_free)
+          return("MUT by CIGAR but potentially", status_cigar_free)
         }
       } else {
-        if (other_found_in_cigar) {
-          return("OTH")
-        } else if (incomplete_comparison_mut && status_cigar_free == "OTH") {
-          return("OTH")
-        } else if (incomplete_comparison_mut && status_cigar_free %in% c("MUT", "AMB")) {
-          return("AMB")
+        if (status_cigar_free=="MUT"){
+          return("MUT by CIGAR but AMB")
         } else {
-          return("WT")
+          return("MUT by CIGAR but potentially", status_cigar_free)
+        }
+
+
+        if (status_cigar_free == "OTH") {
+          return("MUT by CIGAR but potentially OTH")
+        } else if (status_cigar_free == "AMB"){
+          return("MUT but AMB")
+        } else {
+          # TODO:
+          return("IMPOSSIBLE")
         }
       }
+    } else if (other_found_in_cigar) {
+      # we found another indel at the anchor position
+      return("OTH")
+
+      if (!incomplete_comparison_mut) {
+        # complete comparison
+        if (status_cigar_free == "OTH"){
+          return("OTH")
+        } else if (status_cigar_free == "OTH"){
+          return("MUT but CIGAR says OTH")
+        } else if (status_cigar_free %in% c("AMB", "WT")) {
+          # TODO:
+          return("IMPOSSIBLE")
+        }
+      } else {
+        if (status_cigar_free == "OTH") {
+          return("MUT but potentially OTH")
+        } else if (status_cigar_free == "AMB"){
+          return("MUT but AMB")
+        } else {
+          # TODO:
+          stop("Impossible situation")
+        }
+      }
+    } else {
+      # we did not find any indel at the anchor position in the cigar
+      # we will search for the indel of interest by comparing the wild-type ref and mutated-ref to the read sequence
+      status_cigar_free <- compare_read_to_ref_wt_and_mut(read_seq, ref_seq_wt, ref_seq_mut, compare_len_wt, compare_len_mut)
     }
   }
 }

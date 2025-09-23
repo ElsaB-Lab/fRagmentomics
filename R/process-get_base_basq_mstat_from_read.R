@@ -11,14 +11,14 @@
 #' @keywords internal
 get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_fafile = NULL, fasta_seq = NULL,
                                           cigar_free_indel_match = FALSE) {
-  # Modify the sequence to remove the softclipped part at the end
-  read_seq_len_without_softclipping <- calculate_len_without_end_softclip(read_stats$CIGAR, read_stats$SEQ)
-  read_stats$SEQ <- substr(read_stats$SEQ, 1, read_seq_len_without_softclipping)
+  # # Modify the sequence to remove the softclipped part at the end
+  # read_seq_len_without_softclipping <- calculate_len_without_end_softclip(read_stats$CIGAR, read_stats$SEQ)
+  # read_stats$SEQ <- substr(read_stats$SEQ, 1, read_seq_len_without_softclipping)
 
   # get index in the read sequence aligning with pos
   read_index_at_pos <- get_index_aligning_with_pos(pos, read_stats)
 
-  if (read_index_at_pos == -1) {
+  if (read_index_at_pos %in% c(-1, -0.5)) {
     # in case the read does not cover the position of interest
     mstat <- NA
     base <- NA
@@ -45,7 +45,7 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
         )
         if (mstat_small == "MUT") {
           if (mstat_large == "OTH") {
-            mstat <- "MUT but potentially larger MUT"
+            mstat <- "MUT but potentially OTH"
           } else if (mstat_large == "MUT") {
             mstat <- "MUT"
           } else {
@@ -224,6 +224,11 @@ get_index_aligning_with_pos <- function(pos, read_stats) {
       }
     }
 
+    # The position searched is the start of a softclipped or inserted region in the end of the read
+    if (consumes_seq & (pos == ref_pos) & nchar(read_cigar)==0){
+      return(-0.5)
+    }
+
     # If the position was not in the current block, update the cursors
     # to point to the beginning of the next block.
     ref_pos <- ref_pos + ref_move
@@ -255,6 +260,10 @@ get_base_basq_from_read_at_pos <- function(pos_cur, pos_pre, read_stats) {
     return(list(base = "*", basq = "*"))
   } else if (read_index_at_pos_cur == -2) {
     return(list(base = "-", basq = ""))
+  } else if (read_index_at_pos_cur == -0.5) {
+    base <- substr(read_stats$SEQ, read_index_at_pos_pre + 1, nchar(read_stats$SEQ))
+    basq <- substr(read_stats$QUAL, read_index_at_pos_pre + 1, nchar(read_stats$QUAL))
+    return(list(base = base, basq = basq))
   } else {
     base <- substr(read_stats$SEQ, read_index_at_pos_pre + 1, read_index_at_pos_cur)
     basq <- substr(read_stats$QUAL, read_index_at_pos_pre + 1, read_index_at_pos_cur)
