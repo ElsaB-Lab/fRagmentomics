@@ -15,7 +15,7 @@ plot_freq_barplot(
   ...,
   colors_z = "Set2",
   sample_id = NA,
-  output_folder = NA,
+  output_path = NA,
   ggsave_params = list()
 )
 }
@@ -42,7 +42,7 @@ naming an RColorBrewer palette (e.g., "Set2").}
 
 \item{sample_id}{Sample identifier.}
 
-\item{output_folder}{Character vector for the output folder path.}
+\item{output_path}{Character vector for the plot output path.}
 
 \item{ggsave_params}{A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
 'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.}
@@ -116,7 +116,7 @@ print(p4)
 # plot_freq_barplot(
 #   df_fragments = example_df,
 #   sample_id = "test01_freq",
-#   output_folder = tempdir()
+#   output_path = "test01_freq_nucleotide_frequency.png"
 # )
 
 # 6. Save a customized plot with specific dimensions.
@@ -125,7 +125,7 @@ print(p4)
 #   motif_type = "Start",
 #   motif_size = 1,
 #   sample_id = "test02_freq_custom",
-#   output_folder = tempdir(),
+#   output_path = "test02_freq_custom_nucleotide_frequency.png"
 #   ggsave_params = list(width = 7, height = 5, units = "in")
 # )
 

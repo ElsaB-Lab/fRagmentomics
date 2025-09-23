@@ -14,7 +14,7 @@ plot_qqseqlogo_meme(
   vals_z = NULL,
   colors_z = NULL,
   sample_id = NA,
-  output_folder = NA,
+  output_path = NA,
   ggsave_params = list()
 )
 }
@@ -38,7 +38,7 @@ an RColorBrewer palette (e.g., "Dark2"), or a named character vector (e.g., c("A
 
 \item{sample_id}{Sample identifier.}
 
-\item{output_folder}{Character vector for the output folder path.}
+\item{output_path}{Character vector for the plot output path.}
 
 \item{ggsave_params}{A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
 'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.}
@@ -119,14 +119,14 @@ print(p5)
 # plot_qqseqlogo_meme(
 #   df_fragments = example_df,
 #   sample_id = "test01_motif",
-#   output_folder = tempdir()
+#   output_path = "test01_motif_plot.png"
 # )
 
 # 6. Save plot with custom dimensions.
 # plot_qqseqlogo_meme(
 #   df_fragments = example_df,
 #   sample_id = "test02_motif_custom",
-#   output_folder = tempdir(),
+#   output_path = "test02_motif_custom_plot.png",
 #   ggsave_params = list(width = 15, height = 10, units = "cm")
 # )
 

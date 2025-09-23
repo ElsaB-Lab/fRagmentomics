@@ -16,7 +16,7 @@ plot_motif_barplot(
   ...,
   colors_z = c("#FD96A9", "#E88B00", "#0D539E", "#6CAE75"),
   sample_id = NA,
-  output_folder = NA,
+  output_path = NA,
   ggsave_params = list()
 )
 }
@@ -50,7 +50,7 @@ a suitable palette is chosen automatically.}
 
 \item{sample_id}{Sample identifier.}
 
-\item{output_folder}{Character vector for the output folder path.}
+\item{output_path}{Character vector for the plot output path.}
 
 \item{ggsave_params}{A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
 'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.}
@@ -131,7 +131,7 @@ print(p3)
 # plot_motif_barplot(
 #   df_fragments = example_df,
 #   sample_id = "test01_hierarchical",
-#   output_folder = tempdir()
+#   output_path = "test01_hierarchical_motif_barplot.png"
 # )
 
 # 5. Save the differential plot with custom dimensions.
@@ -140,7 +140,7 @@ print(p3)
 #   representation = "differential",
 #   vals_z = c("MUT", "WT"),
 #   sample_id = "test02_differential",
-#   output_folder = tempdir(),
+#   output_path = "test02_differential_motif_barplot.png"
 #   ggsave_params = list(width = 12, height = 8, units = "in")
 # )
 

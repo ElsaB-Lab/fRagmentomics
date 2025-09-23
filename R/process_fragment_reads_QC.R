@@ -19,7 +19,7 @@
 #' @return a single string containing all quality control messages.
 #'
 #' @noRd
-process_fragment_reads_QC <- function(df_fragment_reads, chr) {
+process_fragment_reads_qc <- function(df_fragment_reads, chr) {
     qc_messages <- c()
 
     # Test 1: Report if the fragment does not consist of exactly two reads.

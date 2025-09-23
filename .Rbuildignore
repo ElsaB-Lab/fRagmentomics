@@ -7,4 +7,4 @@ usethis::use_build_ignore(".github")
 ^CHANGELOG\.md$
 ^fRagmentomics\.yaml$
 ^utils$
-^fRagmentomics_0.2.0.pdf$
+^fRagmentomics_.*\.pdf$

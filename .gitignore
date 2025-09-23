@@ -48,6 +48,11 @@ renv/
 .Renviron
 .Rhistory
 .Rproj.user
+*.Rbuild
+*.Rcheck
+vignettes/*.html
+vignettes/*.pdf
+inst/doc
 
 # Open cached files
 *.m~

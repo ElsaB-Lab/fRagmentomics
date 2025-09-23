@@ -13,7 +13,7 @@
 #' @param colors_z The color scheme for nucleotides. Can be NULL (default ggseqlogo colors), a character string naming
 #' an RColorBrewer palette (e.g., "Dark2"), or a named character vector (e.g., c("A"="blue", "C"="red", ...)).
 #' @param sample_id Sample identifier.
-#' @param output_folder Character vector for the output folder path.
+#' @param output_path Character vector for the plot output path.
 #' @param ggsave_params A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
 #'   'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.
 #'
@@ -100,14 +100,14 @@
 #' # plot_qqseqlogo_meme(
 #' #   df_fragments = example_df,
 #' #   sample_id = "test01_motif",
-#' #   output_folder = tempdir()
+#' #   output_path = "test01_motif_plot.png"
 #' # )
 #'
 #' # 6. Save plot with custom dimensions.
 #' # plot_qqseqlogo_meme(
 #' #   df_fragments = example_df,
 #' #   sample_id = "test02_motif_custom",
-#' #   output_folder = tempdir(),
+#' #   output_path = "test02_motif_custom_plot.png",
 #' #   ggsave_params = list(width = 15, height = 10, units = "cm")
 #' # )
 #'
@@ -120,290 +120,269 @@ plot_qqseqlogo_meme <- function(df_fragments,
                                 vals_z = NULL,
                                 colors_z = NULL,
                                 sample_id = NA,
-                                output_folder = NA,
+                                output_path = NA,
                                 ggsave_params = list()) {
-    # --- 1. Input Validation ---
-    if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
-    if (!is.null(col_z) && !col_z %in% names(df_fragments)) {
-        stop(sprintf("Column '%s' not found in the dataframe.", col_z))
-    }
-    if (!motif_type %in% c("Start", "End", "Both")) stop("motif_type must be one of 'Start', 'End', or 'Both'.")
+  # --- 1. Input Validation ---
+  if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
+  if (!is.null(col_z) && !col_z %in% names(df_fragments)) {
+    stop(sprintf("Column '%s' not found in the dataframe.", col_z))
+  }
+  if (!motif_type %in% c("Start", "End", "Both")) stop("motif_type must be one of 'Start', 'End', or 'Both'.")
 
-    # --- 2. Data Filtering and Preparation ---
-    df_filtered <- df_fragments
-    if (!is.null(col_z)) {
-        df_filtered <- df_filtered %>%
-            filter(!is.na(.data[[col_z]]))
-        if (!is.null(vals_z)) {
-            df_filtered <- df_filtered %>%
-                filter(.data[[col_z]] %in% vals_z)
+  # --- 2. Data Filtering and Preparation ---
+  df_filtered <- df_fragments
+  if (!is.null(col_z)) {
+    df_filtered <- df_filtered %>%
+      filter(!is.na(.data[[col_z]]))
+    if (!is.null(vals_z)) {
+      df_filtered <- df_filtered %>%
+        filter(.data[[col_z]] %in% vals_z)
+    }
+    df_filtered[[col_z]] <- factor(df_filtered[[col_z]], levels = if (!is.null(vals_z)) vals_z else unique(df_filtered[[col_z]]))
+  } else {
+    df_filtered$placeholder_group <- "All Fragments"
+    col_z <- "placeholder_group"
+  }
+
+  # Find the length of the shortest sequence in the relevant columns.
+  min_len_available <- Inf
+
+  # Check sequences if they are part of the analysis.
+  if (motif_type %in% c("Start", "Both") && end_motif_5p %in% names(df_filtered)) {
+    sequences_5p <- na.omit(df_filtered[[end_motif_5p]])
+    if (length(sequences_5p) > 0) {
+      min_len_available <- min(min_len_available, min(nchar(sequences_5p)))
+    }
+  }
+
+  if (motif_type %in% c("End", "Both") && end_motif_3p %in% names(df_filtered)) {
+    sequences_3p <- na.omit(df_filtered[[end_motif_3p]])
+    if (length(sequences_3p) > 0) {
+      min_len_available <- min(min_len_available, min(nchar(sequences_3p)))
+    }
+  }
+
+  # If the requested motif_size is larger than the data supports, adjust it.
+  if (motif_size > min_len_available) {
+    # Warn the user that motif_size has been automatically reduced.
+    warning(sprintf(
+                    "Requested 'motif_size' (%d) is larger than the shortest available sequence (%d). Size has been adjusted to %d.",
+                    motif_size, min_len_available, min_len_available
+                    ), call. = FALSE)
+
+    # Cap the motif_size at the maximum possible value.
+    motif_size <- min_len_available
+  }
+
+  # --- 3. Motif Extraction to a Named List ---
+  process_group <- function(group_df) {
+    group_name <- as.character(unique(group_df[[col_z]]))
+    start_motifs <- character(0)
+    end_motifs <- character(0)
+
+    if (motif_type %in% c("Start", "Both")) {
+      sequences <- na.omit(group_df[[end_motif_5p]])
+      if (length(sequences) > 0) {
+        min_len_5p <- min(nchar(sequences))
+        if (min_len_5p < motif_size) {
+          warning(sprintf(
+                          "For group '%s', 5' motif_size (%d) truncated to %d due to short sequences.",
+                          group_name, motif_size, min_len_5p
+                          ), call. = FALSE)
         }
-        df_filtered[[col_z]] <- factor(df_filtered[[col_z]], levels = if (!is.null(vals_z)) vals_z else unique(df_filtered[[col_z]]))
+
+        sequences <- sequences[nchar(sequences) >= motif_size]
+        if (length(sequences) > 0) {
+          start_motifs <- substr(sequences, 1, motif_size)
+        }
+      }
+    }
+
+    if (motif_type %in% c("End", "Both")) {
+      sequences <- na.omit(group_df[[end_motif_3p]])
+      if (length(sequences) > 0) {
+        min_len_3p <- min(nchar(sequences))
+        if (min_len_3p < motif_size) {
+          warning(sprintf(
+                          "For group '%s', 3' motif_size (%d) truncated to %d due to short sequences.",
+                          group_name, motif_size, min_len_3p
+                          ), call. = FALSE)
+        }
+
+
+        sequences <- sequences[nchar(sequences) >= motif_size]
+        if (length(sequences) > 0) {
+          end_motifs <- str_sub(sequences, -motif_size, -1)
+        }
+      }
+    }
+
+    if (motif_type == "Both") {
+      common_length <- min(length(start_motifs), length(end_motifs))
+      return(paste0(start_motifs[seq_len(common_length)], "-", end_motifs[seq_len(common_length)]))
+    } else if (motif_type == "Start") {
+      return(start_motifs)
     } else {
-        df_filtered$placeholder_group <- "All Fragments"
-        col_z <- "placeholder_group"
+      return(end_motifs)
     }
+  }
 
-    # Find the length of the shortest sequence in the relevant columns.
-    min_len_available <- Inf
+  list_of_groups <- df_filtered %>% group_split(.data[[col_z]])
+  list_of_motifs <- map(list_of_groups, process_group) %>%
+    set_names(map_chr(list_of_groups, ~ paste0(unique(.x[[col_z]]), " (N=", nrow(.x), ")")))
+  list_of_motifs <- list_of_motifs[map_int(list_of_motifs, length) > 0]
 
-    # Check sequences if they are part of the analysis.
-    if (motif_type %in% c("Start", "Both") && end_motif_5p %in% names(df_filtered)) {
-        sequences_5p <- na.omit(df_filtered[[end_motif_5p]])
-        if (length(sequences_5p) > 0) {
-            min_len_available <- min(min_len_available, min(nchar(sequences_5p)))
-        }
+  # --- 4. Filter out motifs containing 'N' ---
+  original_counts <- map_int(list_of_motifs, length)
+  list_of_motifs <- map(list_of_motifs, ~ .x[!stringr::str_detect(.x, "N")])
+  new_counts <- map_int(list_of_motifs, length)
+  total_removed <- sum(original_counts - new_counts)
+  if (total_removed > 0) {
+    warning(sprintf(
+                    "%d motifs containing 'N' were found and removed before plotting.",
+                    total_removed
+                    ))
+  }
+  list_of_motifs <- list_of_motifs[map_int(list_of_motifs, length) > 0]
+
+  # --- 5. Color Scheme Setup ---
+  if (length(list_of_motifs) == 0) {
+    message("No data available to plot after filtering.")
+    return(ggplot() +
+           theme_void() +
+           labs(title = "No data to display"))
+  }
+  color_scheme <- NULL
+  if (!is.null(colors_z)) {
+    unique_nucleotides <- list_of_motifs %>%
+      unlist() %>%
+      str_split("") %>%
+      unlist() %>%
+      unique() %>%
+      sort()
+    n_colors_needed <- length(unique_nucleotides)
+
+    if (is.character(colors_z) && length(colors_z) == 1 && colors_z %in% rownames(brewer.pal.info)) {
+      max_palette_colors <- brewer.pal.info[colors_z, "maxcolors"]
+      if (n_colors_needed > max_palette_colors) {
+        stop(sprintf(
+                     "Palette '%s' only has %d colors, but %d are needed.",
+                     colors_z, max_palette_colors, n_colors_needed
+                     ))
+      }
+      palette_cols <- brewer.pal(n_colors_needed, colors_z)
+      color_scheme <- make_col_scheme(chars = unique_nucleotides, cols = palette_cols)
+    } else if (is.character(colors_z) && !is.null(names(colors_z))) {
+      if (!all(unique_nucleotides %in% names(colors_z))) {
+        missing_nucs <- setdiff(unique_nucleotides, names(colors_z))
+        stop(sprintf(
+                     "Custom colors provided, but missing definitions for nucleotide(s): %s",
+                     paste(missing_nucs, collapse = ", ")
+                     ))
+      }
+      color_scheme <- make_col_scheme(chars = names(colors_z), cols = colors_z)
+    } else {
+      stop("'colors_z' must be NULL, a valid RColorBrewer palette name, or a named character vector.")
     }
+  }
 
-    if (motif_type %in% c("End", "Both") && end_motif_3p %in% names(df_filtered)) {
-        sequences_3p <- na.omit(df_filtered[[end_motif_3p]])
-        if (length(sequences_3p) > 0) {
-            min_len_available <- min(min_len_available, min(nchar(sequences_3p)))
-        }
-    }
+  # --- 6. Plotting & Theming ---
+  if (length(list_of_motifs) == 0) {
+    message("No data available to plot after filtering.")
+    return(ggplot() +
+           theme_void() +
+           labs(title = "No data to display"))
+  }
 
-    # If the requested motif_size is larger than the data supports, adjust it.
-    if (motif_size > min_len_available) {
-        # Warn the user that motif_size has been automatically reduced.
-        warning(sprintf(
-            "Requested 'motif_size' (%d) is larger than the shortest available sequence (%d). Size has been adjusted to %d.",
-            motif_size, min_len_available, min_len_available
-        ), call. = FALSE)
-
-        # Cap the motif_size at the maximum possible value.
-        motif_size <- min_len_available
-    }
-
-    # --- 3. Motif Extraction to a Named List ---
-    process_group <- function(group_df) {
-        group_name <- as.character(unique(group_df[[col_z]]))
-        start_motifs <- character(0)
-        end_motifs <- character(0)
-
-        if (motif_type %in% c("Start", "Both")) {
-            sequences <- na.omit(group_df[[end_motif_5p]])
-            if (length(sequences) > 0) {
-                min_len_5p <- min(nchar(sequences))
-                if (min_len_5p < motif_size) {
-                    warning(sprintf(
-                        "For group '%s', 5' motif_size (%d) truncated to %d due to short sequences.",
-                        group_name, motif_size, min_len_5p
-                    ), call. = FALSE)
-                }
-
-                sequences <- sequences[nchar(sequences) >= motif_size]
-                if (length(sequences) > 0) {
-                    start_motifs <- substr(sequences, 1, motif_size)
-                }
-            }
-        }
-
-        if (motif_type %in% c("End", "Both")) {
-            sequences <- na.omit(group_df[[end_motif_3p]])
-            if (length(sequences) > 0) {
-                min_len_3p <- min(nchar(sequences))
-                if (min_len_3p < motif_size) {
-                    warning(sprintf(
-                        "For group '%s', 3' motif_size (%d) truncated to %d due to short sequences.",
-                        group_name, motif_size, min_len_3p
-                    ), call. = FALSE)
-                }
-
-
-                sequences <- sequences[nchar(sequences) >= motif_size]
-                if (length(sequences) > 0) {
-                    end_motifs <- str_sub(sequences, -motif_size, -1)
-                }
-            }
-        }
-
-        if (motif_type == "Both") {
-            common_length <- min(length(start_motifs), length(end_motifs))
-            return(paste0(start_motifs[seq_len(common_length)], "-", end_motifs[seq_len(common_length)]))
-        } else if (motif_type == "Start") {
-            return(start_motifs)
-        } else {
-            return(end_motifs)
-        }
-    }
-
-    list_of_groups <- df_filtered %>% group_split(.data[[col_z]])
-    list_of_motifs <- map(list_of_groups, process_group) %>%
-        set_names(map_chr(list_of_groups, ~ paste0(unique(.x[[col_z]]), " (N=", nrow(.x), ")")))
-    list_of_motifs <- list_of_motifs[map_int(list_of_motifs, length) > 0]
-
-    # --- 4. Filter out motifs containing 'N' ---
-    original_counts <- map_int(list_of_motifs, length)
-    list_of_motifs <- map(list_of_motifs, ~ .x[!stringr::str_detect(.x, "N")])
-    new_counts <- map_int(list_of_motifs, length)
-    total_removed <- sum(original_counts - new_counts)
-    if (total_removed > 0) {
-        warning(sprintf(
-            "%d motifs containing 'N' were found and removed before plotting.",
-            total_removed
-        ))
-    }
-    list_of_motifs <- list_of_motifs[map_int(list_of_motifs, length) > 0]
-
-    # --- 5. Color Scheme Setup ---
-    if (length(list_of_motifs) == 0) {
-        message("No data available to plot after filtering.")
-        return(ggplot() +
-            theme_void() +
-            labs(title = "No data to display"))
-    }
-    color_scheme <- NULL
-    if (!is.null(colors_z)) {
-        unique_nucleotides <- list_of_motifs %>%
-            unlist() %>%
-            str_split("") %>%
-            unlist() %>%
-            unique() %>%
-            sort()
-        n_colors_needed <- length(unique_nucleotides)
-
-        if (is.character(colors_z) && length(colors_z) == 1 && colors_z %in% rownames(brewer.pal.info)) {
-            max_palette_colors <- brewer.pal.info[colors_z, "maxcolors"]
-            if (n_colors_needed > max_palette_colors) {
-                stop(sprintf(
-                    "Palette '%s' only has %d colors, but %d are needed.",
-                    colors_z, max_palette_colors, n_colors_needed
-                ))
-            }
-            palette_cols <- brewer.pal(n_colors_needed, colors_z)
-            color_scheme <- make_col_scheme(chars = unique_nucleotides, cols = palette_cols)
-        } else if (is.character(colors_z) && !is.null(names(colors_z))) {
-            if (!all(unique_nucleotides %in% names(colors_z))) {
-                missing_nucs <- setdiff(unique_nucleotides, names(colors_z))
-                stop(sprintf(
-                    "Custom colors provided, but missing definitions for nucleotide(s): %s",
-                    paste(missing_nucs, collapse = ", ")
-                ))
-            }
-            color_scheme <- make_col_scheme(chars = names(colors_z), cols = colors_z)
-        } else {
-            stop("'colors_z' must be NULL, a valid RColorBrewer palette name, or a named character vector.")
-        }
-    }
-
-    # --- 6. Plotting & Theming ---
-    if (length(list_of_motifs) == 0) {
-        message("No data available to plot after filtering.")
-        return(ggplot() +
-            theme_void() +
-            labs(title = "No data to display"))
-    }
-
-    # Create the base ggseqlogo plot
-    p <- ggseqlogo(list_of_motifs, method = "prob", col_scheme = color_scheme, stack_width = 0.95, font = "helvetica_regular") +
-        labs(
-            title = "Sequence Motif Composition",
-            y = "Frequency",
-            x = "Position"
-        )
-
-    # Prepare custom axis labels
-    motif_len <- nchar(list_of_motifs[[1]][1])
-    custom_labels <- NULL
-    if (motif_type == "Start") {
-        custom_labels <- as.character(seq_len(motif_len))
-    } else if (motif_type == "End") {
-        custom_labels <- as.character((-motif_len):-1)
-    } else if (motif_type == "Both") {
-        start_labels <- seq_len(motif_size)
-        end_labels <- (-motif_size):-1
-        custom_labels <- as.character(c(start_labels, "", end_labels))
-    }
-
-    # Create a robust annotation dataframe for custom labels
-    facet_names <- names(list_of_motifs)
-    base_annotation_df <- tibble(
-        x_pos = seq_len(motif_len),
-        label = custom_labels
-    )
-    annotation_df <- tidyr::crossing(
-        group = factor(facet_names, levels = facet_names),
-        base_annotation_df
+  # Create the base ggseqlogo plot
+  final_plot <- ggseqlogo(list_of_motifs, method = "prob", col_scheme = color_scheme, stack_width = 0.95, font = "helvetica_regular") +
+    labs(
+         title = "Sequence Motif Composition",
+         y = "Frequency",
+         x = "Position"
     )
 
-    # Modify the existing coordinate system to allow drawing outside the panel
-    p$coordinates$clip <- "off"
+  # Prepare custom axis labels
+  motif_len <- nchar(list_of_motifs[[1]][1])
+  custom_labels <- NULL
+  if (motif_type == "Start") {
+    custom_labels <- as.character(seq_len(motif_len))
+  } else if (motif_type == "End") {
+    custom_labels <- as.character((-motif_len):-1)
+  } else if (motif_type == "Both") {
+    start_labels <- seq_len(motif_size)
+    end_labels <- (-motif_size):-1
+    custom_labels <- as.character(c(start_labels, "", end_labels))
+  }
 
-    p <- p +
-        # Add custom axis labels using geom_text
-        geom_text(
-            data = annotation_df,
-            aes(x = x_pos, y = -0.1, label = label),
-            size = 5,
-            inherit.aes = FALSE
-        ) +
-        # Apply custom theme
-        theme(
-            plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
-            strip.text = element_text(face = "bold", size = 14),
-            axis.title.x = element_text(size = 14, margin = margin(t = 15)),
-            axis.title.y = element_text(size = 14),
-            strip.background = element_rect(fill = "grey90", color = "grey90"),
-            panel.background = element_blank(),
-            panel.grid = element_blank(),
-            axis.line.x = element_blank(),
-            axis.text.x = element_blank(),
-            axis.ticks.x = element_blank(),
-            # Add margin at the bottom to make space for the labels
-            plot.margin = margin(t = 5.5, r = 5.5, b = 20, l = 5.5, "pt")
-        )
+  # Create a robust annotation dataframe for custom labels
+  facet_names <- names(list_of_motifs)
+  base_annotation_df <- tibble(
+                               x_pos = seq_len(motif_len),
+                               label = custom_labels
+  )
+  annotation_df <- tidyr::crossing(
+                                   group = factor(facet_names, levels = facet_names),
+                                   base_annotation_df
+  )
+
+  # Modify the existing coordinate system to allow drawing outside the panel
+  final_plot$coordinates$clip <- "off"
+
+  final_plot <- final_plot +
+    # Add custom axis labels using geom_text
+    geom_text(
+              data = annotation_df,
+              aes(x = x_pos, y = -0.1, label = label),
+              size = 5,
+              inherit.aes = FALSE
+              ) +
+    # Apply custom theme
+    theme(
+          plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+          strip.text = element_text(face = "bold", size = 14),
+          axis.title.x = element_text(size = 14, margin = margin(t = 15)),
+          axis.title.y = element_text(size = 14),
+          strip.background = element_rect(fill = "grey90", color = "grey90"),
+          panel.background = element_blank(),
+          panel.grid = element_blank(),
+          axis.line.x = element_blank(),
+          axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          # Add margin at the bottom to make space for the labels
+          plot.margin = margin(t = 5.5, r = 5.5, b = 20, l = 5.5, "pt")
+    )
 
     # Add separator line for "Both" motif type
     if (motif_type == "Both") {
-        p <- p + geom_vline(
-            xintercept = motif_size + 1,
-            linetype = "dashed",
-            color = "grey40",
-            linewidth = 0.8
-        )
+      final_plot <- final_plot + geom_vline(
+                          xintercept = motif_size + 1,
+                          linetype = "dashed",
+                          color = "grey40",
+                          linewidth = 0.8
+      )
     }
 
-    # --- 7. Save the plot to a file if an output folder is provided ---
-    # Check if a valid output folder path was provided.
-    if (!is.null(output_folder) && all(!is.na(output_folder) & nzchar(output_folder))) {
-        # Validate that output_folder is a single character string before using it.
-        if (!is.character(output_folder) || length(output_folder) != 1) {
-            stop("'output_folder' must be a single character string.")
-        }
-
-        # Validate sample_id if provided
-        if (!is.na(sample_id) && (!is.character(sample_id) || length(sample_id) != 1)) {
-            stop("'sample_id' must be a single character string.")
-        }
-
-        # Create directory if it doesn't exist
-        if (!dir.exists(output_folder)) {
-            message(sprintf("Creating output directory: %s", output_folder))
-            dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
-        }
-
-        # --- Filename Generation ---
-        output_filename <- if (!is.na(sample_id) && sample_id != "") {
-            paste0(sample_id, "_motif_plot.png")
-        } else {
-            "motif_plot.png"
-        }
-        full_output_path <- file.path(output_folder, output_filename)
-
-        if (file.exists(full_output_path)) {
-            message(sprintf("File '%s' already exists and will be overwritten.", full_output_path))
-        }
-
-        # --- Set ggsave parameters and save ---
-        default_save_params <- list(width = 8, height = 6, units = "in", dpi = 300)
-        final_save_params <- utils::modifyList(default_save_params, ggsave_params)
-
-        ggsave_args <- c(list(plot = p, filename = full_output_path), final_save_params)
-
-        message(sprintf("Saving plot to: %s", full_output_path))
-        do.call("ggsave", ggsave_args)
+  # --- 7. Save the plot to a file if an output folder is provided ---
+  # Check if a valid output folder path was provided.
+  if (!is.null(output_path) && all(!is.na(output_path) & nzchar(output_path))) {
+    # Validate that output_path is a single character string before using it.
+    if (!is.character(output_path) || length(output_path) != 1) {
+      stop("'output_path' must be a single character string.")
     }
 
-    # Return the plot object regardless of whether it was saved
-    return(p)
+    if (file.exists(output_path)) {
+      message(sprintf("File '%s' already exists and will be overwritten.", output_path))
+    }
+
+    default_save_params <- list(width = 8, height = 6, units = "in", dpi = 300)
+    final_save_params <- utils::modifyList(default_save_params, ggsave_params)
+
+    ggsave_args <- c(list(plot = final_plot, filename = output_path), final_save_params)
+
+    message(sprintf("Saving plot to: %s", output_path))
+    do.call("ggsave", ggsave_args)
+  } else {
+    return(final_plot)
+  }
 }
