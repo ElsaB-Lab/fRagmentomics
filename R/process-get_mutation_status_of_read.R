@@ -12,7 +12,7 @@
 #' @param read_index_at_pos An integer representing the index of the nucleotide in sequence aligning with the position of interest.
 #' @param n_match_base_before Number of bases to be matched before the alt allele in the sequences comparison
 #' @param n_match_base_after Number of bases to be matched after the last alt allele in the sequences comparison
-#' 
+#'
 #' @return
 #' A character string indicating the mutational status of the read. Possible values include:
 #' \itemize{
@@ -22,7 +22,7 @@
 #'  \item '"OTH"': Other. An alteration is found, but it is not the one of interest.
 #'  \item For INDELs, the status may be combined with a descriptive message (e.g., '"AMB by cigar-free search..."').
 #' }
-#' 
+#'
 #' @keywords internal
 get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile = NULL,
                                         fasta_seq = NULL, cigar_free_indel_match = FALSE, n_match_base_before = 1,
@@ -190,36 +190,53 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     indel_found_in_cigar <- indel_search[[1]]
     other_found_in_cigar <- indel_search[[2]]
 
-    if (indel_found_in_cigar) {
-      return("MUT")
+    if (!incomplete_comparison_mut) {
+      # -------------------- complete_comparison --------------------
+      if (isTRUE(indel_found_in_cigar)) {
+        switch(status_cigar_free,
+          "MUT" = "MUT",
+          "WT"  = "MUT by CIGAR but potentially WT",
+          "AMB" = "IMPOSSIBLE",
+          "OTH" = "MUT by CIGAR but potentially OTH"
+        )
+      } else if (isTRUE(other_found_in_cigar)) {
+        switch(status_cigar_free,
+          "MUT" = "OTH by CIGAR but potentially MUT",
+          "WT"  = "OTH by CIGAR but potentially WT",
+          "AMB" = "IMPOSSIBLE",
+          "OTH" = "OTH"
+        )
+      } else { # mutation not found by CIGAR
+        switch(status_cigar_free,
+          "MUT" = "MUT but not in CIGAR",
+          "WT"  = "WT",
+          "AMB" = "IMPOSSIBLE",
+          "OTH" = "OTH"
+        )
+      }
     } else {
-      if (cigar_free_indel_match) {
-        # set to ambiguous when the comparison is incomplete
-        if (status_cigar_free == "MUT" && incomplete_comparison_mut) {
-          status_cigar_free <- "AMB"
-        }
-
-        # print special messages for cases where the indel is not found in the CIGAR but where the comparison to
-        # wild-type and mutated reference sequence reveals the mutation is potentially present
-        if (status_cigar_free %in% c("AMB", "MUT")) {
-          if (other_found_in_cigar) {
-            return(paste(status_cigar_free, "by cigar-free search and other MUT found in CIGAR"))
-          } else {
-            return(paste(status_cigar_free, "by cigar-free search and MUT not found in CIGAR"))
-          }
-        } else {
-          return(status_cigar_free)
-        }
-      } else {
-        if (other_found_in_cigar) {
-          return("OTH")
-        } else if (incomplete_comparison_mut && status_cigar_free == "OTH") {
-          return("OTH")
-        } else if (incomplete_comparison_mut && status_cigar_free %in% c("MUT", "AMB")) {
-          return("AMB")
-        } else {
-          return("WT")
-        }
+      # -------------------- incomplete_comparison --------------------
+      if (isTRUE(indel_found_in_cigar)) {
+        switch(status_cigar_free,
+          "MUT" = "MUT by CIGAR but AMB",
+          "WT"  = "MUT by CIGAR but potentially WT",
+          "AMB" = "MUT by CIGAR but AMB",
+          "OTH" = "MUT by CIGAR but potentially OTH"
+        )
+      } else if (isTRUE(other_found_in_cigar)) {
+        switch(status_cigar_free,
+          "MUT" = "OTH by CIGAR but potentially MUT",
+          "WT"  = "OTH by CIGAR but potentially WT",
+          "AMB" = "OTH by CIGAR but AMB",
+          "OTH" = "OTH"
+        )
+      } else { # mutation not found by CIGAR
+        switch(status_cigar_free,
+          "MUT" = "MUT but not in CIGAR and AMB",
+          "WT"  = "WT",
+          "AMB" = "AMB",
+          "OTH" = "OTH"
+        )
       }
     }
   }
