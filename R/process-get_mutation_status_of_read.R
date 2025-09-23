@@ -197,110 +197,54 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     indel_found_in_cigar <- indel_search[[1]]
     other_found_in_cigar <- indel_search[[2]]
 
-    # complete_comparison
-    #   mutation found by CIGAR
-    #   -> MUT by comparison -> "MUT"
-    #   -> WT by comparison -> "MUT by CIGAR but potentially WT"
-    #   -> AMB by comparison -> "IMPOSSIBLE"
-    #   -> OTH by comparison -> "MUT by CIGAR but potentially OTH"
-
-    #   other found by CIGAR
-    #   -> MUT by comparison -> "OTH by CIGAR but potentially MUT"
-    #   -> WT by comparison -> "OTH by CIGAR but potentially WT"
-    #   -> AMB by comparison -> "IMPOSSIBLE"
-    #   -> OTH by comparison -> "OTH"
-
-    #   mutation not found by CIGAR
-    #   -> MUT by comparison -> "MUT but not in CIGAR"
-    #   -> WT by comparison -> "WT"
-    #   -> AMB by comparison -> "IMPOSSIBLE"
-    #   -> OTH by comparison -> "OTH"
-
-    # incomplete_comparison
-    #   mutation found by CIGAR
-    #   -> MUT by comparison -> "MUT by CIGAR but AMB"
-    #   -> WT by comparison -> "MUT by CIGAR but potentially WT"
-    #   -> AMB by comparison -> "MUT by CIGAR but AMB"
-    #   -> OTH by comparison -> "MUT by CIGAR but potentially OTH"
-
-    #   other found by CIGAR
-    #   -> MUT by comparison -> "OTH by CIGAR but potentially MUT"
-    #   -> WT by comparison -> "OTH by CIGAR but potentially WT"
-    #   -> AMB by comparison -> "OTH by CIGAR but AMB"
-    #   -> OTH by comparison -> "OTH"
-    #
-    #   mutation not found by CIGAR
-    #   -> MUT by comparison -> "MUT but not in CIGAR and AMB"
-    #   -> WT by comparison -> "WT"
-    #   -> AMB by comparison -> "AMB"
-    #   -> OTH by comparison -> "OTH"
-
-    #
-    # T > TGTA
-    # REF: ACT   GTAGTAT
-    # SEQ: ACTGTAGTAG
-    #      M-MIIIM--M
-
-    # REF-WT: TGTAGTAT
-    # SEQ-WT: TGTAGTAG
-
-    # REF-MT: TGTAGTAG(TAT)
-    # SEQ-MT: TGTAGTAG
-
-    if (indel_found_in_cigar) {
-      # we found the right indel at the anchor position
-      if (!incomplete_comparison_mut) {
-        # complete comparison
-        if (status_cigar_free=="MUT"){
-          return("MUT")
-        } else {
-          return("MUT by CIGAR but potentially", status_cigar_free)
-        }
-      } else {
-        if (status_cigar_free=="MUT"){
-          return("MUT by CIGAR but AMB")
-        } else {
-          return("MUT by CIGAR but potentially", status_cigar_free)
-        }
-
-
-        if (status_cigar_free == "OTH") {
-          return("MUT by CIGAR but potentially OTH")
-        } else if (status_cigar_free == "AMB"){
-          return("MUT but AMB")
-        } else {
-          # TODO:
-          return("IMPOSSIBLE")
-        }
-      }
-    } else if (other_found_in_cigar) {
-      # we found another indel at the anchor position
-      return("OTH")
-
-      if (!incomplete_comparison_mut) {
-        # complete comparison
-        if (status_cigar_free == "OTH"){
-          return("OTH")
-        } else if (status_cigar_free == "OTH"){
-          return("MUT but CIGAR says OTH")
-        } else if (status_cigar_free %in% c("AMB", "WT")) {
-          # TODO:
-          return("IMPOSSIBLE")
-        }
-      } else {
-        if (status_cigar_free == "OTH") {
-          return("MUT but potentially OTH")
-        } else if (status_cigar_free == "AMB"){
-          return("MUT but AMB")
-        } else {
-          # TODO:
-          stop("Impossible situation")
-        }
+    if (!incomplete_comparison_mut) {
+      # -------------------- complete_comparison --------------------
+      if (indel_found_in_cigar) {
+        switch(status_cigar_free,
+          "MUT" = "MUT",
+          "WT"  = "MUT by CIGAR but potentially WT",
+          "AMB" = "IMPOSSIBLE",
+          "OTH" = "MUT by CIGAR but potentially OTH"
+        )
+      } else if (other_found_in_cigar) {
+        switch(status_cigar_free,
+          "MUT" = "OTH by CIGAR but potentially MUT",
+          "WT"  = "OTH by CIGAR but potentially WT",
+          "AMB" = "IMPOSSIBLE",
+          "OTH" = "OTH"
+        )
+      } else { # mutation not found by CIGAR
+        switch(status_cigar_free,
+          "MUT" = "MUT but not in CIGAR",
+          "WT"  = "WT",
+          "AMB" = "IMPOSSIBLE",
+          "OTH" = "OTH"
+        )
       }
     } else {
-      # we did not find any indel at the anchor position in the cigar
-      # we will search for the indel of interest by comparing the wild-type ref and mutated-ref to the read sequence
-      status_cigar_free <- compare_read_to_ref_wt_and_mut(read_seq, ref_seq_wt, ref_seq_mut, compare_len_wt, compare_len_mut)
+      # -------------------- incomplete_comparison --------------------
+      if (indel_found_in_cigar) {
+        switch(status_cigar_free,
+          "MUT" = "MUT by CIGAR but AMB",
+          "WT"  = "MUT by CIGAR but potentially WT",
+          "AMB" = "MUT by CIGAR but AMB",
+          "OTH" = "MUT by CIGAR but potentially OTH"
+        )
+      } else if (other_found_in_cigar) {
+        switch(status_cigar_free,
+          "MUT" = "OTH by CIGAR but potentially MUT",
+          "WT"  = "OTH by CIGAR but potentially WT",
+          "AMB" = "OTH by CIGAR but AMB",
+          "OTH" = "OTH"
+        )
+      } else { # mutation not found by CIGAR
+        switch(status_cigar_free,
+          "MUT" = "MUT but not in CIGAR and AMB",
+          "WT"  = "WT",
+          "AMB" = "AMB",
+          "OTH" = "OTH"
+        )
+      }
     }
   }
 }

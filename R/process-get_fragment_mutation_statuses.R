@@ -95,7 +95,7 @@ get_fragment_mutation_statuses <- function(mstat_5p, mstat_3p) {
   # 4. NA / AMB (and symmetrical)
   else if ((is_na1 && is_amb2) || (is_amb1 && is_na2)) {
     fragment_status_detail <- ifelse(is_na1, mstat_3p, mstat_5p)
-    fragment_status_simple <- "AMB"
+    fragment_status_simple <- "N/I"
   }
   # 5. NA / OTH (and symmetrical)
   else if ((is_na1 && is_other_mut2) || (is_other_mut1 && is_na2)) {
@@ -107,20 +107,20 @@ get_fragment_mutation_statuses <- function(mstat_5p, mstat_3p) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
     fragment_status_simple <- "MUT"
   }
-  # 7. MUT / WT (and symmetrical) - DISCORDANT
+  # 7. MUT / WT (and symmetrical) - N/I
   else if ((is_mut1 && is_wt2) || (is_wt1 && is_mut2)) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "DIS"
+    fragment_status_simple <- "N/I"
   }
   # 8. MUT / AMB (and symmetrical) - Prioritize MUT
   else if ((is_mut1 && is_amb2) || (is_amb1 && is_mut2)) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
     fragment_status_simple <- "MUT"
   }
-  # 9. MUT / OTH (and symmetrical) - DISCORDANT
+  # 9. MUT / OTH (and symmetrical) - N/I
   else if ((is_mut1 && is_other_mut2) || (is_other_mut1 && is_mut2)) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "DIS"
+    fragment_status_simple <- "N/I"
   }
   # 10. WT / WT
   else if (is_wt1 && is_wt2) {
@@ -135,12 +135,12 @@ get_fragment_mutation_statuses <- function(mstat_5p, mstat_3p) {
   # 12. WT / OTH (and symmetrical) - DISCORDANT
   else if ((is_wt1 && is_other_mut2) || (is_other_mut1 && is_wt2)) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "DIS"
+    fragment_status_simple <- "N/I"
   }
   # 13. AMB / AMB
   else if (is_amb1 && is_amb2) {
     fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "AMB"
+    fragment_status_simple <- "N/I"
   }
   # 14. AMB / OTH (and symmetrical) - Prioritize OTH
   else if ((is_amb1 && is_other_mut2) || (is_other_mut1 && is_amb2)) {

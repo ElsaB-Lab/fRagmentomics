@@ -25,11 +25,6 @@ get_fragment_size <- function(read_stats_5p, read_stats_3p) {
     stringr::str_extract_all(read_stats_5p$CIGAR, "[[:digit:]]+(?=D)", simplify = TRUE)
   ))
 
-  # bases inserted read
-  bases_ins_5p <- sum(as.numeric(
-    stringr::str_extract_all(read_stats_5p$CIGAR, "[[:digit:]]+(?=I)", simplify = TRUE)
-  ))
-
   # bases soft-clipped left
   bases_softcl_left_3p <- as.numeric(str_extract(read_stats_3p$CIGAR, "^[[:digit:]]+(?=S)"))
   bases_softcl_left_3p <- ifelse(is.na(bases_softcl_left_3p), 0, bases_softcl_left_3p)
