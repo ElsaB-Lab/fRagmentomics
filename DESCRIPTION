@@ -31,7 +31,11 @@ biocViews:
     IndelDetection
 Suggests:
     covr,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    BiocStyle
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 Imports:
     Biostrings,

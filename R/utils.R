@@ -129,23 +129,23 @@ create_empty_fragment_row <- function(
     Input_Mutation         = input_mutation_info,
     Fragment_Id            = fragment_name,
     Fragment_QC            = fragment_qc,
-    Fragment_Status_Simple = NA,
-    Fragment_Status_Detail = NA,
-    Fragment_Size          = NA,
-    Read_5p_Status         = NA,
-    Read_3p_Status         = NA,
-    FLAG_5p                = NA,
-    FLAG_3p                = NA,
-    MAPQ_5p                = NA,
-    MAPQ_3p                = NA,
-    BASE_5p                = NA,
-    BASE_3p                = NA,
-    BASQ_5p                = NA,
-    BASQ_3p                = NA,
-    CIGAR_5p               = NA,
-    CIGAR_3p               = NA,
-    POS_5p                 = NA,
-    POS_3p                 = NA
+    Fragment_Status_Simple = NA_character_,
+    Fragment_Status_Detail = NA_character_,
+    Fragment_Size          = NA_integer_,
+    Read_5p_Status         = NA_character_,
+    Read_3p_Status         = NA_character_,
+    FLAG_5p                = NA_integer_,
+    FLAG_3p                = NA_integer_,
+    MAPQ_5p                = NA_integer_,
+    MAPQ_3p                = NA_integer_,
+    BASE_5p                = NA_character_,
+    BASE_3p                = NA_character_,
+    BASQ_5p                = NA_character_,
+    BASQ_3p                = NA_character_,
+    CIGAR_5p               = NA_character_,
+    CIGAR_3p               = NA_character_,
+    POS_5p                 = NA_integer_,
+    POS_3p                 = NA_integer_
   )
 
   if (!is.na(sample_id)) {
@@ -153,21 +153,70 @@ create_empty_fragment_row <- function(
   }
 
   if (report_tlen) {
-    final_row_fragment$TLEN <- NA
+    final_row_fragment$TLEN <- NA_integer_
   }
 
   if (report_5p_3p_bases_fragment != 0) {
-    final_row_fragment$Fragment_Bases_5p <- NA
-    final_row_fragment$Fragment_Bases_3p <- NA
-    final_row_fragment$Fragment_Basqs_5p <- NA
-    final_row_fragment$Fragment_Basqs_3p <- NA
+    final_row_fragment$Fragment_Bases_5p <- NA_character_
+    final_row_fragment$Fragment_Bases_3p <- NA_character_
+    final_row_fragment$Fragment_Basqs_5p <- NA_character_
+    final_row_fragment$Fragment_Basqs_3p <- NA_character_
   }
 
   if (report_softclip) {
-    final_row_fragment$Nb_Fragment_Bases_Softclip_5p <- NA
-    final_row_fragment$Nb_Fragment_Bases_Softclip_3p <- NA
+    final_row_fragment$Nb_Fragment_Bases_Softclip_5p <- NA_integer_
+    final_row_fragment$Nb_Fragment_Bases_Softclip_3p <- NA_integer_
   }
+
+  # Add VAF column
+  final_row_fragment$VAF <- NA_real_
 
   result_df <- as.data.frame(final_row_fragment)
   return(result_df)
 }
+
+#' Save a plot to disk if 'output_path' is provided
+#'
+#' @description
+#' Internal helper to save a ggplot object using 'ggplot2::ggsave()'.
+#' Validates 'output_path', requires an existing directory, and merges
+#' user params with sensible defaults.
+#'
+#' @param final_plot a ggplot object to save.
+#' @param output_path single string; full file path. If 'NULL'/empty, no save occurs.
+#' @param ggsave_params named list of extra args for 'ggplot2::ggsave()' (overrides defaults).
+#' @param defaults named list of default 'ggsave()' args (width, height, units, dpi, bg).
+#'
+#' @return returns 'final_plot' (invisibly) if not saved; 'NULL' (invisibly) after saving.
+#'
+#' @keywords internal
+#' @noRd
+#' @keywords internal
+save_plot_if_needed <- function(final_plot, output_path, ggsave_params = list(),
+                                 defaults = list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")) {
+  # Check if the file already exists and warn the user if it will be overwritten
+  if (file.exists(output_path)) {
+    message(sprintf("File '%s' already exists and will be overwritten.", output_path))
+  } else {
+    # Check if the file parent folder already exists
+    output_parent <- dirname(output_path)
+    if (!dir.exists(output_parent)){
+      message(sprintf("Folder '%s' does not exist and will be created", output_parent))
+      dir.create(output_parent, showWarnings=FALSE, recursive=TRUE)
+    }
+  }
+
+  # Merge params (user overrides)
+  final_params <- utils::modifyList(defaults, ggsave_params)
+  args <- c(list(plot = final_plot, filename = output_path), final_params)
+
+  message(sprintf("Saving plot to: %s", output_path))
+
+  tryCatch(
+    do.call(ggplot2::ggsave, args),
+    error = function(e) stop(sprintf("Failed to save plot to '%s': %s", output_path, e$message), call. = FALSE)
+  )
+
+  invisible(NULL)
+}
+

@@ -1,5 +1,4 @@
 test_that("get_mutation_status_of_fragment returns correct detail and simple statuses", {
-
   # --- ERROR Case (Both NA) ---
   result <- get_mutation_status_of_fragment(NA, NA)
   expect_equal(result$Detail, "ERR")
@@ -23,7 +22,7 @@ test_that("get_mutation_status_of_fragment returns correct detail and simple sta
 
   # MUT and MUT potentially larger MUT
   result <- get_mutation_status_of_fragment("MUT", "MUT but potentially larger MUT")
-  expect_equal(result$Detail, "MUT:C>T & MUT:G>A")
+  expect_equal(result$Detail, "MUT & MUT but potentially larger MUT")
   expect_equal(result$Simple, "MUT")
 
   # AMB and MUT
@@ -92,47 +91,46 @@ test_that("get_mutation_status_of_fragment returns correct detail and simple sta
   # MUT and WT
   result <- get_mutation_status_of_fragment("MUT", "WT")
   expect_equal(result$Detail, "MUT & WT")
-  expect_equal(result$Simple, "DIS")
+  expect_equal(result$Simple, "N/I")
 
   # WT and MUT (symmetrical check)
   result <- get_mutation_status_of_fragment("WT", "MUT")
   expect_equal(result$Detail, "MUT & WT")
-  expect_equal(result$Simple, "DIS")
+  expect_equal(result$Simple, "N/I")
 
   # MUT with detail and WT with detail
   result <- get_mutation_status_of_fragment("MUT:C>T", "WT:ref")
   expect_equal(result$Detail, "MUT:C>T & WT:ref")
-  expect_equal(result$Simple, "DIS")
+  expect_equal(result$Simple, "N/I")
 
   # MUT and OTH
   result <- get_mutation_status_of_fragment("MUT", "OTH")
   expect_equal(result$Detail, "MUT & OTH")
-  expect_equal(result$Simple, "DIS")
+  expect_equal(result$Simple, "N/I")
 
   # OTH and MUT (symmetrical check)
   result <- get_mutation_status_of_fragment("OTH", "MUT")
   expect_equal(result$Detail, "MUT & OTH")
-  expect_equal(result$Simple, "DIS")
+  expect_equal(result$Simple, "N/I")
 
   # WT and OTH
   result <- get_mutation_status_of_fragment("WT", "OTH")
   expect_equal(result$Detail, "OTH & WT")
-  expect_equal(result$Simple, "DIS")
+  expect_equal(result$Simple, "N/I")
 
   # OTH and WT (symmetrical check)
   result <- get_mutation_status_of_fragment("OTH", "WT")
   expect_equal(result$Detail, "OTH & WT")
-  expect_equal(result$Simple, "DIS")
+  expect_equal(result$Simple, "N/I")
 
   # --- Ambiguous Cases ---
   # AMB and AMB
   result <- get_mutation_status_of_fragment("AMB", "AMB")
   expect_equal(result$Detail, "AMB")
-  expect_equal(result$Simple, "AMB")
+  expect_equal(result$Simple, "N/I")
 
   # AMB with detail and AMB without detail
   result <- get_mutation_status_of_fragment("AMB:low_qual", "AMB")
   expect_equal(result$Detail, "AMB & AMB:low_qual")
-  expect_equal(result$Simple, "AMB")
-
+  expect_equal(result$Simple, "N/I")
 })

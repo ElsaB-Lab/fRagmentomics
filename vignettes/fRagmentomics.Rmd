@@ -20,9 +20,10 @@ output:
     toc: true
     toc_float: true
 vignette: >
-  %\VignetteIndexEntry{Introduction to fRagmentomics}
+  %\VignetteIndexEntry{A Per-Fragment Analysis Workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignettePackage{fRagmentomics}
 ---
 
 ```{r setup, include=FALSE}
@@ -43,7 +44,7 @@ Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. W
 
 **fRagmentomics** addresses this need by providing a robust and flexible R package to integrate cfDNA fragment features with their mutational status. By standardizing the analysis of both SNVs and indels at the single-fragment level, fRagmentomics supports the interpretation of liquid biopsies to distinguish tumoral origin.
 
-This vignette provides a step-by-step walkthrough of the main analysis workflow using the `analyze_fragments()` function and demonstrates the package's core visualization capabilities thank to the visualisation functions: `plot_size_distribution()`, `plot_qqseqlogo_meme()`, `plot_freq_barplot()`, `plot_motif_barplot()`.
+This vignette provides a step-by-step walkthrough of the main analysis workflow using the `run_fRagmentomics()` function and demonstrates the package's core visualization capabilities thank to the visualisation functions: `plot_size_distribution()`, `plot_qqseqlogo_meme()`, `plot_freq_barplot()`, `plot_motif_barplot()`.
 
 # Installation
 
@@ -60,7 +61,7 @@ BiocManager::install("ElsaB-Lab/fRagmentomics")
 
 # A Complete Analysis Workflow
 
-To make it user-friendly, the entire analysis is performed by a single function: `analyze_fragments()`. We will use the example data included with the package to demonstrate a typical workflow.
+To make it user-friendly, the entire analysis is performed by a single function: `run_fRagmentomics()`. We will use the example data included with the package to demonstrate a typical workflow.
 
 For a deeper dive into the package's methodology, please refer to the `README.md` file on the project's [GitHub repository](https://github.com/ElsaB-Lab/fRagmentomics).
 
@@ -120,11 +121,11 @@ The following table summarizes the accepted formats:
 
 ### Basic Workflow
 
-First, we will run `analyze_fragments()` with the default arguments. We provide the paths to our three input files, a `sample_id` for annotation, and specify the number of cores for parallel processing.
+First, we will run `run_fRagmentomics()` with the default arguments. We provide the paths to our three input files, a `sample_id` for annotation, and specify the number of cores for parallel processing.
 
 ```{r run_analysis_basic, message=TRUE, warning=TRUE}
 # Run the full analysis pipeline with default settings
-results_df_basic <- analyze_fragments(
+results_df_basic <- run_fRagmentomics(
   mut = mut_file,
   bam = bam_file,
   fasta = fasta_file,
@@ -139,7 +140,7 @@ head(results_df_basic)
 
 ### Advanced Workflow: Customizing the Analysis
 
-The `analyze_fragments()` function can be customized for more specific use cases. In the example below, we will perform a more stringent analysis and request additional information in the output table.
+The `run_fRagmentomics()` function can be customized for more specific use cases. In the example below, we will perform a more stringent analysis and request additional information in the output table.
 
 Specifically, we will:
 * **Narrow the search window** to 1000 bp around the variant using `neg_offset_mate_search` and `pos_offset_mate_search`.
@@ -148,7 +149,7 @@ Specifically, we will:
 
 ```{r run_analysis_advanced, message=TRUE, warning=TRUE}
 # Run the analysis with custom parameters
-results_df_advanced <- analyze_fragments(
+results_df_advanced <- run_fRagmentomics(
   mut = mut_file,
   bam = bam_file,
   fasta = fasta_file,
@@ -181,7 +182,7 @@ results_df_advanced %>%
 
 **Note**: The following outputs and visualizations are generated from a small, simulated test dataset. They are intended to demonstrate the package's functionality and are not representative of real biological results.
 
-The `analyze_fragments()` function returns a `data.frame` where each row represents the analysis of a single fragment. Let's explore the key columns to understand the results.
+The `run_fRagmentomics()` function returns a `data.frame` where each row represents the analysis of a single fragment. Let's explore the key columns to understand the results.
 
 ### A First Look at the Results Table
 
@@ -202,7 +203,7 @@ The **`Fragment_Status_Simple`** column provides a high-level classification for
 | `Fragment_Status_Simple` | Represents...                                                              | Typical Read Evidence (`Read_5p_Status` / `Read_3p_Status`)        |
 |:-------------------------|:---------------------------------------------------------------------------|:-------------------------------------------------------------------|
 | **`MUT`** | The fragment confidently supports the **mutant allele**.                   | `MUT`/`MUT`, `MUT`/`AMB` or `MUT`/`NA`                                        |
-| **`NON-TARGET MUT`** | The fragment confidently supports an allele that is **not the target**.      | `WT`/`WT`, `WT`/`AMB`, `WT`/`NA`, `OTH`/`OTH`, `OTH`/`AMB`, `OTH`/`NA`, or `WT`/`OTH`                          |
+| **`WT`** | The fragment confidently supports an allele that is **not the target**.      | `WT`/`WT`, `WT`/`AMB`, `WT`/`NA`, `OTH`/`OTH`, `OTH`/`AMB`, `OTH`/`NA`, or `WT`/`OTH`                          |
 | **`DISCORDANT`** | The two reads give **conflicting** high-confidence information.            | `MUT`/`WT` or `MUT`/`OTH`                                                     |
 | **`AMB`** | The evidence is **ambiguous**; a confident call cannot be made.            | `AMB`/`AMB`, `AMB`/`NA`                       |
 
@@ -239,20 +240,20 @@ For a complete description of every column in the output, please refer to the `R
 
 # Visualizing Fragmentomic Features
 
-The `results_df_advanced` object, produced by `analyze_fragments()`, can be directly used with the package's suite of plotting functions to visualize the results.
+The `results_df_advanced` object, produced by `run_fRagmentomics()`, can be directly used with the package's suite of plotting functions to visualize the results.
 
 ## Fragment Size Distribution
 
-One of the most common analyses is to compare the size distribution of fragments that carry the mutation (`MUT`) against those that do not (`NON-TARGET MUT`). The `plot_size_distribution()` function is designed for this purpose.
+One of the most common analyses is to compare the size distribution of fragments that carry the mutation (`MUT`) against those that do not (`WT`). The `plot_size_distribution()` function is designed for this purpose.
 
 ### **1. Comparing Groups with a Histogram**
 
 Let's start by creating a histogram to compare our two main groups. We'll set `show_histogram = TRUE` and `show_density = FALSE`. Using `histo_args` to set an `alpha` value adds transparency, which is helpful when bars overlap.
 
-```{r plot_size_histogram, fig.cap="Histogram comparing the fragment size distribution of MUT and NON-TARGET MUT fragments."}
+```{r plot_size_histogram, fig.cap="Histogram comparing the fragment size distribution of MUT and WT fragments."}
 plot_size_distribution(
   df_fragments = results_df_advanced,
-  vals_z = c("MUT", "NON-TARGET MUT"),
+  vals_z = c("MUT", "WT"),
   show_histogram = TRUE,
   show_density = FALSE,
   x_limits = c(100, 420),
@@ -297,11 +298,11 @@ For a deeper dive into the 3-base motifs at fragment ends, the package provides 
 
 This is the default view. It creates a detailed plot with nested facets for each base position, providing a complete landscape of all 64 possible motif proportions.
 
-```{r plot_motif_hierarchical, fig.cap="Hierarchical view of 3-base motif proportions for MUT and NON-TARGET MUT groups."}
+```{r plot_motif_hierarchical, fig.cap="Hierarchical view of 3-base motif proportions for MUT and WT groups."}
 plot_motif_barplot(
   df_fragments = results_df_basic,
   representation = "split_by_base",
-  vals_z = c("MUT", "NON-TARGET MUT")
+  vals_z = c("MUT", "WT")
 )
 ```
 
@@ -312,7 +313,7 @@ plot_motif_barplot(
   df_fragments = results_df_basic,
   representation = "split_by_base",
   motif_start = c("C", "G"),
-  vals_z = c("MUT", "NON-TARGET MUT"),
+  vals_z = c("MUT", "WT"),
   alpha = 0.7 # Pass 'alpha' to geom_bar()
 )
 ```
@@ -321,11 +322,11 @@ plot_motif_barplot(
 
 This mode is designed to directly compare **exactly two groups**. It calculates the log2 Fold Change (log2FC) of the proportion of each motif between the groups, making it easy to spot motifs that are enriched or depleted in one group relative to the other.
 
-```{r plot_motif_differential, fig.cap="Differential analysis showing the log2 Fold Change of motif usage between MUT and NON-TARGET MUT groups."}
+```{r plot_motif_differential, fig.cap="Differential analysis showing the log2 Fold Change of motif usage between MUT and WT groups."}
 plot_motif_barplot(
   df_fragments = results_df_advanced,
   representation = "differential",
-  vals_z = c("MUT", "NON-TARGET MUT")
+  vals_z = c("MUT", "WT")
 )
 ```
 
@@ -337,7 +338,7 @@ This mode creates a more traditional bar chart. Each 3-base motif is placed on t
 plot_motif_barplot(
   df_fragments = results_df_basic,
   representation = "split_by_motif",
-  vals_z = c("MUT", "NON-TARGET MUT")
+  vals_z = c("MUT", "WT")
 )
 ```
 
@@ -347,14 +348,14 @@ To visualize the nucleotide frequency at each position of the fragment ends, the
 
 #### 1. Comparing Motifs Between Groups
 
-A common use case is to compare the end-motif patterns of different fragment groups. Here, we'll look at the first 6 bases (`motif_size = 6`) of the 5' end (`motif_type = "Start"`) for `MUT` versus `NON-TARGET MUT` fragments.
+A common use case is to compare the end-motif patterns of different fragment groups. Here, we'll look at the first 6 bases (`motif_size = 6`) of the 5' end (`motif_type = "Start"`) for `MUT` versus `WT` fragments.
 
-```{r plot_logo_comparison, fig.cap="Sequence logos for the 5'-end 6-base motif, comparing MUT and NON-TARGET MUT fragments."}
+```{r plot_logo_comparison, fig.cap="Sequence logos for the 5'-end 6-base motif, comparing MUT and WT fragments."}
 plot_qqseqlogo_meme(
   df_fragments = results_df_basic,
   motif_type = "Start",
   motif_size = 6,
-  vals_z = c("MUT", "NON-TARGET MUT")
+  vals_z = c("MUT", "WT")
 )
 ```
 
@@ -377,7 +378,7 @@ The `plot_freq_barplot()` function provides a summary of the nucleotide composit
 
 In this example, we will analyze the overall nucleotide frequency in the first 5 bases (`motif_size = 5`) of the 5' end (`motif_type = "Start"`) of the fragments. We will also pass the `alpha` argument via `...` to make the bars transparent.
 
-```{r plot_freq_barplot, fig.cap="Overall nucleotide frequency at the 5' end of MUT vs. NON-TARGET MUT fragments."}
+```{r plot_freq_barplot, fig.cap="Overall nucleotide frequency at the 5' end of MUT vs. WT fragments."}
 plot_freq_barplot(
   df_fragments = results_df_basic,
   motif_size = 5,

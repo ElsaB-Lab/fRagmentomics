@@ -19,7 +19,7 @@ check_parameters(
   remove_softclip,
   retain_fail_qc,
   tmp_folder,
-  output_folder,
+  output_path,
   n_cores
 )
 }
@@ -59,6 +59,8 @@ extremity bases in the output.}
 \item{retain_fail_qc}{Boolean. If set to TRUE, retain fragments that failed the various quality checks in the output.}
 
 \item{tmp_folder}{Character vector for the temporary folder path.}
+
+\item{output_path}{Character vector for the fragmentomics table output path.}
 
 \item{n_cores}{Number of cores for parallel computation.}
 }

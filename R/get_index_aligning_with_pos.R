@@ -65,7 +65,7 @@ get_index_aligning_with_pos <- function(pos, read_stats) {
     }
 
     # The position searched is the start of a softclipped or inserted region in the end of the read
-    if (consumes_seq & (pos == ref_pos) & nchar(read_cigar)==0){
+    if (consumes_seq & (pos == ref_pos) & nchar(read_cigar) == 0) {
       return(-0.5)
     }
 
@@ -78,5 +78,3 @@ get_index_aligning_with_pos <- function(pos, read_stats) {
   # if the loop finishes, the read did not cover the position of interest
   return(-1)
 }
-
-

@@ -8,7 +8,7 @@ run_fRagmentomics(
   mut,
   bam,
   fasta,
-  sample_id = NA,
+  sample_id = NA_character_,
   neg_offset_mate_search = -1000,
   pos_offset_mate_search = 1000,
   one_based = TRUE,
@@ -22,7 +22,7 @@ run_fRagmentomics(
   remove_softclip = FALSE,
   retain_fail_qc = FALSE,
   tmp_folder = tempdir(),
-  output_path = NA,
+  output_path = NA_character_,
   n_cores = 8
 )
 }

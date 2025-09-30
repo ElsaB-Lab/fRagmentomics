@@ -18,7 +18,11 @@
 #' @param chr Character. Chromosome of interest.
 #' @param pos Integer. Genomic position of interest.
 #'
-#' @return A list of two dataframes containing the retained and removed SAM entries (reads).
+#' @return A named list with two elements:
+#' \describe{
+#'   \item{well_oriented}{A data.frame of reads whose strand orientation differs from their mates (properly oriented). May be \code{NULL} if none found.}
+#'   \item{badly_oriented}{A data.frame of reads whose strand orientation matches their mates (improperly oriented). May be \code{NULL} if none found.}
+#' }
 #'
 #' @importFrom Rsamtools ScanBamParam scanBam
 #' @importFrom GenomicRanges GRanges
@@ -115,8 +119,8 @@ read_bam <- function(
 
   # Keep only the read with a different orientation
   well_oriented_reads <- flag_matrix[, "isMinusStrand"] != flag_matrix[, "isMateMinusStrand"]
-  df_well_oriented_reads <- df_reads_of_covering_fragments[well_oriented_reads,,drop=FALSE]
-  df_badly_oriented_reads <- df_reads_of_covering_fragments[!well_oriented_reads,,drop=FALSE]
+  df_well_oriented_reads <- df_reads_of_covering_fragments[well_oriented_reads, , drop = FALSE]
+  df_badly_oriented_reads <- df_reads_of_covering_fragments[!well_oriented_reads, , drop = FALSE]
 
   if (nrow(df_well_oriented_reads) == 0) {
     df_well_oriented_reads <- NULL
@@ -126,5 +130,5 @@ read_bam <- function(
     df_badly_oriented_reads <- NULL
   }
 
-  return(list(well_oriented=df_well_oriented_reads, badly_oriented=df_badly_oriented_reads))
+  return(list(well_oriented = df_well_oriented_reads, badly_oriented = df_badly_oriented_reads))
 }

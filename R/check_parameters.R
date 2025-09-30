@@ -24,7 +24,7 @@ check_parameters <- function(
     remove_softclip,
     retain_fail_qc,
     tmp_folder,
-    output_folder,
+    output_path,
     n_cores) {
   check_mut(mut)
   check_bam(bam)
@@ -40,7 +40,7 @@ check_parameters <- function(
   check_remove_softclip(remove_softclip)
   check_retain_fail_qc(retain_fail_qc)
   check_tmp_folder(tmp_folder)
-  check_output_folder(output_folder)
+  check_output_path(output_path)
   check_n_cores(n_cores)
 }
 
@@ -283,24 +283,18 @@ check_tmp_folder <- function(tmp_folder) {
 
 #' Check if a directory exists. If not, create it.
 #'
-#' @param output_folder A single character string for the directory path.
+#' @param output_path A single character string for the directory path.
 #'
 #' @noRd
-check_output_folder <- function(output_folder) {
+check_output_path <- function(output_path) {
   # Return silently if the path is empty, NA or NULL
-  if (is.null(output_folder) || is.na(output_folder) || output_folder == "") {
+  if (is.null(output_path) || is.na(output_path) || output_path == "") {
     return(invisible(NULL))
   }
 
   # Validate the input type
-  if (!is.character(output_folder) || length(output_folder) != 1) {
-    stop("'output_folder' must be a single character string.")
-  }
-
-  # Check if the directory exists and create it if not
-  if (!dir.exists(output_folder)) {
-    message(sprintf("Creating directory: %s", output_folder))
-    dir.create(output_folder, recursive = TRUE, showWarnings = FALSE)
+  if (!is.character(output_path) || length(output_path) != 1) {
+    stop("'output_path' must be a single character string.")
   }
 }
 

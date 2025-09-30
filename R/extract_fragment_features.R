@@ -120,22 +120,6 @@ extract_fragment_features <- function(df_sam,
     read_stats_5p$QUAL <- read_5p_info_without_softclip$QUAL
     read_stats_5p$CIGAR <- read_5p_info_without_softclip$CIGAR
     read_stats_5p$read_length <- read_5p_info_without_softclip$read_length
-
-    # Check if trimming resulted in an empty sequence or CIGAR
-    if (read_3p_info_without_softclip$SEQ == "" || read_3p_info_without_softclip$CIGAR == "") {
-      # The read is invalid after trimming, so fail the whole fragment.
-      result_df <- create_empty_fragment_row(
-        chr, pos, ref, alt, input_mutation_info, fragment_name,
-        fragment_qc = "Read empty after softclip trim",
-        sample_id, report_tlen, report_5p_3p_bases_fragment, report_softclip
-      )
-      return(result_df)
-    }
-
-    read_stats_3p$SEQ <- read_3p_info_without_softclip$SEQ
-    read_stats_3p$QUAL <- read_3p_info_without_softclip$QUAL
-    read_stats_3p$CIGAR <- read_3p_info_without_softclip$CIGAR
-    read_stats_3p$read_length <- read_3p_info_without_softclip$read_length
   }
 
   # -------------------------------
@@ -169,30 +153,30 @@ extract_fragment_features <- function(df_sam,
     Input_Mutation         = input_mutation_info,
     Fragment_Id            = fragment_name,
     Fragment_QC            = "OK",
-    Fragment_Status_Simple = fstats$Simple,
-    Fragment_Status_Detail = fstats$Detail,
-    Fragment_Size          = fragment_size,
-    Read_5p_Status         = read_info_5p$mstat,
-    Read_3p_Status         = read_info_3p$mstat,
-    FLAG_5p                = read_stats_5p$FLAG,
-    FLAG_3p                = read_stats_3p$FLAG,
-    MAPQ_5p                = read_stats_5p$MAPQ,
-    MAPQ_3p                = read_stats_3p$MAPQ,
-    BASE_5p                = read_info_5p$base,
-    BASE_3p                = read_info_3p$base,
-    BASQ_5p                = read_info_5p$basq,
-    BASQ_3p                = read_info_3p$basq,
-    CIGAR_5p               = read_stats_5p$CIGAR,
-    CIGAR_3p               = read_stats_3p$CIGAR,
-    POS_5p                 = read_stats_5p$POS,
-    POS_3p                 = read_stats_3p$POS
+    Fragment_Status_Simple = as.character(fstats$Simple),
+    Fragment_Status_Detail = as.character(fstats$Detail),
+    Fragment_Size          = as.integer(fragment_size),
+    Read_5p_Status         = as.character(read_info_5p$mstat),
+    Read_3p_Status         = as.character(read_info_3p$mstat),
+    FLAG_5p                = as.integer(read_stats_5p$FLAG),
+    FLAG_3p                = as.integer(read_stats_3p$FLAG),
+    MAPQ_5p                = as.integer(read_stats_5p$MAPQ),
+    MAPQ_3p                = as.integer(read_stats_3p$MAPQ),
+    BASE_5p                = as.character(read_info_5p$base),
+    BASE_3p                = as.character(read_info_3p$base),
+    BASQ_5p                = as.character(read_info_5p$basq),
+    BASQ_3p                = as.character(read_info_3p$basq),
+    CIGAR_5p               = as.character(read_stats_5p$CIGAR),
+    CIGAR_3p               = as.character(read_stats_3p$CIGAR),
+    POS_5p                 = as.integer(read_stats_5p$POS),
+    POS_3p                 = as.integer(read_stats_3p$POS)
   )
 
   # -------------------------------
   # Put sample if not NA
   # -------------------------------
   if (!is.na(sample_id)) {
-    final_row_fragment$Sample_Id <- sample_id
+    as.character(final_row_fragment$Sample_Id <- sample_id)
   }
 
   # -------------------------------
@@ -203,7 +187,7 @@ extract_fragment_features <- function(df_sam,
       warning("TLEN is NULL or missing, cannot be reported.")
       final_row_fragment$TLEN <- "Warning: TLEN is NULL"
     } else {
-      final_row_fragment$TLEN <- abs(read_stats_5p$TLEN)
+      as.integer(final_row_fragment$TLEN <- abs(read_stats_5p$TLEN))
     }
   }
 
@@ -221,14 +205,14 @@ extract_fragment_features <- function(df_sam,
       read_stats_3p$QUAL
     )
 
-    final_row_fragment$Fragment_Bases_5p <-
-      fragment_bases_5p_3p$fragment_bases_5p
-    final_row_fragment$Fragment_Bases_3p <-
-      fragment_bases_5p_3p$fragment_bases_3p
-    final_row_fragment$Fragment_Basqs_5p <-
-      fragment_bases_5p_3p$fragment_basqs_5p
-    final_row_fragment$Fragment_Basqs_3p <-
-      fragment_bases_5p_3p$fragment_basqs_3p
+    as.character(final_row_fragment$Fragment_Bases_5p <-
+      fragment_bases_5p_3p$fragment_bases_5p)
+    as.character(final_row_fragment$Fragment_Bases_3p <-
+      fragment_bases_5p_3p$fragment_bases_3p)
+    as.character(final_row_fragment$Fragment_Basqs_5p <-
+      fragment_bases_5p_3p$fragment_basqs_5p)
+    as.character(final_row_fragment$Fragment_Basqs_3p <-
+      fragment_bases_5p_3p$fragment_basqs_3p)
   }
 
   # -------------------------------
@@ -242,11 +226,14 @@ extract_fragment_features <- function(df_sam,
       read_stats_3p$CIGAR
     )
 
-    final_row_fragment$Nb_Fragment_Bases_Softclip_5p <-
-      fragment_bases_softclip_5p_3p$nb_softclip_5p
-    final_row_fragment$Nb_Fragment_Bases_Softclip_3p <-
-      fragment_bases_softclip_5p_3p$nb_softclip_3p
+    as.integer(final_row_fragment$Nb_Fragment_Bases_Softclip_5p <-
+      fragment_bases_softclip_5p_3p$nb_softclip_5p)
+    as.integer(final_row_fragment$Nb_Fragment_Bases_Softclip_3p <-
+      fragment_bases_softclip_5p_3p$nb_softclip_3p)
   }
+
+  # Add VAF column
+  final_row_fragment$VAF <- NA_real_
 
   # Creation of the dataframe with the wanted columns
   result_df <- as.data.frame(final_row_fragment)

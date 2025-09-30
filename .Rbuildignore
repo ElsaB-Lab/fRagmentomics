@@ -8,3 +8,7 @@ usethis::use_build_ignore(".github")
 ^fRagmentomics\.yaml$
 ^utils$
 ^fRagmentomics_.*\.pdf$
+^vignettes/.*\.html$
+^vignettes/.*\.pdf$
+^vignettes/.*_cache$
+

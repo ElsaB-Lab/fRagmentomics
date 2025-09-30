@@ -17,8 +17,8 @@ plot_size_distribution(
   x_limits = c(0, 750),
   histogram_binwidth = 5,
   show_nuc_peaks = TRUE,
-  sample_id = NA,
-  output_path = NA,
+  sample_id = NA_character_,
+  output_path = NA_character_,
   ggsave_params = list()
 )
 }
@@ -79,12 +79,12 @@ di_nuc_sizes <- rnorm(30, mean = 330, sd = 30)
 
 # Combine into a single dataframe
 example_df_size <- data.frame(
-    Fragment_Size = c(mut_sizes, wt_sizes, di_nuc_sizes),
-    Fragment_Status_Simple = c(
-        rep("MUT", 100),
-        rep("WT", 150),
-        sample(c("MUT", "WT"), 30, replace = TRUE)
-    )
+  Fragment_Size = c(mut_sizes, wt_sizes, di_nuc_sizes),
+  Fragment_Status_Simple = c(
+    rep("MUT", 100),
+    rep("WT", 150),
+    sample(c("MUT", "WT"), 30, replace = TRUE)
+  )
 )
 # Ensure all fragment sizes are positive
 example_df_size <- example_df_size[example_df_size$Fragment_Size > 0, ]
@@ -98,29 +98,29 @@ print(p1)
 # 2. Histogram plot: Show distributions as histograms instead of density curves.
 #    We add transparency (alpha) so overlapping bars are visible.
 p2 <- plot_size_distribution(
-    df_fragments = example_df_size,
-    show_histogram = TRUE,
-    show_density = FALSE,
-    histo_args = list(alpha = 0.6)
+  df_fragments = example_df_size,
+  show_histogram = TRUE,
+  show_density = FALSE,
+  histo_args = list(alpha = 0.6)
 )
 print(p2)
 
 # 3. Combined plot: Overlay both density curves and histograms.
 p3 <- plot_size_distribution(
-    df_fragments = example_df_size,
-    show_histogram = TRUE,
-    show_density = TRUE,
-    histo_args = list(alpha = 0.4)
+  df_fragments = example_df_size,
+  show_histogram = TRUE,
+  show_density = TRUE,
+  histo_args = list(alpha = 0.4)
 )
 print(p3)
 
 # 4. Ungrouped and customized plot: Analyze all fragments together,
 #    zoom in on the x-axis, and hide the nucleosome peak lines.
 p4 <- plot_size_distribution(
-    df_fragments = example_df_size,
-    col_z = NULL,
-    x_limits = c(50, 400),
-    show_nuc_peaks = FALSE
+  df_fragments = example_df_size,
+  col_z = NULL,
+  x_limits = c(50, 400),
+  show_nuc_peaks = FALSE
 )
 print(p4)
 

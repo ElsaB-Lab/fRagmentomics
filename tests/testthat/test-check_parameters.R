@@ -79,10 +79,10 @@ test_that("check_parameters", {
     report_tlen = FALSE,
     report_softclip = FALSE,
     report_5p_3p_bases_fragment = 5L,
-    cigar_free_indel_match = FALSE,
     remove_softclip = FALSE,
+    retain_fail_qc = FALSE,
     tmp_folder = tempdir(),
-    output_folder = "./test",
+    output_path = "./test",
     n_cores = 1L
   )
 
@@ -103,10 +103,10 @@ test_that("check_parameters", {
         report_tlen = valid_params$report_tlen,
         report_softclip = valid_params$report_softclip,
         report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-        cigar_free_indel_match = valid_params$cigar_free_indel_match,
         remove_softclip = valid_params$remove_softclip,
+        retain_fail_qc = valid_params$retain_fail_qc,
         tmp_folder = valid_params$tmp_folder,
-        output_folder = valid_params$output_folder,
+        output_path = valid_params$output_path,
         n_cores = valid_params$n_cores
       )
     )
@@ -128,10 +128,10 @@ test_that("check_parameters", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_indel_match = valid_params$cigar_free_indel_match,
       remove_softclip = valid_params$remove_softclip,
+      retain_fail_qc = valid_params$retain_fail_qc,
       tmp_folder = valid_params$tmp_folder,
-      output_folder = valid_params$output_folder,
+      output_path = valid_params$output_path,
       n_cores = valid_params$n_cores
     ),
     "The Mutation file does not exist",
@@ -154,10 +154,10 @@ test_that("check_parameters", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_indel_match = valid_params$cigar_free_indel_match,
       remove_softclip = valid_params$remove_softclip,
+      retain_fail_qc = valid_params$retain_fail_qc,
       tmp_folder = valid_params$tmp_folder,
-      output_folder = valid_params$output_folder,
+      output_path = valid_params$output_path,
       n_cores = valid_params$n_cores
     ),
     "The BAM file does not exist",
@@ -180,10 +180,10 @@ test_that("check_parameters", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_indel_match = valid_params$cigar_free_indel_match,
       remove_softclip = valid_params$remove_softclip,
+      retain_fail_qc = valid_params$retain_fail_qc,
       tmp_folder = valid_params$tmp_folder,
-      output_folder = valid_params$output_folder,
+      output_path = valid_params$output_path,
       n_cores = valid_params$n_cores
     ),
     "The FASTA file does not exist",
@@ -209,10 +209,10 @@ test_that("check_parameters", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_indel_match = valid_params$cigar_free_indel_match,
       remove_softclip = valid_params$remove_softclip,
+      retain_fail_qc = valid_params$retain_fail_qc,
       tmp_folder = valid_params$tmp_folder,
-      output_folder = valid_params$output_folder,
+      output_path = valid_params$output_path,
       n_cores = valid_params$n_cores
     ),
     "Creating BAM index..."
@@ -237,10 +237,10 @@ test_that("check_parameters", {
       report_tlen = valid_params$report_tlen,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
-      cigar_free_indel_match = valid_params$cigar_free_indel_match,
       remove_softclip = valid_params$remove_softclip,
+      retain_fail_qc = valid_params$retain_fail_qc,
       tmp_folder = valid_params$tmp_folder,
-      output_folder = valid_params$output_folder,
+      output_path = valid_params$output_path,
       n_cores = valid_params$n_cores
     ),
     "Creating FASTA index..."
@@ -314,8 +314,7 @@ test_that("check_parameters individual parameter validations", {
   expect_error(check_one_based("TRUE"), "must be a single logical")
   expect_error(check_report_tlen(1L), "must be a single logical")
   expect_error(check_report_softclip(NULL), "must be a single logical")
-  expect_error(check_cigar_free_indel_match(NULL), "must be a single logical")
-  expect_error(check_remove_softclip(NULL), "must be a single logical")
+  expect_error(check_retain_fail_qc(NULL), "must be a single logical")
 
   # Report 5p/3p bases
   expect_error(check_report_bases_fragm_5p_3p(5), "must be integer")
@@ -325,9 +324,9 @@ test_that("check_parameters individual parameter validations", {
   expect_error(check_tmp_folder(TRUE), "must be a single character")
 
   # Output folder
-  expect_silent(check_output_folder(NA))
-  expect_silent(check_output_folder(""))
-  expect_error(check_output_folder(42), "'output_folder' must be a single character string.")
+  expect_silent(check_output_path(NA))
+  expect_silent(check_output_path(""))
+  expect_error(check_output_path(42), "'output_path' must be a single character string.")
 
   # n_cores
   expect_error(check_n_cores(2), "must be integer")

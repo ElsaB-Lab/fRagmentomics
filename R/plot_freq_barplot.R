@@ -39,22 +39,22 @@
 #'
 #' # Helper function to generate random DNA sequences with a bias
 #' generate_biased_dna <- function(n_seq, len, prob) {
-#'     bases <- c("A", "C", "G", "T")
-#'     replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
+#'   bases <- c("A", "C", "G", "T")
+#'   replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
 #' }
 #'
 #' # Create 50 "MUT" fragments with a high proportion of 'C'
 #' df_mut <- data.frame(
-#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
-#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
-#'     Fragment_Status_Simple = "MUT"
+#'   Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'   Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+#'   Fragment_Status_Simple = "MUT"
 #' )
 #'
 #' # Create 50 "WT" fragments with a high proportion of 'G'
 #' df_wt <- data.frame(
-#'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
-#'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
-#'     Fragment_Status_Simple = "WT"
+#'   Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'   Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+#'   Fragment_Status_Simple = "WT"
 #' )
 #'
 #' # Combine into a single dataframe
@@ -70,10 +70,10 @@
 #' # 2. Customized plot: Analyzes only the first nucleotide ('motif_size = 1')
 #' #    of the 5' end ('motif_type = "Start"') using custom colors.
 #' p2 <- plot_freq_barplot(
-#'     df_fragments = example_df,
-#'     motif_type = "Start",
-#'     motif_size = 1,
-#'     colors_z = c("MUT" = "#d95f02", "WT" = "#1b9e77")
+#'   df_fragments = example_df,
+#'   motif_type = "Start",
+#'   motif_size = 1,
+#'   colors_z = c("MUT" = "#d95f02", "WT" = "#1b9e77")
 #' )
 #' print(p2)
 #'
@@ -85,8 +85,8 @@
 #' # 4. Plot with a subset of groups: If you had more than two groups
 #' #    (e.g., "MUT", "WT", "AMB"), you could select specific ones to plot.
 #' p4 <- plot_freq_barplot(
-#'     df_fragments = example_df,
-#'     vals_z = c("MUT", "WT")
+#'   df_fragments = example_df,
+#'   vals_z = c("MUT", "WT")
 #' )
 #' print(p4)
 #'
@@ -116,8 +116,8 @@ plot_freq_barplot <- function(df_fragments,
                               vals_z = NULL,
                               ...,
                               colors_z = "Set2",
-                              sample_id = NA,
-                              output_path = NA,
+                              sample_id = NA_character_,
+                              output_path = NA_character_,
                               ggsave_params = list()) {
   # --- 1. Input Validation and Setup ---
   if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
@@ -153,11 +153,11 @@ plot_freq_barplot <- function(df_fragments,
   }
   if (motif_size > max_len) {
     warning(sprintf(
-                    "Requested 'motif_size' (%d) is larger than the shortest available sequence (%d). Using maximum possible size: %d.",
-                    motif_size,
-                    max_len,
-                    max_len
-                    ))
+      "Requested 'motif_size' (%d) is larger than the shortest available sequence (%d). Using maximum possible size: %d.",
+      motif_size,
+      max_len,
+      max_len
+    ))
     motif_size <- max_len
   }
 
@@ -178,15 +178,15 @@ plot_freq_barplot <- function(df_fragments,
   count_df <- bind_rows(motifs_list) %>%
     filter(!is.na(motif)) %>%
     mutate(
-           A = str_count(motif, "A"), C = str_count(motif, "C"),
-           G = str_count(motif, "G"), T = str_count(motif, "T")
-           ) %>%
+      A = str_count(motif, "A"), C = str_count(motif, "C"),
+      G = str_count(motif, "G"), T = str_count(motif, "T")
+    ) %>%
     select(-motif) %>%
     pivot_longer(
-                 cols = all_of(nucleotide_cols),
-                 names_to = "nucleotide",
-                 values_to = "count"
-                 ) %>%
+      cols = all_of(nucleotide_cols),
+      names_to = "nucleotide",
+      values_to = "count"
+    ) %>%
     group_by(group, nucleotide) %>%
     summarise(total_count = sum(count, na.rm = TRUE), .groups = "drop")
 
@@ -196,14 +196,14 @@ plot_freq_barplot <- function(df_fragments,
     mutate(total_bases_in_group = sum(total_count)) %>%
     ungroup() %>%
     mutate(
-           frequency = total_count / total_bases_in_group,
-           ci = map2(total_count, total_bases_in_group, ~ stats::prop.test(.x, .y)$conf.int),
-           ci_low = map_dbl(ci, ~ .x[1]),
-           ci_high = map_dbl(ci, ~ .x[2])
-           ) %>%
+      frequency = total_count / total_bases_in_group,
+      ci = map2(total_count, total_bases_in_group, ~ stats::prop.test(.x, .y)$conf.int),
+      ci_low = map_dbl(ci, ~ .x[1]),
+      ci_high = map_dbl(ci, ~ .x[2])
+    ) %>%
     mutate(
-           nucleotide = factor(nucleotide, levels = c("A", "C", "G", "T")),
-           group = factor(group, levels = vals_z)
+      nucleotide = factor(nucleotide, levels = c("A", "C", "G", "T")),
+      group = factor(group, levels = vals_z)
     )
 
   # --- 5. Statistical Test & Plot Customization ---
@@ -238,41 +238,32 @@ plot_freq_barplot <- function(df_fragments,
     scale_fill_manual(values = colors_z, name = "Group", labels = new_group_labels) +
     theme_bw(base_size = 14) +
     labs(
-         title = paste0("Overall Nucleotide Frequency (", motif_size, "-mers)"),
-         x = NULL,
-         y = "Overall Frequency",
-         caption = plot_caption
-         ) +
+      title = paste0("Overall Nucleotide Frequency (", motif_size, "-mers)"),
+      x = NULL,
+      y = "Overall Frequency",
+      caption = plot_caption
+    ) +
     theme(
-          plot.caption = element_text(hjust = 0, size = 10, face = "italic"),
-          strip.text = element_text(face = "bold", size = 12),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_blank(),
-          axis.ticks.x = element_line(),
-          legend.position = "right"
+      plot.caption = element_text(hjust = 0, size = 10, face = "italic"),
+      strip.text = element_text(face = "bold", size = 12),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_line(),
+      legend.position = "right"
     )
 
-  # --- 7. Save the plot to a file if an output folder is provided ---
-  # Check if a valid output folder path was provided.
-  if (!is.null(output_path) && all(!is.na(output_path) & nzchar(output_path))) {
-    # Validate that output_path is a single character string before using it.
-    if (!is.character(output_path) || length(output_path) != 1) {
-      stop("'output_path' must be a single character string.")
-    }
-
-    if (file.exists(output_path)) {
-      message(sprintf("File '%s' already exists and will be overwritten.", output_path))
-    }
-
-    default_save_params <- list(width = 8, height = 6, units = "in", dpi = 300)
-    final_save_params <- utils::modifyList(default_save_params, ggsave_params)
-
-    ggsave_args <- c(list(plot = final_plot, filename = output_path), final_save_params)
-
-    message(sprintf("Saving plot to: %s", output_path))
-    do.call("ggsave", ggsave_args)
-  } else {
+  # --- 7. Save the plot to a file if an output_path is provided ---
+  if (is.null(output_path) ||
+      (is.character(output_path) && length(output_path) == 1 &&
+      (is.na(output_path) || !nzchar(output_path)))) {
     return(final_plot)
   }
+
+  if (!(is.character(output_path) && length(output_path) == 1)) {
+    stop("'output_path' must be a single character string.")
+  }
+
+  save_plot_if_needed(final_plot, output_path, ggsave_params)
+  return(invisible(NULL))
 }

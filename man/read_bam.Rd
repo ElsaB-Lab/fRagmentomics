@@ -32,7 +32,11 @@ overlaps the queried position.}
 NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.}
 }
 \value{
-A list of two dataframes containing the retained and removed SAM entries (reads).
+A named list with two elements:
+\describe{
+\item{well_oriented}{A data.frame of reads whose strand orientation differs from their mates (properly oriented). May be \code{NULL} if none found.}
+\item{badly_oriented}{A data.frame of reads whose strand orientation matches their mates (improperly oriented). May be \code{NULL} if none found.}
+}
 }
 \description{
 This function performs a targeted extraction of sequencing reads from a BAM file. It first fetches reads

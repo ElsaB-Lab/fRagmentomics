@@ -10,10 +10,6 @@
 #'
 #' @keywords internal
 get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_fafile = NULL, fasta_seq = NULL) {
-  # # Modify the sequence to remove the softclipped part at the end
-  # read_seq_len_without_softclipping <- calculate_len_without_end_softclip(read_stats$CIGAR, read_stats$SEQ)
-  # read_stats$SEQ <- substr(read_stats$SEQ, 1, read_seq_len_without_softclipping)
-
   # get index in the read sequence aligning with pos
   read_index_at_pos <- get_index_aligning_with_pos(pos, read_stats)
 
@@ -34,10 +30,12 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
       if (nchar(ref) == nchar(alt)) {
         # SNV or MNV
         mstat_small <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
-          fasta_seq, n_match_base_before = 0, n_match_base_after = 0
+          fasta_seq,
+          n_match_base_before = 0, n_match_base_after = 0
         )
         mstat_large <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos,
-          fasta_fafile, fasta_seq, n_match_base_before = 1, n_match_base_after = 1
+          fasta_fafile, fasta_seq,
+          n_match_base_before = 1, n_match_base_after = 1
         )
         if (mstat_small == "MUT") {
           if (mstat_large == "OTH") {
@@ -62,7 +60,8 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
         # Additionally, we want to systematically include with one base after the actual mutated sequences.
         # If we cannot cover the base after, then we will call ambiguous if compatible with mutated ref.
         mstat <- get_mutation_status_of_read(chr, pos, ref, alt, read_stats, read_index_at_pos, fasta_fafile,
-          fasta_seq, n_match_base_before = 1, n_match_base_after = 1
+          fasta_seq,
+          n_match_base_before = 1, n_match_base_after = 1
         )
       }
     }
@@ -83,7 +82,7 @@ get_base_basq_mstat_from_read <- function(chr, pos, ref, alt, read_stats, fasta_
     # iterate
     while (nchar(base) < nchar(alt)) {
       shift <- shift + 1
-      info_at_pos <- get_base_basq_from_read_at_pos(pos + shift, pos, read_stats)
+      info_at_pos <- get_base_basq_from_read_at_pos(pos + shift, pos + shift - 1, read_stats)
       max_new <- min(nchar(alt) - nchar(base), nchar(info_at_pos$base))
       base <- paste0(base, substr(info_at_pos$base, 1, max_new))
       basq <- paste0(basq, substr(info_at_pos$basq, 1, max_new))

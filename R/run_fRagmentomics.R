@@ -95,7 +95,7 @@ run_fRagmentomics <- function(
     mut,
     bam,
     fasta,
-    sample_id = NA,
+    sample_id = NA_character_,
     neg_offset_mate_search = -1000,
     pos_offset_mate_search = 1000,
     one_based = TRUE,
@@ -119,7 +119,7 @@ run_fRagmentomics <- function(
     remove_softclip = FALSE,
     retain_fail_qc = FALSE,
     tmp_folder = tempdir(),
-    output_path = NA,
+    output_path = NA_character_,
     n_cores = 8) {
   # Load inputs, check parameters and normalize ========================================================================
 
@@ -165,8 +165,11 @@ run_fRagmentomics <- function(
 
   # Run per-mutation analysis ==========================================================================================
   # Initialize parallel cluster
-  future::plan(future::multisession, workers = n_cores)
-  # on.exit() close the parallelisation at the end
+  if (n_cores == 1L) {
+  future::plan("sequential")
+  } else {
+    future::plan(future::multisession, workers = n_cores)
+  }
   on.exit(future::plan("sequential"), add = TRUE)
 
   # Create final df
@@ -196,10 +199,10 @@ run_fRagmentomics <- function(
 
 
     # Check if there are badly-oriented reads and create dataframe with NAs if any are found
-    if (!is.null(df_sam_badly_oriented)){
+    if (!is.null(df_sam_badly_oriented)) {
       df_fragments_info_badly_oriented <- data.frame()
 
-      for (fragment_name in unique(df_sam_badly_oriented$QNAME)){
+      for (fragment_name in unique(df_sam_badly_oriented$QNAME)) {
         fragment_qc <- "Fragment with badly oriented reads"
 
         df_fragments_info_badly_oriented <- rbind(
@@ -214,7 +217,6 @@ run_fRagmentomics <- function(
       # Add to the final df
       df_fragments_info_final <- rbind(df_fragments_info_final, df_fragments_info_badly_oriented)
     }
-
 
     # Check that there are well-oriented reads to be processed
     if (is.null(df_sam)) {
@@ -298,7 +300,7 @@ run_fRagmentomics <- function(
       num <- sum(status_simple == "MUT", na.rm = TRUE)
       df_fragments_info$VAF <- if (denom == 0) 0 else 100 * num / denom
     }
-
+    
     # Fusion into the final df
     df_fragments_info_final <- rbind(df_fragments_info_final, df_fragments_info)
   }
@@ -309,10 +311,10 @@ run_fRagmentomics <- function(
   }
 
   # Remove reads failing QC unless the user explicity wants to retain them
-  if (!retain_fail_qc){
+  if (!retain_fail_qc) {
     mask_fail_qc <- df_fragments_info_final[["Fragment_QC"]] != "OK"
     nfrag_fail_qc <- sum(mask_fail_qc)
-    df_fragments_info_final <- df_fragments_info_final[mask_fail_qc,,drop=F]
+    df_fragments_info_final <- df_fragments_info_final[!mask_fail_qc, , drop = FALSE]
     message(sprintf("Removed '%d' fragments that fail quality checks from output. Set `retain_fail_qc` to TRUE to retain them.", nfrag_fail_qc))
   }
 
@@ -330,7 +332,7 @@ run_fRagmentomics <- function(
       output_parent <- dirname(output_path)
       if (!dir.exists(output_parent)){
         message(sprintf("Folder '%s' does not exist and will be created", output_parent))
-        dir.create(output_parent, showWarnings=F, recursive=T)
+        dir.create(output_parent, showWarnings=FALSE, recursive=TRUE)
       }
     }
 
@@ -343,6 +345,8 @@ run_fRagmentomics <- function(
       quote = FALSE,
       row.names = FALSE
     )
+
+    return(NULL)
   }
 
   return(df_fragments_info_final)

@@ -122,7 +122,10 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
     #   REF_AFTER_ONE_MOTIF: GAGAT
 
     # if the sequence contains the searched motif at least once
-    if (grepl(paste0("^", alt), substr(ref_seq_wt, n_match_base_before, nchar(ref_seq_wt)))){
+    regex_motif <- paste0("^", if (alt_len > ref_len) alt else ref)
+
+    if (grepl(regex_motif, substr(ref_seq_wt, n_match_base_before, nchar(ref_seq_wt)))) {
+      # Because we are supposed to find a deletion motif and
       repeat_count <- 1
       ref_seq_after_one_motif <- substr(ref_seq_wt, n_match_base_before + motif_len + 1, nchar(ref_seq_wt))
 
@@ -147,7 +150,6 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
         repeat_count * motif_len + n_match_base_after - 1
       )
       n_bases_shared_with_motif <- get_number_of_common_first_char(ref_seq_after_last_motif, motif)
-
     } else {
       repeat_count <- 0
       n_bases_shared_with_motif <- 0

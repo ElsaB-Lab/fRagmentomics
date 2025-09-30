@@ -47,12 +47,12 @@
 #'
 #' # Combine into a single dataframe
 #' example_df_size <- data.frame(
-#'     Fragment_Size = c(mut_sizes, wt_sizes, di_nuc_sizes),
-#'     Fragment_Status_Simple = c(
-#'         rep("MUT", 100),
-#'         rep("WT", 150),
-#'         sample(c("MUT", "WT"), 30, replace = TRUE)
-#'     )
+#'   Fragment_Size = c(mut_sizes, wt_sizes, di_nuc_sizes),
+#'   Fragment_Status_Simple = c(
+#'     rep("MUT", 100),
+#'     rep("WT", 150),
+#'     sample(c("MUT", "WT"), 30, replace = TRUE)
+#'   )
 #' )
 #' # Ensure all fragment sizes are positive
 #' example_df_size <- example_df_size[example_df_size$Fragment_Size > 0, ]
@@ -66,29 +66,29 @@
 #' # 2. Histogram plot: Show distributions as histograms instead of density curves.
 #' #    We add transparency (alpha) so overlapping bars are visible.
 #' p2 <- plot_size_distribution(
-#'     df_fragments = example_df_size,
-#'     show_histogram = TRUE,
-#'     show_density = FALSE,
-#'     histo_args = list(alpha = 0.6)
+#'   df_fragments = example_df_size,
+#'   show_histogram = TRUE,
+#'   show_density = FALSE,
+#'   histo_args = list(alpha = 0.6)
 #' )
 #' print(p2)
 #'
 #' # 3. Combined plot: Overlay both density curves and histograms.
 #' p3 <- plot_size_distribution(
-#'     df_fragments = example_df_size,
-#'     show_histogram = TRUE,
-#'     show_density = TRUE,
-#'     histo_args = list(alpha = 0.4)
+#'   df_fragments = example_df_size,
+#'   show_histogram = TRUE,
+#'   show_density = TRUE,
+#'   histo_args = list(alpha = 0.4)
 #' )
 #' print(p3)
 #'
 #' # 4. Ungrouped and customized plot: Analyze all fragments together,
 #' #    zoom in on the x-axis, and hide the nucleosome peak lines.
 #' p4 <- plot_size_distribution(
-#'     df_fragments = example_df_size,
-#'     col_z = NULL,
-#'     x_limits = c(50, 400),
-#'     show_nuc_peaks = FALSE
+#'   df_fragments = example_df_size,
+#'   col_z = NULL,
+#'   x_limits = c(50, 400),
+#'   show_nuc_peaks = FALSE
 #' )
 #' print(p4)
 #'
@@ -119,8 +119,8 @@ plot_size_distribution <- function(df_fragments,
                                    x_limits = c(0, 750),
                                    histogram_binwidth = 5,
                                    show_nuc_peaks = TRUE,
-                                   sample_id = NA,
-                                   output_path = NA,
+                                   sample_id = NA_character_,
+                                   output_path = NA_character_,
                                    ggsave_params = list()) {
   # --- 1. Input Validation and Setup ---
   if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
@@ -187,17 +187,17 @@ plot_size_distribution <- function(df_fragments,
 
   if (show_histogram) {
     histo_defaults <- list(
-                           mapping = aes(y = after_stat(density), fill = .data[[col_z]]),
-                           position = "identity",
-                           binwidth = histogram_binwidth
+      mapping = aes(y = after_stat(density), fill = .data[[col_z]]),
+      position = "identity",
+      binwidth = histogram_binwidth
     )
-    final_histo_args <- c(histo_defaults, histo_args)
+    final_histo_args <- utils::modifyList(histo_defaults, histo_args)
     final_plot <- final_plot + do.call(geom_histogram, final_histo_args)
   }
 
   if (show_density) {
     density_defaults <- list(linewidth = 1, na.rm = TRUE)
-    final_density_args <- c(density_defaults, density_args)
+    final_density_args <- utils::modifyList(density_defaults, density_args)
     final_plot <- final_plot + do.call(geom_density, final_density_args)
   }
 
@@ -229,35 +229,26 @@ plot_size_distribution <- function(df_fragments,
   final_plot <- final_plot + labs(title = "Fragment Size Distribution", x = "Fragment Size (bp)", y = y_label, color = "Group") +
     theme_bw(base_size = 14) +
     theme(
-          plot.title = element_text(hjust = 0.5, face = "bold"), legend.title = element_text(face = "bold"),
-          panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "bottom",
-          panel.border = element_blank(), axis.line = element_line(colour = "black")
+      plot.title = element_text(hjust = 0.5, face = "bold"), legend.title = element_text(face = "bold"),
+      panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "bottom",
+      panel.border = element_blank(), axis.line = element_line(colour = "black")
     )
-    if (!is.null(x_limits)) {
-      final_plot <- final_plot + coord_cartesian(xlim = x_limits)
-    }
+  if (!is.null(x_limits)) {
+    final_plot <- final_plot + coord_cartesian(xlim = x_limits)
+  }
 
-  # --- 6. Save the plot to a file if an output folder is provided ---
-  # Check if a valid output folder path was provided.
-  if (!is.null(output_path) && all(!is.na(output_path) & nzchar(output_path))) {
-    # Validate that output_path is a single character string before using it.
-    if (!is.character(output_path) || length(output_path) != 1) {
-      stop("'output_path' must be a single character string.")
-    }
-
-    if (file.exists(output_path)) {
-      message(sprintf("File '%s' already exists and will be overwritten.", output_path))
-    }
-
-    default_save_params <- list(width = 8, height = 6, units = "in", dpi = 300)
-    final_save_params <- utils::modifyList(default_save_params, ggsave_params)
-
-    ggsave_args <- c(list(plot = final_plot, filename = output_path), final_save_params)
-
-    message(sprintf("Saving plot to: %s", output_path))
-    do.call("ggsave", ggsave_args)
-  } else {
+  # --- 6. Save the plot to a file if an output_path is provided ---
+  # Check if a valid output_path was provided.
+  if (is.null(output_path) ||
+      (is.character(output_path) && length(output_path) == 1 &&
+      (is.na(output_path) || !nzchar(output_path)))) {
     return(final_plot)
   }
-}
 
+  if (!(is.character(output_path) && length(output_path) == 1)) {
+    stop("'output_path' must be a single character string.")
+  }
+
+  save_plot_if_needed(final_plot, output_path, ggsave_params)
+  return(invisible(NULL))
+}

@@ -14,8 +14,8 @@ plot_freq_barplot(
   vals_z = NULL,
   ...,
   colors_z = "Set2",
-  sample_id = NA,
-  output_path = NA,
+  sample_id = NA_character_,
+  output_path = NA_character_,
   ggsave_params = list()
 )
 }
@@ -61,22 +61,22 @@ set.seed(42)
 
 # Helper function to generate random DNA sequences with a bias
 generate_biased_dna <- function(n_seq, len, prob) {
-    bases <- c("A", "C", "G", "T")
-    replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
+  bases <- c("A", "C", "G", "T")
+  replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
 }
 
 # Create 50 "MUT" fragments with a high proportion of 'C'
 df_mut <- data.frame(
-    Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
-    Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
-    Fragment_Status_Simple = "MUT"
+  Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+  Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+  Fragment_Status_Simple = "MUT"
 )
 
 # Create 50 "WT" fragments with a high proportion of 'G'
 df_wt <- data.frame(
-    Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
-    Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
-    Fragment_Status_Simple = "WT"
+  Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+  Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+  Fragment_Status_Simple = "WT"
 )
 
 # Combine into a single dataframe
@@ -92,10 +92,10 @@ print(p1)
 # 2. Customized plot: Analyzes only the first nucleotide ('motif_size = 1')
 #    of the 5' end ('motif_type = "Start"') using custom colors.
 p2 <- plot_freq_barplot(
-    df_fragments = example_df,
-    motif_type = "Start",
-    motif_size = 1,
-    colors_z = c("MUT" = "#d95f02", "WT" = "#1b9e77")
+  df_fragments = example_df,
+  motif_type = "Start",
+  motif_size = 1,
+  colors_z = c("MUT" = "#d95f02", "WT" = "#1b9e77")
 )
 print(p2)
 
@@ -107,8 +107,8 @@ print(p3)
 # 4. Plot with a subset of groups: If you had more than two groups
 #    (e.g., "MUT", "WT", "AMB"), you could select specific ones to plot.
 p4 <- plot_freq_barplot(
-    df_fragments = example_df,
-    vals_z = c("MUT", "WT")
+  df_fragments = example_df,
+  vals_z = c("MUT", "WT")
 )
 print(p4)
 

@@ -190,84 +190,86 @@ test_that("Additional arguments (...) are passed to geom_bar", {
 })
 
 
-# ============== 4. File Saving Tests ==============
+# ============== 4. File Saving ==============
 
-test_that("File saving functionality works correctly", {
-  # Use a temporary directory to avoid creating files in the project
-  temp_dir <- tempdir()
-
-  # --- Test 1: Directory creation ---
-  output_subdir <- file.path(temp_dir, "new_motif_dir")
-  # Ensure the directory does not exist initially
-  if (dir.exists(output_subdir)) unlink(output_subdir, recursive = TRUE)
-  expect_false(dir.exists(output_subdir))
-
-  plot_motif_barplot(
-    df_barplot_sample,
-    output_folder = output_subdir,
-    sample_id = "dir_creation_test"
-  )
-
-  # Check that the directory was created...
-  expect_true(dir.exists(output_subdir))
-  # ...and that the file was saved inside it with the correct name.
-  expected_file_1 <- file.path(output_subdir, "dir_creation_test_motif_barplot_split_by_base.png")
-  expect_true(file.exists(expected_file_1))
-  # Clean up
-  unlink(output_subdir, recursive = TRUE)
-
-
-  # --- Test 2: Correct filename generation for different representations ---
-  # With sample_id
-  plot_motif_barplot(
-    df_barplot_sample,
-    representation = "differential",
-    vals_z = c("GroupA", "GroupB"),
-    output_folder = temp_dir,
-    sample_id = "sample123"
-  )
-  expected_file_2 <- file.path(temp_dir, "sample123_motif_barplot_differential.png")
-  expect_true(file.exists(expected_file_2))
-  file.remove(expected_file_2)
-
-  # Without sample_id (NA)
-  plot_motif_barplot(
-    df_barplot_sample,
-    output_folder = temp_dir,
-    sample_id = NA
-  )
-  expected_file_3 <- file.path(temp_dir, "motif_barplot_split_by_base.png")
-  expect_true(file.exists(expected_file_3))
-
-
-  # --- Test 3: Overwrite message ---
-  # Create a dummy file first
-  file.create(expected_file_3)
-  expect_true(file.exists(expected_file_3))
-
-  # Expect a message warning about the overwrite
-  expect_message(
-    plot_motif_barplot(
-      df_barplot_sample,
-      output_folder = temp_dir,
-      sample_id = NA
-    ),
-    regexp = "already exists and will be overwritten"
-  )
-  file.remove(expected_file_3)
+test_that("No output_path returns a ggplot object (no saving branch)", {
+    # When output_path is NULL/NA/empty, the function should return a ggplot object
+    p <- suppressWarnings(
+        plot_motif_barplot(
+            df_fragments = df_barplot_sample
+            # output_path omitted (default NA)
+        )
+    )
+    expect_s3_class(p, "ggplot")
 })
 
-  # --- Test 4: Custom ggsave_params are used ---
-test_that("File saving input validation works", {
-  # Error if output_folder is not a single string
-  expect_error(
-    plot_motif_barplot(df_barplot_sample, output_folder = c("path1", "path2")),
-    regexp = "'output_folder' must be a single character string."
-  )
+test_that("Valid output_path saves the split_by_base plot with custom ggsave_params", {
+    # This exercises modifyList + do.call(ggsave, ...) on the saving branch
+    temp_dir <- tempdir()
+    out_file <- file.path(temp_dir, "motif_split_by_base_save.png")
+    if (file.exists(out_file)) file.remove(out_file)
 
-  # Error if sample_id is not a single string (and not NA)
-  expect_error(
-    plot_motif_barplot(df_barplot_sample, output_folder = tempdir(), sample_id = 123),
-    regexp = "'sample_id' must be a single character string."
-  )
+    suppressWarnings({
+        plot_motif_barplot(
+            df_fragments = df_barplot_sample,
+            representation = "split_by_base",
+            output_path = out_file,
+            ggsave_params = list(width = 7, height = 5, units = "in", dpi = 150, bg = "white")
+        )
+    })
+    expect_true(file.exists(out_file))
+    file.remove(out_file)
+})
+
+test_that("Valid output_path saves the differential plot and overwrite emits a message", {
+    # This covers the 'differential' branch + the overwrite message path
+    temp_dir <- tempdir()
+    out_file <- file.path(temp_dir, "motif_differential_overwrite.png")
+    if (file.exists(out_file)) file.remove(out_file)
+
+    # First save (creates the file)
+    suppressWarnings({
+        plot_motif_barplot(
+            df_fragments = df_barplot_sample,
+            representation = "differential",
+            vals_z = c("GroupA", "GroupB"),
+            output_path = out_file
+        )
+    })
+    expect_true(file.exists(out_file))
+
+    # Second save to trigger the "already exists and will be overwritten" message
+    suppressWarnings({
+        expect_message(
+            plot_motif_barplot(
+                df_fragments = df_barplot_sample,
+                representation = "differential",
+                vals_z = c("GroupA", "GroupB"),
+                output_path = out_file
+            ),
+            regexp = "already exists and will be overwritten"
+        )
+    })
+
+    file.remove(out_file)
+})
+
+test_that("Input validation errors for output_path (type and length)", {
+    # Not a single string (length > 1)
+    expect_error(
+        suppressWarnings(plot_motif_barplot(
+            df_fragments = df_barplot_sample,
+            output_path = c("path1", "path2")
+        )),
+        regexp = "'output_path' must be a single character string\\."
+    )
+
+    # Not a character (numeric scalar)
+    expect_error(
+        suppressWarnings(plot_motif_barplot(
+            df_fragments = df_barplot_sample,
+            output_path = 123
+        )),
+        regexp = "'output_path' must be a single character string\\."
+    )
 })
