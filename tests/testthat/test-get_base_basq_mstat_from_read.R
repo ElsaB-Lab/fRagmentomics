@@ -133,7 +133,6 @@ test_that("get_base_basq_mstat_from_read works", {
     read_stats = list(SEQ = "ATCGACCGGT", QUAL = "#A!$Q###A!", CIGAR = "6M4S", POS = 1),
     fasta_fafile = fasta_env$fa_obj,
   )
-  # TODO: expect_equal(read_info, list(base = "C*", basq = "#*", mstat = "AMB"))
   expect_equal(read_info, list(base = "CC", basq = "##", mstat = "MUT"))
 
   # Del case where the anchor position is before softclipping
@@ -145,7 +144,7 @@ test_that("get_base_basq_mstat_from_read works", {
     read_stats = list(SEQ = "ATCGATCCAA", QUAL = "#A!$Q###A!", CIGAR = "5M5S", POS = 1),
     fasta_fafile = fasta_env$fa_obj,
   )
-  expect_equal(read_info, list(base = "A", basq = "Q", mstat = "MUT but not in CIGAR"))
+  expect_equal(read_info, list(base = "A", basq = "Q", mstat = "WT by CIGAR but potentially MUT"))
 
   # Del case where the anchor position is in softclipping
   read_info <- get_base_basq_mstat_from_read(
@@ -167,7 +166,7 @@ test_that("get_base_basq_mstat_from_read works", {
     read_stats = list(SEQ = "ATCGAGTCAG", QUAL = "#A!$Q###A!", CIGAR = "6M4S", POS = 1),
     fasta_fafile = fasta_env$fa_obj,
   )
-  expect_equal(read_info, list(base = "GTCA", basq = "###A", mstat = "MUT but not in CIGAR"))
+  expect_equal(read_info, list(base = "GTCA", basq = "###A", mstat = "WT by CIGAR but potentially MUT"))
 
   # Ins case where the anchor position is in softclipping
   read_info <- get_base_basq_mstat_from_read(

@@ -166,7 +166,7 @@ run_fRagmentomics <- function(
   # Run per-mutation analysis ==========================================================================================
   # Initialize parallel cluster
   if (n_cores == 1L) {
-  future::plan("sequential")
+    future::plan("sequential")
   } else {
     future::plan(future::multisession, workers = n_cores)
   }
@@ -300,7 +300,7 @@ run_fRagmentomics <- function(
       num <- sum(status_simple == "MUT", na.rm = TRUE)
       df_fragments_info$VAF <- if (denom == 0) 0 else 100 * num / denom
     }
-    
+
     # Fusion into the final df
     df_fragments_info_final <- rbind(df_fragments_info_final, df_fragments_info)
   }

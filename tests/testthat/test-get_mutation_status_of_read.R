@@ -66,7 +66,7 @@ test_that("get_mutation_status_of_read works", {
     n_match_base_before    = 1,
     n_match_base_after     = 1
   )
-  expect_equal(mstat, "MUT but not in CIGAR and AMB")
+  expect_equal(mstat, "WT by CIGAR but potentially MUT")
 
   # REF: AGTCCC
   # MUT: A > AGT
@@ -83,7 +83,7 @@ test_that("get_mutation_status_of_read works", {
     n_match_base_before    = 1,
     n_match_base_after     = 1
   )
-  expect_equal(mstat, "MUT but not in CIGAR and AMB")
+  expect_equal(mstat, "WT by CIGAR but potentially MUT")
 
   # REF: AGTCCC
   # MUT: A > AGT
@@ -174,7 +174,7 @@ test_that("get_mutation_status_of_read works", {
     n_match_base_before = 1,
     n_match_base_after = 1
   )
-  expect_equal(mstat, "MUT but not in CIGAR")
+  expect_equal(mstat, "WT by CIGAR but potentially MUT")
 
   # REF:  GTCCCTCCTG (501-510)
   # MUT: T > TC
@@ -203,7 +203,7 @@ test_that("get_mutation_status_of_read works", {
     n_match_base_before = 1,
     n_match_base_after = 1
   )
-  expect_equal(mstat, "MUT but not in CIGAR and AMB")
+  expect_equal(mstat, "WT by CIGAR but potentially MUT")
 
 
   # DELETION COMPLETE COMPARISON =============================================================================================
@@ -307,7 +307,7 @@ test_that("get_mutation_status_of_read works", {
     n_match_base_before = 1,
     n_match_base_after = 1
   )
-  expect_equal(mstat, "MUT but not in CIGAR")
+  expect_equal(mstat, "WT by CIGAR but potentially MUT")
 
   # REF TGGGAAGTCCCT (495-506)
   # REF: AG / MUT: AT
@@ -745,7 +745,7 @@ test_that("get_mutation_status_of_read works", {
     n_match_base_before = 1,
     n_match_base_after = 1
   )
-  expect_equal(mstat, "MUT but not in CIGAR")
+  expect_equal(mstat, "WT by CIGAR but potentially MUT")
 
   # Case 3: Cigar with 2 deletions inside with the same size
   # ref_40 = 'ACAGCACTATCTGAAACCAGGATGGATTGAATTGAAGGCCAAAGAGAGAGAAGAGATTTAGATGGATTTTAGAGTTCAAATGATATAG'
