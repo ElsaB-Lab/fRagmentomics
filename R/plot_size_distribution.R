@@ -237,10 +237,16 @@ plot_size_distribution <- function(df_fragments,
     final_plot <- final_plot + coord_cartesian(xlim = x_limits)
   }
 
+  # Force consistent legend titles when no manual palette is provided.
+  if (is.null(colors_z)) {
+    final_plot <- final_plot + scale_color_discrete(name = "Group")
+    if (show_histogram) final_plot <- final_plot + scale_fill_discrete(name = "Group")
+  }
+
   # --- 6. Save the plot to a file if an output_path is provided ---
   # Check if a valid output_path was provided.
   if (is.null(output_path) ||
-      (is.character(output_path) && length(output_path) == 1 &&
+    (is.character(output_path) && length(output_path) == 1 &&
       (is.na(output_path) || !nzchar(output_path)))) {
     return(final_plot)
   }

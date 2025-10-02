@@ -123,6 +123,27 @@ test_that("get_mutation_status_of_fragment returns correct detail and simple sta
   expect_equal(result$Detail, "OTH & WT")
   expect_equal(result$Simple, "N/I")
 
+  # --- Discordant Cases "potentially" ---
+  # WT & uncertainty for MUT -> WT
+  result <- get_mutation_status_of_fragment("WT", "MUT by CIGAR but potentially WT")
+  expect_equal(result$Detail, "MUT by CIGAR but potentially WT & WT")
+  expect_equal(result$Simple, "WT")
+
+  #  MUT & uncertainty for WT -> MUT
+  result <- get_mutation_status_of_fragment("MUT", "WT by CIGAR but potentially MUT")
+  expect_equal(result$Detail, "MUT & WT by CIGAR but potentially MUT")
+  expect_equal(result$Simple, "MUT")
+
+  # MUT & uncertainty for OTH and WT -> N/I (no proof towards MUT)
+  result <- get_mutation_status_of_fragment("MUT", "WT by CIGAR but potentially OTH")
+  expect_equal(result$Detail, "MUT & WT by CIGAR but potentially OTH")
+  expect_equal(result$Simple, "N/I")
+
+  # MUT & WT but both uncertainty for OTH -> N/I (both uncertainty, no one to trust)
+  result <- get_mutation_status_of_fragment("MUT by CIGAR but potentially OTH", "WT by CIGAR but potentially OTH")
+  expect_equal(result$Detail, "MUT by CIGAR but potentially OTH & WT by CIGAR but potentially OTH")
+  expect_equal(result$Simple, "N/I")
+
   # --- Ambiguous Cases ---
   # AMB and AMB
   result <- get_mutation_status_of_fragment("AMB", "AMB")

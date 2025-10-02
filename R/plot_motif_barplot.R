@@ -233,7 +233,7 @@ plot_motif_barplot <- function(df_fragments,
       )
 
     final_plot <- ggplot(diff_data, aes(x = third_base, y = log2FC, fill = sign)) +
-      geom_bar(stat = "identity", width = 1, color = "black", linewidth = 0.2, alpha = 0.8, ...) +
+      geom_bar(stat = "identity", width = 1, color = "black", linewidth = 0.2, ...) +
       geom_hline(yintercept = 0, color = "darkgrey", linewidth = 1) +
       ggh4x::facet_nested(~ first_base + second_base, scales = "free_x") +
       scale_fill_manual(name = "Direction", values = c("Positive" = "#66C2A5FF", "Negative" = "#E78AC3FF"))
@@ -263,7 +263,7 @@ plot_motif_barplot <- function(df_fragments,
       }
 
       final_plot <- ggplot(plot_data, aes(x = third_base, y = proportion, fill = second_base)) +
-        geom_bar(stat = "identity", width = 1, color = "black", linewidth = 0.2, alpha = 0.8, ...) +
+        geom_bar(stat = "identity", width = 1, color = "black", linewidth = 0.2, ...) +
         ggh4x::facet_nested(~ group_label + first_base + second_base, scales = "free_x") +
         scale_fill_manual(values = setNames(colors_z, base_levels), name = "2nd Base")
 
@@ -271,7 +271,7 @@ plot_motif_barplot <- function(df_fragments,
     } else if (representation == "split_by_motif") {
       # --- Proportion Plot with motifs on X-axis ---
       final_plot <- ggplot(plot_data, aes(x = motif, y = proportion, fill = group_label)) +
-        geom_bar(stat = "identity", position = position_dodge(preserve = "single"), color = "black", linewidth = 0.2, alpha = 0.8, ...) +
+        geom_bar(stat = "identity", position = position_dodge(preserve = "single"), color = "black", linewidth = 0.2, ...) +
         facet_wrap(~first_base, scales = "free_x", nrow = 1) +
         scale_fill_brewer(palette = "Set2") # A robust palette for groups
 
@@ -321,7 +321,7 @@ plot_motif_barplot <- function(df_fragments,
 
   # --- 6. Save the plot to a file if an output_path is provided ---
   if (is.null(output_path) ||
-      (is.character(output_path) && length(output_path) == 1 &&
+    (is.character(output_path) && length(output_path) == 1 &&
       (is.na(output_path) || !nzchar(output_path)))) {
     return(final_plot)
   }

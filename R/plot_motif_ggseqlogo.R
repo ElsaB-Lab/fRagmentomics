@@ -294,13 +294,20 @@ plot_qqseqlogo_meme <- function(df_fragments,
       labs(title = "No data to display"))
   }
 
-  # Create the base ggseqlogo plot
-  final_plot <- ggseqlogo(list_of_motifs, method = "prob", col_scheme = color_scheme, stack_width = 0.95, font = "helvetica_regular") +
-    labs(
-      title = "Sequence Motif Composition",
-      y = "Frequency",
-      x = "Position"
-    )
+  # Create the base ggseqlogo plot while silencing the known deprecation warning
+  final_plot <- withCallingHandlers(
+    ggseqlogo(list_of_motifs,
+      method = "prob",
+      col_scheme = color_scheme, stack_width = 0.95,
+      font = "helvetica_regular"
+    ),
+    warning = function(w) {
+      if (grepl("The `<scale>` argument of `guides\\(\\)` cannot be `FALSE`", conditionMessage(w))) {
+        invokeRestart("muffleWarning") # silence ONLY this ggplot2/ggseqlogo deprecation
+      }
+    }
+  ) +
+    labs(title = "Sequence Motif Composition", y = "Frequency", x = "Position")
 
   # Prepare custom axis labels
   motif_len <- nchar(list_of_motifs[[1]][1])
@@ -365,7 +372,7 @@ plot_qqseqlogo_meme <- function(df_fragments,
 
   # --- 7. Save the plot to a file if an output_path is provided ---
   if (is.null(output_path) ||
-      (is.character(output_path) && length(output_path) == 1 &&
+    (is.character(output_path) && length(output_path) == 1 &&
       (is.na(output_path) || !nzchar(output_path)))) {
     return(final_plot)
   }

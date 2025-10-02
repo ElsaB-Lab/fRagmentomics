@@ -475,6 +475,8 @@ This column provides a single, high-level interpretation of the fragment's state
 
   * **`AMB`**: The fragment is ambiguous, the evidence is not strong enough to make a high-confidence call (e.g., both reads are ambiguous).
 
+**Tie-breaker for "potentially X":** If one read is a certain class `X` and the other read states "potentially `X`", the fragment resolves to `X` (e.g., `MUT` + “WT by CIGAR but potentially MUT" → **`MUT`**; `WT` + “MUT by CIGAR but potentially WT" → **`WT`**).
+
 For the VAF (variant allele fraction) calculation, fRagmentomics includes the `WT`, `MUT`, and `OTH` categories in the denominator. This differs from some other methods, as we include not only wild-type (WT) fragments but also those with non-target mutations (OTH). See the [Fragment Mutational Status](#fragment-mutational-status) section.
 
 <img src="man/figure/fragment_status.png" align="center" />
