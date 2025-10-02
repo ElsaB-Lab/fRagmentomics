@@ -5,10 +5,10 @@
 ### NEW FEATURES
 
 * Added new plotting functions for in-depth fragment analysis:
-    * `plot_size_distribution()` to visualize fragment size distributions.
-    * `plot_freq_barplot()` to display nucleotide frequencies in end motifs.
-    * `plot_qqseqlogo_meme()` for generating sequence logo plots of end motifs using `ggseqlogo`.
-    * `plot_motif_barplot()` for generating end motifs in barplot.
+  * `plot_size_distribution()` to visualize fragment size distributions.
+  * `plot_freq_barplot()` to display nucleotide frequencies in end motifs.
+  * `plot_qqseqlogo_meme()` for generating sequence logo plots of end motifs using `ggseqlogo`.
+  * `plot_motif_barplot()` for generating end motifs in barplot.
 
 ### OTHER CHANGES
 

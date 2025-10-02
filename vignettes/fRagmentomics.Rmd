@@ -146,6 +146,7 @@ Specifically, we will:
 * **Narrow the search window** to 1000 bp around the variant using `neg_offset_mate_search` and `pos_offset_mate_search`.
 * **Apply stricter BAM filters** by requiring reads to be in a "proper pair" using `flag_bam_list`.
 * **Request additional output columns** for template length (`report_tlen`), soft-clip counts (`report_softclip`), and the 3-base motifs at the fragment ends (`report_5p_3p_bases_fragment`).
+* **keep fragments that do not pass quality control using the parameter retain_fail_qc**: e.g., reads with incorrect orientation, mapped to different chromosomes, unmapped mates.
 
 ```{r run_analysis_advanced, message=TRUE, warning=TRUE}
 # Run the analysis with custom parameters
@@ -164,6 +165,7 @@ results_df_advanced <- run_fRagmentomics(
   ),
   report_tlen = TRUE,
   report_softclip = TRUE,
+  retain_fail_qc = TRUE,
   report_5p_3p_bases_fragment = 3,
   n_cores = 2
 )
@@ -202,10 +204,10 @@ The **`Fragment_Status_Simple`** column provides a high-level classification for
 
 | `Fragment_Status_Simple` | Represents...                                                              | Typical Read Evidence (`Read_5p_Status` / `Read_3p_Status`)        |
 |:-------------------------|:---------------------------------------------------------------------------|:-------------------------------------------------------------------|
-| **`MUT`** | The fragment confidently supports the **mutant allele**.                   | `MUT`/`MUT`, `MUT`/`AMB` or `MUT`/`NA`                                        |
-| **`WT`** | The fragment confidently supports an allele that is **not the target**.      | `WT`/`WT`, `WT`/`AMB`, `WT`/`NA`, `OTH`/`OTH`, `OTH`/`AMB`, `OTH`/`NA`, or `WT`/`OTH`                          |
-| **`DISCORDANT`** | The two reads give **conflicting** high-confidence information.            | `MUT`/`WT` or `MUT`/`OTH`                                                     |
-| **`AMB`** | The evidence is **ambiguous**; a confident call cannot be made.            | `AMB`/`AMB`, `AMB`/`NA`                       |
+| **`MUT`** | The fragment confidently supports the **mutant allele**.                   | `MUT`/`MUT`, `MUT`/`AMB` or `MUT`/`NA`|
+| **`WT`** | The fragment confidently supports an allele that is **not the target**.      | `WT`/`WT`, `WT`/`AMB` or `WT`/`NA`|
+| **`OTH`** | The two reads give **conflicting** high-confidence information.            | `OTH`/`OTH`, `OTH`/`AMB` or `OTH`/`NA`|
+| **`N/I`** | The fragment is non-informative: either **discordant** or **ambiguous**.           | `MUT`/`WT`, `MUT`/`OTH`, `WT`/`OTH`, `AMB`/`AMB` or `AMB`/`NA` |
 
 You can quickly summarize the results for a given mutation by counting the occurrences of each status:
 
