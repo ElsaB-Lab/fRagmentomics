@@ -1,3 +1,4 @@
+^tags$
 ^LICENSE$
 ^Makefile$
 ^index.html$
@@ -12,3 +13,5 @@ usethis::use_build_ignore(".github")
 ^vignettes/.*\.pdf$
 ^vignettes/.*_cache$
 
+^doc$
+^Meta$

@@ -7,14 +7,14 @@ R ?= R
 build:
 	$(R) CMD build --no-manual .
 
-install: build-cran
+install:
 	$(R) CMD INSTALL $(PKGNAME)_$(PKGVERS).tar.gz
 
 build-cran:
 	$(R) CMD build .
 
-check: build-cran
-	$(R) CMD check $(PKGNAME)_$(PKGVERS).tar.gz --as-cran --no-timestamp
+check:
+	$(R) CMD check $(PKGNAME)_$(PKGVERS).tar.gz --as-cran
 
 biocheck:
 	$(R) -e 'BiocCheck::BiocCheck()'
@@ -25,7 +25,7 @@ manual:
 test:
 	$(R) -e 'if (any(as.data.frame(devtools::test())[["failed"]] > 0)) stop("Some tests failed.")'
 
-ctags: 
+ctags:
 	ctags -R R
 
 clean:

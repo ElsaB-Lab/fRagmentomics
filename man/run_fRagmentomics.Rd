@@ -119,7 +119,6 @@ results <- run_fRagmentomics(
   bam = bam_file,
   fasta = fasta_file,
   sample_id = "cfdna-test-01",
-  output_path = "cfdna-test-01_fragmentomics.tsv",
   n_cores = 1L
 )
 

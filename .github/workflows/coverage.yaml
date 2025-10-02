@@ -16,28 +16,28 @@ jobs:
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: '4.3.3' 
+          r-version: '4.3.3'
 
       - name: Check R version
         run: |
           Rscript --version
         shell: bash
 
-      - name: Install system dependencies (including bcftools) 
+      - name: Install system dependencies (including bcftools)
         run: |
           sudo apt-get update -y
           sudo apt-get install -y \
             libcurl4-openssl-dev \
             libssl-dev \
             libxml2-dev \
-            bcftools  # <-- ADDED BCFTOOLS HERE
+            bcftools
         shell: bash
 
       - name: Install R package dependencies (including rcmdcheck)
         run: |
           install.packages(c("rcmdcheck", "remotes", "BiocManager"), repos = "https://cloud.r-project.org", Ncpus = 2)
           options(repos = BiocManager::repositories())
-          BiocManager::install(ask = FALSE, update = FALSE) 
+          BiocManager::install(ask = FALSE, update = FALSE)
           remotes::install_deps(dependencies = TRUE, Ncpus = 2)
           if (!requireNamespace("rcmdcheck", quietly = TRUE)) {
             stop("rcmdcheck package is required but was not installed.")
@@ -59,6 +59,6 @@ jobs:
             stop("covr package not found. It should have been installed from Suggests.")
           }
           cov <- covr::package_coverage(type = "tests")
-          print(cov) 
+          print(cov)
           covr::codecov(coverage = cov, token = Sys.getenv("CODECOV_TOKEN"))
         shell: Rscript {0}

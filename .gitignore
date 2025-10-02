@@ -67,3 +67,5 @@ inst/doc
 *.exe
 *.o
 *.so
+/doc/
+/Meta/
