@@ -5,33 +5,11 @@
 
 ## Overview
 
-Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. However, the majority of cfDNA originates
-from hematopoietic cells (see [Mattox et al. Cancer Discov.
-2023](https://aacrjournals.org/cancerdiscovery/article/13/10/2166/729365/The-Origin-of-Highly-Elevated-Cell-Free-DNA-in)
-and references therein), which complicates the interpretation of circulating tumor DNA (ctDNA) in the absence of matched
-sequencing tumor-free blood cells (e.g white blood cells). Multiple studies in the past have demonstrated that ctDNA
-fragments have distinct size distribution profiles and 5’/3’ end sequences compared to healthy cfDNA fragments (see
-[Snyder et al. Cancer Cell. 2026](https://pubmed.ncbi.nlm.nih.gov/26771485/), [Mouliere et al. Sci Trans Med.
-2018](https://pubmed.ncbi.nlm.nih.gov/30404863/),
-[Cristiano et al. Nature. 2019](https://pubmed.ncbi.nlm.nih.gov/31142840/))
+Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. However, the majority of cfDNA originates from hematopoietic cells (see [Mattox et al. Cancer Discov. 2023](https://aacrjournals.org/cancerdiscovery/article/13/10/2166/729365/The-Origin-of-Highly-Elevated-Cell-Free-DNA-in) and references therein), which complicates the interpretation of circulating tumor DNA (ctDNA) in the absence of matched sequencing tumor-free blood cells (e.g white blood cells). Multiple studies in the past have demonstrated that ctDNA fragments have distinct size distribution profiles and 5’/3’ end sequences compared to healthy cfDNA fragments (see [Snyder et al. Cancer Cell. 2016](https://pubmed.ncbi.nlm.nih.gov/26771485/), [Mouliere et al. Sci Trans Med. 2018](https://pubmed.ncbi.nlm.nih.gov/30404863/), [Cristiano et al. Nature. 2019](https://pubmed.ncbi.nlm.nih.gov/31142840/))
 
-In spite of the growing interest in the characteristics of cfDNA fragments ("fragmentomics"), there is currently no
-published tool that can, at the same time, extract fragmentomics features (fragment length, starting and end motifs, inner
-distance, aligned position, etc) and determine the mutation status from a user-specified list of mutations of any type
-(SNV, MNV, insertions, or deletions). The main reason for this is that the genotyping of each individual fragment using
-predefined mutations is quite challenging for indels due to the ambiguity of their representation and the fact that
-fragments can, in some instances, only partially cover the region of the indel. Additionally, the calculation of the exact
-fragment size is in practice more involved than a simple difference between the aligned positions of the fragment
-boundaries, and this caveat has, to our knowledge, never been properly addressed. For instance, a recently published
-tool with similar goals ([Wang et al. Genome Biol.
-2025](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-025-03607-5)), though focusing only on SNV
-mutations, reports a fragment length that becomes erroneous for fragments harboring indels.
+With the growing interest in the characteristics of cfDNA fragments ("fragmentomics"), some tools have been published to analyse fragmentomic features ([Wang et al. Genome Biol. 2025](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-025-03607-5)). However, the challenge that fRagmentomics addresses is to characterize each cfDNA fragment by its fragmentomic features (fragment length, 5′/3′ end motifs, inner distance, aligned position, etc.) and its mutational status, whether a single-nucleotide variant (SNV), a multi-nucleotide variant (MNV), an insertion or a deletion (indel). Indeed, indels play a key role in precision oncology, whereby for example deletions in exon 19 of the epidermal growth factor receptor (EGFR) gene identify patients with non-small-cell lung cancer who respond to gefitinib ([Lynch et al. N Engl J Med. 2004](https://www.nejm.org/doi/full/10.1056/NEJMoa040938)). The main reason for this is that the genotyping of each individual fragment using predefined mutations is quite challenging for indels due to the multiple alignment representations ([Tan et al. Bioinformatics. 2015](https://academic.oup.com/bioinformatics/article/31/13/2202/196142?login=true)) and because short reads may only partially cover indel contexts, especially in repetitive sequence, leading to ambiguous evidence. ([Narzisi et al. Frontiers. 2015](https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2015.00008/full)). Additionally, the calculation of the exact fragment size is in practice more involved than a simple difference between the aligned positions of the fragment boundaries ([official SAM/BAM file format documentation](https://samtools.github.io/hts-specs/SAMv1.pdf)).
 
-**fRagmentomics** provides a standardized and user-friendly R package that reports fragment features (size, end
-motifs, position) and mutational status using a BAM file with sequenced fragments and a user-defined list of SNV, MNV,
-or indel mutations. By providing a framework allowing a per-fragment analysis, fRagmentomics aims to support the
-interpretation of liquid biopsy results and the discovery of new associations between fragments characteristics and
-fragment tissue of origin or human diseases, particularly cancer.
+**fRagmentomics** provides a standardized and user-friendly R package that reports fragment features (size, end motifs, position) and mutational status using a BAM file with sequenced fragments and a user-defined list of SNV, MNV, or indel mutations. By providing a framework allowing a per-fragment analysis, fRagmentomics aims to support the interpretation of liquid biopsy results and the discovery of new associations between fragments characteristics and fragment tissue of origin or human diseases, particularly cancer.
 
 ---
 
@@ -85,7 +63,7 @@ After these steps are complete, you can load the package into your R session wit
 
 ## Quick Start
 
-This example demonstrates a basic workflow using the main `analyze_fragments()` function. We will use the example data files included with the fRagmentomics package.
+This example demonstrates a basic workflow using the main `run_fRagmentomics()` function. We will use the example data files included with the fRagmentomics package.
 
 First, load the library and locate the example files using `system.file()`.
 
@@ -111,7 +89,7 @@ Now, run the main analysis function with these files. We'll use 2 cores for this
 
 ```r
 # Run the full analysis pipeline
-df_results <- analyze_fragments(
+df_results <- run_fRagmentomics(
     mut = mut_file,
     bam = bam_file,
     fasta = fasta_file,
@@ -127,135 +105,16 @@ The resulting `df_results` data frame contains the per-fragment analysis, ready 
 
 ---
 
-
-## Input
-
-1.  **`bam`**: Path to BAM file containing **paired-end** reads (the package has so far only been tested on BAM files
-    from experiments of targeted sequencing of cfDNA).
-    The function `analyze_fragments` preprocesses the BAM file to select reads relevant to each mutation. By default:
-    * It only considers reads within a user-configurable window (default=2000 bp window, 1000 bp before - `neg_offset_mate_search` and 1000bp after - `pos_offset_mate_search`).
-    * It applies a default filter to keep only primary, paired reads while removing unmapped, secondary, supplementary, and duplicate alignments. This corresponds to the default settings of the `flag_bam_list` argument.
-    **Note**: All of these filtering parameters can be customized when calling the `analyze_fragments()` function.
-<br>
-
-2.  **`mut`**: Specifies the mutations to be analyzed. Three input formats are supported:
-    * A path to a **VCF** file (e.g., `variants.vcf` or `variants.vcf.gz`)
-
-    or
-
-    * A path to a **TSV** file (e.g., `mutations.tsv` or `mutations.tsv.gz`) containing at least the columns `CHROM`, `POS`, `REF`, and `ALT`.
-
-    or
-
-    * A single **string** in the format `"chr:pos:ref:alt"`.
-
-    The package accepts mutation positions in either **1-based** or **0-based** coordinates and normalizes them to the conventional 1-based system for analysis.
-
-    For indels, the package can handle several positional conventions and allele representations. The following table summarizes the accepted formats:
-
-    <br>
-
-    **Simple Format**
-
-    | Mutation         | `REF` Column                      | `ALT` Column                      | `POS` Column                               |
-    |:-------------------------|:----------------------------------|:----------------------------------|:-------------------------------------------|
-    | Deletion of **"AT"** | `AT`                              | `""`, `-`, `.`, `_`, `NA`  | Position of the first deleted base (`A`)   |
-    | Insertion of **"CT"** | `""`, `-`, `.`, `_`, `NA`  | `CT`                              | Position of the base *before* the insertion |
-
-    **VCF-Style Padded Format**
-
-    | Mutation                   | `REF` Column | `ALT` Column | `POS` Column                                |
-    |:-----------------------------------|:-------------|:-------------|:--------------------------------------------|
-    | Deletion of **"AT"** from "G**AT**"  | `GAT`        | `G`          | Position of the anchor base (`G`)           |
-    | Insertion of **"CT**" after "A"    | `A`          | `ACT`        | Position of the anchor base (`A`)           |
-
-    **Important**: Regardless of the input format, fRagmentomics normalizes all variants using **`bcftools norm`**. This process ensures that indels are **left-aligned** and have a **standardized representation**. This is critical for matching the variant to sequences observed in the BAM file. After normalization, the position of an indel will correspond to the base preceding the event, and both `REF` and `ALT` alleles will be padded with this anchor base, following the VCF standard. For more details, see [Tan A, et al. 2015](https://doi.org/10.1093/bioinformatics/btv112).
-
-    <br>
-
-3.  **`fasta`**: A path to the reference genome FASTA file. This must be the same reference file that was used to align the BAM file. An index (`.fai`) is required and will be created if not found.
-
----
-
-## Workflow
-
-The main function is `analyze_fragments()`.
-
-<img src="man/figure/workflow.png" align="center" width="1000" />
-
----
-
-## Output
-
-fRagmentomics can extract mutational informations and fragmentomics features for each fragment. The output is a dataframe, one line per fragment, containing:
-
-### Mutation informations
-
-   * **`Chromosome`**/**`Position`**/**`Ref`**/**`Alt`**: Mutation information **after** the normalisation.
-   * **`Input_Mutation`**: Input mutation information.
-
-
-
-### Fragment mutational status
-
-For more details, see [Definition of Fragment Status](#definition-of-fragment-status).
-
-   * **`Read_5p_Status`** & **`Read_3p_Status`**: Mutation status of each read in "MUT", "WT", "NA", "AMB" and "DISCORDANT".
-   * **`Fragment_Status_Detail`**: Mutation status of the fragment. Created by concatenating the `Read_5p_Status` and `Read_3p_Status` if they are different.
-   * **`Fragment_Status_Simple`**: Mutation status of the fragment in "MUT", "NON-TARGET MUT", "AMB" and "DISCORDANT".
-   * **`BASE_5p`**/**`BASQ_5p`** & **`BASE_3p`**/**`BASQ_3p`**:
-
-        | Variant Type          | Base and Base Quality Represented        |
-        |-----------------------|-----------------------|
-        | SNV | The ALT base at the variant position |
-        | MNV | ALT bases covering all variant positions |
-        | INS | Base before the insertion + inserted bases |
-        | DEL | Base before the deletion |
-
-   * **`VAF`**: The **Variant Allele Frequency** for the mutation, expressed as a percentage.
-       >**VAF** = 100 * (`Number of MUT Fragments`) / (`Number of MUT Fragments` + `Number of NON-TARGET MUT Fragments`)
-
-       **Important Note on the Calculation:**
-       * The denominator includes **all** fragments that cover the position but do not carry the specific mutation of interest (`NON-TARGET MUT`). This means it counts both:
-           1.  Fragments that match the **reference (wild-type) allele**.
-           2.  Fragments that carry **another different mutation** at the same position (a third allele).
-           3.  Fragments that carry **discordant informations** but never with the mutation of interest (WT/OTH).
-
-       This approach differs from another conventional VAF calculation that might only use reference-matching fragments in the denominator.
-
-
-
-### Fragmentomics features of the fragment
-
-For more details, see [Definition of Fragment Size](#definition-of-fragment-size).
-
-   * **`Fragment_Size`**
-   * **`Fragment_Bases_5p/3p`** & **`Fragment_Basqs_5p/3p`**: The first and last `n` bases/qualities of the fragment's ends. The number `n` is set by the `report_5p_3p_bases_fragment` argument (included if `n` > 0).
-
-### Other informations
-
-   * **`Sample_Id`**: The user-provided sample identifier. (Included if the `sample_id` argument is set).
-   * **`Fragment_Id`**: The read name (QNAME) that identifies the fragment.
-   * **`Fragment_QC`**: The quality control status. Will be `"OK"` for valid pairs or will contain a message describing the reason for failure.
-
-   * **`FLAG_5p/3p`**, **`MAPQ_5p/3p`**, **`CIGAR_5p/3p`**, **`POS_5p/3p`**: Alignment information for each read (Flag, Mapping Quality, CIGAR string, and Position), taken from the BAM file.
-
-   * **`TLEN`**: The fragment's template length. (Included if `report_tlen = TRUE`).
-   * **`Nb_Fragment_Bases_Softclip_5p/3p`**: The number of soft-clipped bases at the 5' and 3' ends of the fragment. (Included if `report_softclip = TRUE`).
-
----
-
-
 ## Visualizations
 
-fRagmentomics includes plotting functions to help you visualize the fragmentomic features generated by `analyze_fragments()`. All plotting functions take the output data frame as their input.
+fRagmentomics includes plotting functions to help you visualize the fragmentomic features generated by `run_fRagmentomics()`. All plotting functions take the output data frame as their input.
 
 ### 1. Fragment Size Distribution
 
 The `plot_size_distribution()` function generates density plots or histograms to compare the distribution of fragment lengths between different groups (e.g., `MUT` vs. `NON-TARGET MUT`).
 
 ```r
-# Assuming 'df_results' is the output from analyze_fragments()
+# Assuming 'df_results' is the output from run_fRagmentomics()
 plot_size_distribution(
   df_fragments = df_results,
   vals_z = c("MUT", "NON-TARGET MUT"),
@@ -302,9 +161,30 @@ plot_freq_barplot(
 ### 4. Detailed 3-Base Motif Proportions
 
 The `plot_motif_barplot()` function shows the frequency of specific 3-base motifs at fragment ends. It has three visualization modes (`representation`): a hierarchical plot (default), a differential log2 fold-change plot, and a side-by-side comparison plot.
-
 ```r
 # Use the default hierarchical representation to visualize 3-mer proportions
+plot_split_by_base <- plot_motif_barplot(
+  df_results,
+  representation = "split_by_base",
+  vals_z = c("MUT", "NON-TARGET MUT")
+)
+```
+
+<img src="man/figure/hierarchical_plot_motif.png" align="center" />
+
+```r
+# Use the side-by-side representation to visualize 3-mer proportions
+plot_new_motif_view <- plot_motif_barplot(
+  df_results,
+  representation = "split_by_motif",
+  vals_z = c("MUT", "NON-TARGET MUT")
+)
+```
+
+<img src="man/figure/sidebyside_plot_motif.png" align="center" />
+
+```r
+# Use the differential representation to visualize 3-mer proportions
 plot_motif_barplot(
   df_results,
   representation = "differential",
@@ -316,17 +196,126 @@ plot_motif_barplot(
 
 ---
 
+## Input
+
+1.  **`bam`**: Path to BAM file containing **paired-end** reads (the package has so far only been tested on BAM files
+    from experiments of targeted sequencing of cfDNA).
+    The function `run_fRagmentomics` preprocesses the BAM file to select reads relevant to each mutation. By default:
+    * It only considers reads within a user-configurable window (default=2000 bp window, 1000 bp before - `neg_offset_mate_search` and 1000bp after - `pos_offset_mate_search`).
+    * It applies a default filter to keep only primary, paired reads while removing unmapped, secondary, supplementary, and duplicate alignments. This corresponds to the default settings of the `flag_bam_list` argument.
+    **Note**: All of these filtering parameters can be customized when calling the `run_fRagmentomics()` function.
+<br>
+
+2.  **`mut`**: Specifies the mutations to be analyzed. Three input formats are supported:
+    * A path to a **VCF** file (e.g., `variants.vcf` or `variants.vcf.gz`)
+
+    or
+
+    * A path to a **TSV** file (e.g., `mutations.tsv` or `mutations.tsv.gz`) containing at least the columns `CHROM`, `POS`, `REF`, and `ALT`.
+
+    or
+
+    * A single **string** in the format `"chr:pos:ref:alt"`.
+
+    The package accepts mutation positions in either **1-based** or **0-based** coordinates and normalizes them to the conventional 1-based system for analysis.
+
+    For indels, the package can handle several positional conventions and allele representations. The following table summarizes the accepted formats:
+
+    <br>
+
+    **Simple Format**
+
+    | Mutation         | `REF` Column                      | `ALT` Column                      | `POS` Column                               |
+    |:-------------------------|:----------------------------------|:----------------------------------|:-------------------------------------------|
+    | Deletion of **"AT"** | `AT`                              | `""`, `-`, `.`, `_`, `NA`  | Position of the first deleted base (`A`)   |
+    | Insertion of **"CT"** | `""`, `-`, `.`, `_`, `NA`  | `CT`                              | Position of the base *before* the insertion |
+
+    **VCF-Style Padded Format**
+
+    | Mutation                   | `REF` Column | `ALT` Column | `POS` Column                                |
+    |:-----------------------------------|:-------------|:-------------|:--------------------------------------------|
+    | Deletion of **"AT"** from "G**AT**"  | `GAT`        | `G`          | Position of the anchor base (`G`)           |
+    | Insertion of **"CT**" after "A"    | `A`          | `ACT`        | Position of the anchor base (`A`)           |
+
+    **Important**: Regardless of the input format, fRagmentomics normalizes all variants using **`bcftools norm`**. This process ensures that indels are **left-aligned** and have a **standardized representation**. This is critical for matching the variant to sequences observed in the BAM file. After normalization, the position of an indel will correspond to the base preceding the event, and both `REF` and `ALT` alleles will be padded with this anchor base, following the VCF standard. For more details, see [Tan A, et al. 2015](https://doi.org/10.1093/bioinformatics/btv112).
+
+    <br>
+
+3.  **`fasta`**: A path to the reference genome FASTA file. This must be the same reference file that was used to align the BAM file. An index (`.fai`) is required and will be created if not found.
+
+---
+
+## Workflow
+
+The main function is `run_fRagmentomics()`.
+
+<img src="man/figure/workflow.png" align="center" width="1000" />
+
+---
+
+## Output
+
+fRagmentomics can extract mutational informations and fragmentomics features for each fragment. The output is a dataframe, one line per fragment, containing:
+
+### Mutation informations
+
+   * **`Chromosome`**/**`Position`**/**`Ref`**/**`Alt`**: Mutation information **after** the normalisation.
+   * **`Input_Mutation`**: Input mutation information.
+
+### Fragment mutational status
+
+For more details, see [Definition of Fragment Status](#definition-of-fragment-status).
+
+   * **`Read_5p_Status`** & **`Read_3p_Status`**: Mutation status of each read in "MUT", "WT", "NA", "AMB" and "DISCORDANT".
+   * **`Fragment_Status_Detail`**: Mutation status of the fragment. Created by concatenating the `Read_5p_Status` and `Read_3p_Status` if they are different.
+   * **`Fragment_Status_Simple`**: Mutation status of the fragment in "MUT", "WT", "OTH" and "N/I".
+   * **`BASE_5p`**/**`BASQ_5p`** & **`BASE_3p`**/**`BASQ_3p`**:
+
+        | Variant Type          | Base and Base Quality Represented        |
+        |-----------------------|-----------------------|
+        | SNV | The ALT base at the variant position |
+        | MNV | ALT bases covering all variant positions |
+        | INS | Base before the insertion + inserted bases |
+        | DEL | Base before the deletion |
+
+   * **`VAF`**: The **Variant Allele Frequency** for the mutation, expressed as a percentage.
+       >**VAF** = 100 * (`Number of MUT Fragments`) / (`Number of MUT Fragments` + `Number of WT Fragments` + `Number of WT Fragments`)
+
+       **Important Note on the Calculation:**
+       * The denominator includes **all** informative fragments that cover the position of the mutation of interest. This means it counts both:
+           1.  Fragments that match the **reference (WT) allele**.
+           2.  Fragments that carry **the mutation of interest**.
+           3.  Fragments that carry **another different mutation** at the same position (a third allele).
+
+       This approach differs from another conventional VAF calculation that might only use reference-matching fragments in the denominator.
+
+### Fragmentomics features
+
+For more details, see [Definition of Fragment Size](#definition-of-fragment-size).
+
+   * **`Fragment_Size`**
+   * **`Fragment_Bases_5p/3p`** & **`Fragment_Basqs_5p/3p`**: The first and last `n` bases/qualities of the fragment's ends. The number `n` is set by the `report_5p_3p_bases_fragment` argument (included if `n` > 0).
+
+### Other informations
+
+   * **`Sample_Id`**: The user-provided sample identifier. (Included if the `sample_id` argument is set).
+   * **`Fragment_Id`**: The read name (QNAME) that identifies the fragment.
+   * **`Fragment_QC`**: The quality control status. Will be `"OK"` for valid pairs or will contain a message describing the reason for failure.
+
+   * **`FLAG_5p/3p`**, **`MAPQ_5p/3p`**, **`CIGAR_5p/3p`**, **`POS_5p/3p`**: Alignment information for each read (Flag, Mapping Quality, CIGAR string, and Position), taken from the BAM file.
+
+   * **`TLEN`**: The fragment's template length. (Included if `report_tlen = TRUE`).
+   * **`Nb_Fragment_Bases_Softclip_5p/3p`**: The number of soft-clipped bases at the 5' and 3' ends of the fragment. (Included if `report_softclip = TRUE`).
+
+---
+
 ## Explanation of Mutational Status assignment
 
-A key feature of fRagmentomics is its method for determining the mutational status of each read. A simple check of the
-base at a variant's position is sufficient only for SNVs.
+A key feature of fRagmentomics is its method for determining the mutational status of each read. A simple check of the base at a variant's position is sufficient only for SNVs.
 
 ### The Challenge: Ambiguity in Short Reads
 
-Interpreting a variant requires analyzing its surrounding nucleotide context, not just the variant site itself. For SNVs
-and MNVs, this means checking the adjacent bases to check if the mutation is not part of a larger event. For indels,
-a read is considered truly informative if it covers the entire variant and some of its flanking sequence, which is
-essential for resolving potential ambiguities.
+Interpreting a variant requires analyzing its surrounding nucleotide context, not just the variant site itself. For SNVs and MNVs, this means checking the adjacent bases to check if the mutation is not part of a larger event. For indels, a read is considered truly informative if it covers the entire variant and some of its flanking sequence, which is essential for resolving potential ambiguities.
 
 **Examples of Indel Ambiguity**
 
@@ -342,14 +331,12 @@ Read:       A T A G T A G G G G G
 Read:       A T A G T A G G G G G T
 ```
 
-Now, imagine a read covering the positions of the insertion at the end of its sequence. Considering the read
-sequence starting from the insertion anchor base, i.e `AGGG`, which of these is correct?
+Now, imagine a read covering the positions of the insertion at the end of its sequence. Considering the read sequence starting from the insertion anchor base, i.e `AGGG`, which of these is correct?
 
 1.  It supports the **reference** allele (`A G G G T C C`).
 2.  It supports the **mutant** allele    (`A G G G G G T C C`).
 
-Without seeing the first nucleotide that breaks the repeated sequence, here `T`, it's impossible to be certain. The
-mutation status of the read is set to **ambiguous**.
+Without seeing the first nucleotide that breaks the repeated sequence, here `T`, it's impossible to be certain. The mutation status of the read is ambiguous.
 
 Consider now a 3 bp deletion `(ACA)` in a repetitive context
 
@@ -362,78 +349,133 @@ Read 2:     G T G A C A A
 Read 3:     G T G A C A A G
 ```
 
-Now, imagine the three reads above covering the positions of the deletion at the end of its sequence. Considering the read
-sequence starting from the deletion anchor base, i.e `GACA` for read 1, `GACAA` for read 2, and `GACAAG` for read3, which
-of these is correct for each read?
+Now, imagine the three reads above covering the positions of the deletion at the end of its sequence. Considering the read sequence starting from the deletion anchor base, i.e `GACA` for read 1, `GACAA` for read 2, and `GACAAG` for read3, which of these is correct for each read?
 
 1.  It supports the **reference** allele (`G A C A A C A A G T C`).
 2.  It supports the **mutant** allele (`G A C A A G T C`).
 
-How far should the read cover after the position of the anchor base to solve the ambiguity? The answer is to cover the
-first nucleotide that breaks the repeated sequence (`ACA`), i.e here the `G` at position 11. Therefore the ambiguity can
-only be resolved for read 3 here. The
-mutation statuses of read 1 and 2 will be set to `ambiguous` while read 3 will be marked mutated (MUT). Of note, we
-cannot rule a simple mutation `C>G` at position 8 which would result in the same read 3 as the deletion of `ACA` but we choose
-to prioritize the variant specified by the user which often consist in a variant known to exist in the sample and with
-therefore an priori much higher likelihood.
-
-
+How far should the read cover after the position of the anchor base to solve the ambiguity? The answer is to cover the first nucleotide that breaks the repeated sequence (`ACA`), i.e here the `G` at position 11. Therefore the ambiguity can only be resolved for read 3 here. The mutation statuses of read 1 and 2 will be ambiguous while read 3 will be mutated (MUT). Of note, we cannot rule a simple mutation `C>G` at position 8 which would result in the same read 3 as the deletion of `ACA` but we choose to prioritize the variant specified by the user which often consist in a variant known to exist in the sample and with therefore an priori much higher likelihood.
 
 ### The fRagmentomics Solution: Context-Aware Comparison
 
-To solve this problem, fRagmentomics uses a context-aware algorithm instead of a simple base check.
+To solve this problem, fRagmentomics uses a **context-aware algorithm** instead of a simple base check. It defines the status of each read by combining **CIGAR information** and **sequence comparison** (for indels) or by using **sequence-only** (for SNVs/MNVs). The approach ensures that high-confidence evidence is prioritized while ambiguities and inconsistencies are flagged.
 
-**1. Dynamic Comparison Length**
+**1. Template Construction & Dynamic Comparison Length**
+
+For each variant, two local templates are built:
+
+* A **wild-type (WT) template** from the reference genome
+  
+* A **mutant (MUT) template** carrying the alternate allele
 
 For each indel and MNV, the function first calculates the **minimum required sequence length** needed to unambiguously confirm the variant. This calculation considers both the size of the variant and the surrounding sequence (e.g., tandem repeats).
 
-**2. Template Generation & Comparison**
+Unless `remove_softclipping = TRUE`, soft-clipped bases are included in the comparison.
 
-The function then generates two "perfect" template sequences of this required length:
+**2. Sequence comparison rules**
 
-* A **wild-type template** based on the reference genome.
-* A **mutant template** representing the variant allele.
+* If the read matches only WT, it is labeled **WT**.
 
-The sequence of the aligned read is then compared against these two templates. A read is only considered a high-confidence match (`MUT`) if it is long enough to cover the entire template sequence.
+* If the read matches only MUT, it is labeled **MUT**.
 
-**3. Definition of Read Status**
+* If the read matches neither, it is labeled **OTH** (non-target alteration).
 
-The final `Read_5p_Status` and `Read_3p_Status` are assigned based on this comparison, distinguishing between reads that provide complete or only partial evidence.
+* If the read appears to match both, it is labeled **AMB** (ambiguous).
 
-| Read Evidence                                   | Matches Wild-Type Template? | Matches Mutant Template? | Final `Read Status` |
-|:------------------------------------------------|:---------------------------:|:------------------------:|:--------------------|
-| Read is long enough (**Complete Evidence**)     |             Yes             |            No            | `WT`                |
-| Read is long enough (**Complete Evidence**)     |             No              |           Yes            | `MUT`               |
-| Read is too short (**Partial Evidence**)        |             Yes             |        Yes or No         | `WT`                |
-| Read is too short (**Partial Evidence**)        |             No              |           Yes            | `AMB` (Ambiguous)   |
-| Any Read                                        |             No              |            No            | `OTH` (Other)       |
-| Any Read                                        |             Yes             |           Yes            | `AMB` (Ambiguous)   |
-| Read does not cover the position at all         |             -               |            -             | `NA`                |
+Ambiguity typically arises when the read is too short to span the informative region, or when the variant occurs within a complex event. A high-confidence MUT requires complete observation of the alternate allele across the window.
 
-* **Special Case for SNVs/MNVs**: If a read perfectly matches a target SNV or MNV but also has *another* mutation immediately adjacent to it, it is flagged as `"MUT but potentially larger MUT"`. This helps identify cases where a variant might be part of a more complex, unannotated event.
+**3. SNVs and MNVs**
+
+SNVs/MNVs are called by sequence comparison only. If the target substitution is present but an adjacent mutation is also observed, the read is still labeled MUT, and a diagnostic flag is added in Fragment_Status_Detailed (e.g., "MUT but potentially larger MUT"). If an MNV is not fully covered, the read is labeled AMB.
+
+**4. Indels: prioritizing CIGAR**
+
+For indels, CIGAR evidence is prioritized.
+
+If the CIGAR encodes the expected indel:
+
+* Adopt the CIGAR-based call.
+
+* Use sequence comparison as a concordance check.
+
+* If the comparison disagrees or cannot resolve the case, attach a flag (e.g., "MUT by CIGAR but potentially WT").
+
+If the CIGAR does not encode the indel:
+
+* Fall back to the sequence comparison results.
+
+* Attach a flag when the available sequence is insufficient.
+
+**5. Read status**
+
+**The first word** of the read status will be use to **define the fragment status**. We consider it as the main information of the read.
+
+```
+Read not covering the position of interest -> "NA"
+
+Read covering the position of interest
+  complete_comparison
+    mutation found by CIGAR
+      -> MUT by comparison  -> "MUT"
+      -> WT  by comparison  -> "MUT by CIGAR but potentially WT"
+      -> AMB by comparison  -> "IMPOSSIBLE"
+      -> OTH by comparison  -> "MUT by CIGAR but potentially OTH"
+
+    other found by CIGAR
+      -> MUT by comparison  -> "OTH by CIGAR but potentially MUT"
+      -> WT  by comparison  -> "OTH by CIGAR but potentially WT"
+      -> AMB by comparison  -> "IMPOSSIBLE"
+      -> OTH by comparison  -> "OTH"
+
+    mutation not found by CIGAR
+      -> MUT by comparison  -> "WT by CIGAR but potentially MUT"
+      -> WT  by comparison  -> "WT"
+      -> AMB by comparison  -> "IMPOSSIBLE"
+      -> OTH by comparison  -> "OTH"
+
+  incomplete_comparison
+    mutation found by CIGAR
+      -> MUT by comparison  -> "MUT by CIGAR but AMB"
+      -> WT  by comparison  -> "MUT by CIGAR but potentially WT"
+      -> AMB by comparison  -> "MUT by CIGAR but AMB"
+      -> OTH by comparison  -> "MUT by CIGAR but potentially OTH"
+
+    other found by CIGAR
+      -> MUT by comparison  -> "OTH by CIGAR but potentially MUT"
+      -> WT  by comparison  -> "OTH by CIGAR but potentially WT"
+      -> AMB by comparison  -> "OTH by CIGAR but AMB"
+      -> OTH by comparison  -> "OTH"
+
+    mutation not found by CIGAR
+      -> MUT by comparison  -> "WT by CIGAR but potentially MUT"
+      -> WT  by comparison  -> "WT"
+      -> AMB by comparison  -> "AMB"
+      -> OTH by comparison  -> "OTH"
+```
 
 ### Definition of Fragment Status
 
 **1. Fragment Status Detail**
 
-This column provides a summary of the evidence by concatenating the statuses of the two reads that form the fragment. For example, if one read is `MUT` and the other is `AMB`, the detail status will be `"MUT & AMB"`. If one read does not cover the locus (`NA`), this column will show the status of the other read.
+This column summarizes the evidence by concatenating the statuses of the two reads that form a fragment. For example, if one read is `MUT` and the other is `AMB`, the detailed status is `MUT & AMB`. If one read does not cover the locus (NA), this column shows the status of the other read.
 
 **2. Fragment Status Simple**
 
 This column provides a single, high-level interpretation of the fragment's state. It categorizes each fragment into one of the following groups:
 
-* **`MUT`**: The fragment supports the **mutant allele**. This is the case when both reads are `MUT`, or when one is `MUT` and the other is ambiguous or `NA`.
+* **`MUT`**: The fragment supports the **mutant allele**. This applies when both reads are `MUT`, or when one is `MUT` and the other is `AMB` or `NA`.
 
-* **`NON-TARGET MUT`**: The fragment confidently supports an allele that is **not the target mutation**. This category is assigned in any of the following cases:
-    * Both reads support the **wild-type** allele (`WT`).
-    * Both reads support **non-target mutation** (`OTH`).
-    * One read is **wild-type** (`WT`) and the other has a **non-target mutation** (`OTH`).
+* **`WT`**: The fragment supports the **mutant allele**. This applies when both reads are `WT`, or when one is `WT` and the other is `AMB` or `NA`.
 
-* **`DISCORDANT`**: The two reads of the fragment provide conflicting information. This may indicate a sequencing or alignment artifact.
+* **`OTH`**: The fragment supports the **mutant allele**. This applies when both reads are `OTH`, or when one is `OTH` and the other is `AMB` or `NA`.
 
-* **`AMB`**: The status of the fragment is **ambiguous**. This occurs when the evidence is not strong enough to make a high-confidence call for any specific allele (e.g., both reads are ambiguous).
+* **`N/I`** = **`NON INFORMATIVE`**: Comprises two fragment categories:
+  
+  * **`DISCORDANT`**: The two reads provide conflicting information (e.g., one read `MUT`, one read `WT`), which may indicate a sequencing or alignment artifact.
 
-For the VAF calculation, fRagmentomics uses the `NON-TARGET MUT` category in the denominator. This is a key distinction from simpler methods, as `NON-TARGET MUT` includes not only wild-type (`WT`) fragments but also those with non-target mutations (`OTH`). See the [Fragment Mutational Status](#fragment-mutational-status) section.
+  * **`AMB`**: The fragment is ambiguous, the evidence is not strong enough to make a high-confidence call (e.g., both reads are ambiguous).
+
+For the VAF (variant allele fraction) calculation, fRagmentomics includes the `WT`, `MUT`, and `OTH` categories in the denominator. This differs from some other methods, as we include not only wild-type (WT) fragments but also those with non-target mutations (OTH). See the [Fragment Mutational Status](#fragment-mutational-status) section.
 
 <img src="man/figure/fragment_status.png" align="center" />
 

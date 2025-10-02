@@ -44,7 +44,7 @@
 #'  extremity bases in the output.
 #' @param remove_softclip Boolean. If set to TRUE, trim soft-clipped bases from the 5' end of Read 5p and from the 3' end of Read 3p.
 #' @param retain_fail_qc Boolean. If set to TRUE, retain fragments that failed the various quality checks in the output.
-#' @param tmp_folder Character vector for the temporary folder path.
+#' @param tmp_folder Crun_fRagmentomicsharacter vector for the temporary folder path.
 #' @param output_path Character vector for the fragmentomics table output path.
 #' @param n_cores Number of cores for parallel computation.
 #'
@@ -166,7 +166,7 @@ run_fRagmentomics <- function(
   # Run per-mutation analysis ==========================================================================================
   # Initialize parallel cluster
   if (n_cores == 1L) {
-  future::plan("sequential")
+    future::plan("sequential")
   } else {
     future::plan(future::multisession, workers = n_cores)
   }
@@ -300,7 +300,7 @@ run_fRagmentomics <- function(
       num <- sum(status_simple == "MUT", na.rm = TRUE)
       df_fragments_info$VAF <- if (denom == 0) 0 else 100 * num / denom
     }
-    
+
     # Fusion into the final df
     df_fragments_info_final <- rbind(df_fragments_info_final, df_fragments_info)
   }
@@ -323,16 +323,15 @@ run_fRagmentomics <- function(
   # -------------------------------
   # Only proceed with file writing if an output_path is specified
   if (!is.null(output_path) && !is.na(output_path) && output_path != "") {
-
     # Check if the file already exists and warn the user if it will be overwritten
     if (file.exists(output_path)) {
       message(sprintf("File '%s' already exists and will be overwritten.", output_path))
     } else {
       # Check if the file parent folder already exists
       output_parent <- dirname(output_path)
-      if (!dir.exists(output_parent)){
+      if (!dir.exists(output_parent)) {
         message(sprintf("Folder '%s' does not exist and will be created", output_parent))
-        dir.create(output_parent, showWarnings=FALSE, recursive=TRUE)
+        dir.create(output_parent, showWarnings = FALSE, recursive = TRUE)
       }
     }
 
