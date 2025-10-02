@@ -217,7 +217,7 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
         )
       } else { # mutation not found by CIGAR
         switch(status,
-          "MUT" = "MUT but not in CIGAR",
+          "MUT" = "WT by CIGAR but potentially MUT",
           "WT"  = "WT",
           "AMB" = "IMPOSSIBLE",
           "OTH" = "OTH"
@@ -241,7 +241,7 @@ get_mutation_status_of_read <- function(chr, pos, ref, alt, read_stats, read_ind
         )
       } else { # mutation not found by CIGAR
         switch(status,
-          "MUT" = "MUT but not in CIGAR and AMB",
+          "MUT" = "WT by CIGAR but potentially MUT",
           "WT"  = "WT",
           "AMB" = "AMB",
           "OTH" = "OTH"
