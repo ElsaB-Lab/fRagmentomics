@@ -1,5 +1,18 @@
 # fRagmentomics NEWS
 
+## fRagmentomics 0.2.9 (2025-10-07)
+
+### NEW FEATURES
+
+* Change fragment if DIS with potentially compatible with DIS.
+
+### OTHER CHANGES
+
+- Update vignette.
+- Fix some display errors on graph functions.
+
+---
+
 ## fRagmentomics 0.2.8 (2025-08-27)
 
 ### NEW FEATURES
