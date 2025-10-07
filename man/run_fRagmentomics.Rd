@@ -61,7 +61,7 @@ extremity bases in the output.}
 
 \item{retain_fail_qc}{Boolean. If set to TRUE, retain fragments that failed the various quality checks in the output.}
 
-\item{tmp_folder}{Character vector for the temporary folder path.}
+\item{tmp_folder}{Crun_fRagmentomicsharacter vector for the temporary folder path.}
 
 \item{output_path}{Character vector for the fragmentomics table output path.}
 

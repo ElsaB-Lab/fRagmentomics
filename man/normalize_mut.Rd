@@ -15,7 +15,7 @@ normalize_mut(df_mut, fasta, fasta_fafile, one_based, tmp_folder)
 
 \item{one_based}{Boolean. TRUE if fasta is in one based. False if in 0 based.}
 
-\item{tmp_folder}{Character vector for the temporary folder path.}
+\item{tmp_folder}{Crun_fRagmentomicsharacter vector for the temporary folder path.}
 }
 \value{
 a dataframe with normalized mutations representations containing columns CHROM, POS, REF, ALT

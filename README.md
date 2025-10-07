@@ -1,6 +1,6 @@
 # fRagmentomics <img src="man/figure/logo.svg" align="right" width="150"/>
 
-![Version](https://img.shields.io/badge/version-0.2.8-blue)
+![Version](https://img.shields.io/badge/version-0.2.9-blue)
 [![codecov](https://codecov.io/gh/ElsaB-Lab/fRagmentomics/graph/badge.svg?token=OMTSCRO7LJ)](https://codecov.io/gh/ElsaB-Lab/fRagmentomics)
 
 ## Overview
@@ -365,7 +365,7 @@ To solve this problem, fRagmentomics uses a **context-aware algorithm** instead 
 For each variant, two local templates are built:
 
 * A **wild-type (WT) template** from the reference genome
-  
+
 * A **mutant (MUT) template** carrying the alternate allele
 
 For each indel and MNV, the function first calculates the **minimum required sequence length** needed to unambiguously confirm the variant. This calculation considers both the size of the variant and the surrounding sequence (e.g., tandem repeats).
@@ -470,7 +470,7 @@ This column provides a single, high-level interpretation of the fragment's state
 * **`OTH`**: The fragment supports the **mutant allele**. This applies when both reads are `OTH`, or when one is `OTH` and the other is `AMB` or `NA`.
 
 * **`N/I`** = **`NON INFORMATIVE`**: Comprises two fragment categories:
-  
+
   * **`DISCORDANT`**: The two reads provide conflicting information (e.g., one read `MUT`, one read `WT`), which may indicate a sequencing or alignment artifact.
 
   * **`AMB`**: The fragment is ambiguous, the evidence is not strong enough to make a high-confidence call (e.g., both reads are ambiguous).

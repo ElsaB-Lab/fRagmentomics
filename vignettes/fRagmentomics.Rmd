@@ -79,6 +79,7 @@ The README provides detailed explanations of:
 First, we load the `fRagmentomics` library. The package includes a small BAM file, a corresponding FASTA reference, and a list of mutations to make testing easy.
 
 ```{r load_data}
+library(dplyr)
 library(fRagmentomics)
 
 # Locate the example files bundled with the package
@@ -347,7 +348,7 @@ plot_motif_barplot(
 
 ### End Motif Sequence Logos
 
-To visualize the nucleotide frequency at each position of the fragment ends, the package provides `plot_qqseqlogo_meme()`. This function uses the popular `ggseqlogo` package to create sequence logo plots, which are excellent for identifying conserved patterns or sequence preferences. 
+To visualize the nucleotide frequency at each position of the fragment ends, the package provides `plot_qqseqlogo_meme()`. This function uses the popular `ggseqlogo` package to create sequence logo plots, which are excellent for identifying conserved patterns or sequence preferences.
 
 #### 1. Comparing Motifs Between Groups
 
