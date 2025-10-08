@@ -120,6 +120,22 @@ extract_fragment_features <- function(df_sam,
     read_stats_5p$QUAL <- read_5p_info_without_softclip$QUAL
     read_stats_5p$CIGAR <- read_5p_info_without_softclip$CIGAR
     read_stats_5p$read_length <- read_5p_info_without_softclip$read_length
+
+    # Check if trimming resulted in an empty sequence or CIGAR
+    if (read_3p_info_without_softclip$SEQ == "" || read_3p_info_without_softclip$CIGAR == "") {
+      # The read is invalid after trimming, so fail the whole fragment.
+      result_df <- create_empty_fragment_row(
+        chr, pos, ref, alt, input_mutation_info, fragment_name,
+        fragment_qc = "Read empty after softclip trim",
+        sample_id, report_tlen, report_5p_3p_bases_fragment, report_softclip
+      )
+      return(result_df)
+    }
+
+    read_stats_3p$SEQ <- read_3p_info_without_softclip$SEQ
+    read_stats_3p$QUAL <- read_3p_info_without_softclip$QUAL
+    read_stats_3p$CIGAR <- read_3p_info_without_softclip$CIGAR
+    read_stats_3p$read_length <- read_3p_info_without_softclip$read_length
   }
 
   # -------------------------------

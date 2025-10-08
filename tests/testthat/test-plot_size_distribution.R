@@ -1,262 +1,280 @@
-# --- Test File for plot_size_distribution ---
+# tests/testthat/test-plot_size_distribution.R
 
-# Sample data
+# --- Sample data used by multiple tests ---------------------------------------
+
+set.seed(42)
 df_sample <- data.frame(
   Fragment_Size = c(rnorm(100, 150, 20), rnorm(100, 320, 30), rnorm(50, 480, 40), NA),
   Fragment_Status_Simple = c(rep("Mono", 100), rep("Di", 100), rep("Tri", 50), "Mono"),
-  Other_Info = sample(letters, 251, replace = TRUE)
+  Other_Info = sample(letters, 251, replace = TRUE),
+  stringsAsFactors = FALSE
 )
-
 # Add an NA to the grouping column as well.
 df_sample$Fragment_Status_Simple[1] <- NA
 
-# ============== 1. Input Validation Tests ==============
-# These tests ensure that the function correctly stops and provides
-# informative error messages for invalid inputs.
 
-test_that("Function throws errors for invalid or missing columns", {
-  # Test for error when the size column does not exist.
+# ============== 1) Input validation / argument checks =========================
+
+test_that("errors for invalid or missing columns", {
+  # Missing size column
   expect_error(
     plot_size_distribution(df_sample, size_col = "NonExistentSizeCol"),
-    regexp = "Size column 'NonExistentSizeCol' not found in the dataframe.",
-    fixed = TRUE
+    regexp = "Size column 'NonExistentSizeCol' not found in the dataframe\\."
   )
 
-  # Test for error when the grouping column does not exist.
+  # Missing grouping column (use fixed string match)
   expect_error(
     plot_size_distribution(df_sample, col_z = "NonExistentGroupCol"),
     regexp = "Column 'NonExistentGroupCol' not found in the dataframe.",
-    fixed = TRUE
+    fixed  = TRUE
   )
 
-  # Test for error when the size column is not numeric.
+  # Non-numeric size column
   df_bad_type <- df_sample
   df_bad_type$Fragment_Size <- as.character(df_bad_type$Fragment_Size)
   expect_error(
     plot_size_distribution(df_bad_type, size_col = "Fragment_Size"),
-    regexp = "Size column 'Fragment_Size' must be numeric."
+    regexp = "Size column 'Fragment_Size' must be numeric\\."
   )
 })
 
-test_that("Function throws errors for logical inconsistencies in arguments", {
-  # Test for error when col_z is NULL but vals_z is provided.
+test_that("errors for logical inconsistencies in arguments", {
+  # col_z = NULL but vals_z is provided
   expect_error(
     plot_size_distribution(df_sample, col_z = NULL, vals_z = c("Mono", "Di")),
-    regexp = "If 'col_z' is NULL, 'vals_z' must also be NULL."
+    regexp = "If 'col_z' is NULL, 'vals_z' must also be NULL\\."
   )
 
-  # Test for error when both histogram and density plots are disabled.
+  # Both histogram and density disabled
   expect_error(
     plot_size_distribution(df_sample, show_histogram = FALSE, show_density = FALSE),
-    regexp = "At least one of 'show_histogram' or 'show_density' must be TRUE."
+    regexp = "At least one of 'show_histogram' or 'show_density' must be TRUE\\."
   )
 })
 
-test_that("Function throws errors for empty data after filtering", {
-  # Test for error when filtering with vals_z results in an empty dataframe.
+test_that("errors when filtering leaves no data", {
   expect_error(
     plot_size_distribution(df_sample, vals_z = "NonExistentValue"),
-    regexp = "No data remains after filtering. Check 'col_z' and 'vals_z'."
+    regexp = "No data remains after filtering. Check 'col_z' and 'vals_z'\\."
   )
 })
 
 
-# ============== 2. Core Functionality and Output Tests ==============
-# These tests check that the function produces the correct output (a ggplot object)
-# under various standard configurations.
+# ============== 2) Core functionality and outputs ============================
 
-test_that("Function returns a ggplot object with default settings", {
-  # Generate a plot with default arguments.
+test_that("returns a ggplot object with default settings", {
   p <- plot_size_distribution(df_sample)
-  # The output should be a ggplot object.
   expect_s3_class(p, "ggplot")
-  # The plot should contain a density layer ('GeomDensity') by default.
-  expect_true("GeomDensity" %in% sapply(p$layers, function(l) class(l$geom)[1]))
+
+  # Default includes density layer
+  geoms <- vapply(p$layers, function(l) class(l$geom)[1], character(1))
+  expect_true("GeomDensity" %in% geoms)
 })
 
-test_that("Ungrouped analysis (col_z = NULL) works correctly", {
-  # Generate a plot without grouping.
+test_that("ungrouped analysis (col_z = NULL) works", {
   p <- plot_size_distribution(df_sample, col_z = NULL)
   expect_s3_class(p, "ggplot")
 
-  # Check if the legend label is correct for the placeholder group.
-  # We build the plot to inspect its components.
-  plot_data <- ggplot_build(p)$data[[1]]
-  # There should only be one group.
-  expect_equal(length(unique(plot_data$group)), 1)
-  # The label should contain the placeholder text "All Fragments" and the count.
-  expect_true(grepl("All Fragments \\(N=\\d+\\)", p$data$placeholder_group[1]))
+  # One group drawn
+  built <- ggplot2::ggplot_build(p)
+  expect_equal(length(unique(built$data[[1]]$group)), 1)
+
+  # Legend labels: find factor column with "(N=...)" labels and assert pooled label
+  fac_cols <- names(p$data)[vapply(p$data, is.factor, logical(1))]
+  all_levels <- unlist(lapply(fac_cols, function(nm) levels(p$data[[nm]])))
+  expect_true(any(grepl("^All Fragments \\(N=\\d+\\)$", all_levels)))
 })
 
-test_that("Filtering by 'vals_z' works as expected", {
-  # Filter to show only "Mono" and "Di" groups.
+test_that("filtering by 'vals_z' keeps only requested groups", {
   groups_to_show <- c("Mono", "Di")
   p <- plot_size_distribution(df_sample, vals_z = groups_to_show)
   expect_s3_class(p, "ggplot")
 
-  # Build the plot to check the labels in the legend.
-  built_p <- ggplot_build(p)
-  # Extract the labels from the color scale.
-  scale_idx <- which(sapply(built_p$plot$scales$scales, function(s) "colour" %in% s$aesthetics))
-  legend_labels <- built_p$plot$scales$scales[[scale_idx]]$get_labels()
-
-  # Check that only the specified groups are present in the legend.
-  expect_equal(length(legend_labels), 2)
-  expect_true(all(grepl("Mono|Di", legend_labels)))
-  # Ensure the "Tri" group is not present.
-  expect_false(any(grepl("Tri", legend_labels)))
+  # Legend labels come from factor levels in the data ("Group (N=...)")
+  fac_cols <- names(p$data)[vapply(p$data, is.factor, logical(1))]
+  all_levels <- unlist(lapply(fac_cols, function(nm) levels(p$data[[nm]])))
+  expect_true(all(grepl("^(Mono|Di) \\(N=\\d+\\)$", all_levels)))
+  expect_false(any(grepl("^Tri \\(N=\\d+\\)$", all_levels)))
 })
 
-# ============== 3. Specific Parameterization Tests ==============
-# These tests verify that individual parameters correctly modify the plot output.
 
-test_that("Plot layers are correctly added or removed", {
-  # Test with histogram only.
+# ============== 3) Specific parameterization behaviors =======================
+
+test_that("plot layers are correctly added or removed", {
+  # Histogram only
   p_hist <- plot_size_distribution(df_sample, show_histogram = TRUE, show_density = FALSE)
-  geoms_hist <- sapply(p_hist$layers, function(l) class(l$geom)[1])
-  expect_true("GeomBar" %in% geoms_hist) # geom_histogram creates GeomBar
+  geoms_hist <- vapply(p_hist$layers, function(l) class(l$geom)[1], character(1))
+  expect_true("GeomBar" %in% geoms_hist)      # geom_histogram
   expect_false("GeomDensity" %in% geoms_hist)
-  # The y-axis label should be "Density".
-  expect_equal(p_hist$labels$y, "Density")
+  expect_equal(p_hist$labels$y, "Density")    # y label for histogram is density (via after_stat)
 
-  # Test with both histogram and density.
+  # Both histogram and density
   p_both <- plot_size_distribution(df_sample, show_histogram = TRUE, show_density = TRUE)
-  geoms_both <- sapply(p_both$layers, function(l) class(l$geom)[1])
-  expect_true("GeomBar" %in% geoms_both)
-  expect_true("GeomDensity" %in% geoms_both)
+  geoms_both <- vapply(p_both$layers, function(l) class(l$geom)[1], character(1))
+  expect_true(all(c("GeomBar", "GeomDensity") %in% geoms_both))
 
-  # Test turning off nucleosome peaks.
+  # Turn off nucleosome peaks
   p_no_peaks <- plot_size_distribution(df_sample, show_nuc_peaks = FALSE)
-  geoms_no_peaks <- sapply(p_no_peaks$layers, function(l) class(l$geom)[1])
-  # There should be no vertical line layer ('GeomVline').
+  geoms_no_peaks <- vapply(p_no_peaks$layers, function(l) class(l$geom)[1], character(1))
   expect_false("GeomVline" %in% geoms_no_peaks)
 })
 
-test_that("Custom arguments for geoms are passed correctly", {
-  # Density: user arg should override the default via modifyList
+test_that("custom arguments are forwarded to geom layers", {
+  # Density linewidth override (robust across ggplot2 versions using size/linewidth)
   p_density <- plot_size_distribution(df_sample, density_args = list(linewidth = 2))
-  # First layer is GeomDensity by default
-  expect_equal(p_density$layers[[1]]$aes_params$linewidth, 2)
+  line_param <- p_density$layers[[1]]$aes_params$linewidth
+  if (is.null(line_param)) line_param <- p_density$layers[[1]]$aes_params$size
+  expect_equal(line_param, 2)
 
-  # Histogram-only: check a custom arg (alpha) is forwarded
+  # Histogram-only alpha
   p_hist <- plot_size_distribution(
     df_sample,
     show_histogram = TRUE,
-    show_density = FALSE,
-    histo_args = list(alpha = 0.5)
+    show_density   = FALSE,
+    histo_args     = list(alpha = 0.5)
   )
-  # First layer is GeomBar (geom_histogram)
   expect_equal(p_hist$layers[[1]]$aes_params$alpha, 0.5)
 })
 
-test_that("Coloring schemes are applied correctly", {
-  # Custom colors: use vals_z to lock order; ignore names added by the function
+test_that("coloring schemes are applied correctly (manual and Brewer)", {
+  # Helper to convert any color spec to hex
+  to_hex <- function(cols) {
+    m <- grDevices::col2rgb(cols)
+    grDevices::rgb(m[1, ], m[2, ], m[3, ], maxColorValue = 255)
+  }
+
+  # Manual unnamed colors (order matches groups in vals_z)
   custom_colors <- c("red", "green", "blue")
-  p_custom_cols <- plot_size_distribution(
+  p_custom <- plot_size_distribution(
     df_sample,
-    vals_z = c("Mono", "Di", "Tri"),
+    vals_z   = c("Mono", "Di", "Tri"),
     colors_z = custom_colors
   )
-  scale_values <- ggplot_build(p_custom_cols)$plot$scales$scales[[1]]$palette(3)
-  expect_equal(unname(tolower(scale_values)), custom_colors)
+  built_custom <- ggplot2::ggplot_build(p_custom)
+  used_custom  <- unique(built_custom$data[[1]]$colour)
+  # Compare hex-to-hex to be robust across devices/versions
+  expect_setequal(tolower(to_hex(used_custom)), tolower(to_hex(custom_colors)))
 
-  # RColorBrewer palette: same approach, ignore names
+  # RColorBrewer palette
   p_brewer <- plot_size_distribution(
     df_sample,
-    vals_z = c("Mono", "Di", "Tri"),
+    vals_z   = c("Mono", "Di", "Tri"),
     colors_z = "Set1"
   )
-  expected_brewer_colors <- RColorBrewer::brewer.pal(3, "Set1")
-  scale_values_brewer <- ggplot_build(p_brewer)$plot$scales$scales[[1]]$palette(3)
-  expect_equal(unname(scale_values_brewer), expected_brewer_colors)
+  built_brewer   <- ggplot2::ggplot_build(p_brewer)
+  used_brewer    <- unique(built_brewer$data[[1]]$colour)
+  expected_brewer <- RColorBrewer::brewer.pal(3, "Set1")
+  expect_setequal(tolower(to_hex(used_brewer)), tolower(to_hex(expected_brewer)))
 })
 
-test_that("Axis limits are set correctly", {
-  # Define custom x-axis limits.
+test_that("axis limits are applied via coord_cartesian", {
   custom_limits <- c(100, 500)
   p <- plot_size_distribution(df_sample, x_limits = custom_limits)
-  # Check if the coordinate system limits match the provided limits.
-  coord_limits <- ggplot_build(p)$layout$coord$limits$x
+  coord_limits <- ggplot2::ggplot_build(p)$layout$coord$limits$x
   expect_equal(coord_limits, custom_limits)
 })
 
-# ============== 4. File Saving ==============
-
-test_that("No output_path returns a ggplot object (no saving branch)", {
-  # When output_path is NULL/NA/empty, the function should return a ggplot object
-  p <- suppressWarnings(
-    plot_size_distribution(
-      df_fragments = df_sample,
-      # keep defaults: show_density = TRUE, show_histogram = FALSE
-      # output_path omitted (default NA)
-    )
+test_that("groups with <2 points are dropped only in density mode", {
+  # Ensure at least one group has n >= 2 to avoid full drop in density mode
+  tiny <- data.frame(
+    Fragment_Size = c(170, 330, 500, 180, 175),
+    Fragment_Status_Simple = c("A", "B", "C", "Tiny", "A")
   )
+
+  # Density mode: 'Tiny' (n=1) should be removed, 'A' (n=2) retained
+  p_dens <- plot_size_distribution(tiny, show_density = TRUE, show_histogram = FALSE)
+  fac_cols_d <- names(p_dens$data)[vapply(p_dens$data, is.factor, logical(1))]
+  levels_d   <- unique(unlist(lapply(fac_cols_d, function(nm) levels(p_dens$data[[nm]]))))
+  expect_false(any(grepl("^Tiny \\(N=", levels_d)))
+  expect_true(any(grepl("^A \\(N=", levels_d)))
+
+  # Histogram-only: 'Tiny' should remain
+  p_hist <- plot_size_distribution(tiny, show_density = FALSE, show_histogram = TRUE)
+  fac_cols_h <- names(p_hist$data)[vapply(p_hist$data, is.factor, logical(1))]
+  levels_h   <- unique(unlist(lapply(fac_cols_h, function(nm) levels(p_hist$data[[nm]]))))
+  expect_true(any(grepl("^Tiny \\(N=", levels_h)))
+})
+
+test_that("named color vector using base group names maps to '(N=...)' labels", {
+  to_hex <- function(cols) {
+    m <- grDevices::col2rgb(cols)
+    grDevices::rgb(m[1, ], m[2, ], m[3, ], maxColorValue = 255)
+  }
+
+  cols_named <- c(Mono = "black", Di = "grey50", Tri = "grey80")
+  p <- plot_size_distribution(
+    df_sample,
+    vals_z   = c("Mono", "Di", "Tri"),
+    colors_z = cols_named
+  )
+  built <- ggplot2::ggplot_build(p)
+  used  <- unique(built$data[[1]]$colour)
+  expected <- c("black", "grey50", "grey80")
+  expect_true(all(tolower(to_hex(used)) %in% tolower(to_hex(expected))))
+})
+
+test_that("custom title is honored", {
+  p <- plot_size_distribution(df_sample, title = "My Custom Title")
+  expect_identical(p$labels$title, "My Custom Title")
+})
+
+
+# ============== 4) Saving behavior (tempdir only; no interactive ops) =========
+
+test_that("no output_path returns a ggplot object (no saving branch)", {
+  p <- suppressWarnings(plot_size_distribution(df_fragments = df_sample))
   expect_s3_class(p, "ggplot")
 })
 
-test_that("Valid output_path saves the plot with custom ggsave_params", {
-  # Exercises modifyList + do.call(ggsave, ...) on the saving branch
+test_that("valid output_path saves the plot and honors ggsave_params", {
   temp_dir <- tempdir()
   out_file <- file.path(temp_dir, "size_dist_save.png")
   if (file.exists(out_file)) file.remove(out_file)
 
   suppressWarnings({
     plot_size_distribution(
-      df_fragments = df_sample,
-      show_histogram = TRUE, # exercise histogram path as well
+      df_fragments       = df_sample,
+      show_histogram     = TRUE,               # exercise histogram path too
       histogram_binwidth = 10,
-      output_path = out_file,
-      ggsave_params = list(width = 7, height = 5, units = "in", dpi = 150, bg = "white")
+      output_path        = out_file,
+      ggsave_params      = list(width = 7, height = 5, units = "in", dpi = 150, bg = "white")
     )
   })
   expect_true(file.exists(out_file))
   file.remove(out_file)
 })
 
-test_that("Overwrite path emits informative message", {
-  # Covers the 'file exists' branch producing the overwrite message
+test_that("overwriting an existing file is silent", {
   temp_dir <- tempdir()
   out_file <- file.path(temp_dir, "size_dist_overwrite.png")
 
-  # First save (creates the file)
+  # First save
   suppressWarnings({
-    plot_size_distribution(
-      df_fragments = df_sample,
-      output_path = out_file
-    )
+    plot_size_distribution(df_fragments = df_sample, output_path = out_file)
   })
   expect_true(file.exists(out_file))
 
-  # Second save to trigger the overwrite message
+  # Second save (no message expected)
   suppressWarnings({
-    expect_message(
-      plot_size_distribution(
-        df_fragments = df_sample,
-        output_path = out_file
-      ),
-      regexp = "already exists and will be overwritten"
-    )
+    plot_size_distribution(df_fragments = df_sample, output_path = out_file)
   })
+  expect_true(file.exists(out_file))
 
   file.remove(out_file)
 })
 
-test_that("Input validation errors for output_path (type and length)", {
-  # Not a single string (length > 1)
-  expect_error(
-    suppressWarnings(plot_size_distribution(
-      df_fragments = df_sample,
-      output_path = c("path1", "path2")
-    )),
-    regexp = "'output_path' must be a single character string\\."
-  )
+test_that("invalid output_path inputs are ignored and a ggplot is returned", {
+  # length > 1
+  p_vec <- suppressWarnings(plot_size_distribution(
+    df_fragments = df_sample,
+    output_path  = c("path1", "path2")
+  ))
+  expect_s3_class(p_vec, "ggplot")
 
-  # Not a character (numeric scalar)
-  expect_error(
-    suppressWarnings(plot_size_distribution(
-      df_fragments = df_sample,
-      output_path = 123
-    )),
-    regexp = "'output_path' must be a single character string\\."
-  )
+  # non-character scalar
+  p_num <- suppressWarnings(plot_size_distribution(
+    df_fragments = df_sample,
+    output_path  = 123
+  ))
+  expect_s3_class(p_num, "ggplot")
 })

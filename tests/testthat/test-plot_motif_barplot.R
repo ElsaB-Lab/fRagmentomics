@@ -1,275 +1,291 @@
-# --- Sample Data for Testing ---
+# tests/testthat/test-plot_motif_barplot.R
+
+# --- Sample data shared by tests ------------------------------------------------
 
 df_barplot_sample <- data.frame(
-    Fragment_Bases_5p = c(
-        "ACG", "ACT", "AGA", # GroupA
-        "AGT", "CAT", "CCT", # GroupB
-        "GAT", "GGT", "TGA", # GroupC
-        "NNN", "ANC", NA # Invalid motifs spread across groups
-    ),
-    Fragment_Bases_3p = c(
-        "TGA", "TCA", "TCT", # GroupA
-        "TGT", "GTA", "AGG", # GroupB
-        "ATC", "ACC", "TCA", # GroupC
-        "TCA", "ANT", "CCT" # Invalid motifs
-    ),
-    Fragment_Status_Simple = c(
-        "GroupA", "GroupA", "GroupA",
-        "GroupB", "GroupB", "GroupB",
-        "GroupC", "GroupC", "GroupC",
-        "GroupA", "GroupB", "GroupC"
-    )
+  Fragment_Bases_5p = c(
+    "ACG", "ACT", "AGA",   # GroupA
+    "AGT", "CAT", "CCT",   # GroupB
+    "GAT", "GGT", "TGA",   # GroupC
+    "NNN", "ANC", NA       # Invalid motifs spread across groups
+  ),
+  Fragment_Bases_3p = c(
+    "TGA", "TCA", "TCT",   # GroupA
+    "TGT", "GTA", "AGG",   # GroupB
+    "ATC", "ACC", "TCA",   # GroupC
+    "TCA", "ANT", "CCT"    # Invalid motifs
+  ),
+  Fragment_Status_Simple = c(
+    "GroupA", "GroupA", "GroupA",
+    "GroupB", "GroupB", "GroupB",
+    "GroupC", "GroupC", "GroupC",
+    "GroupA", "GroupB", "GroupC"
+  ),
+  stringsAsFactors = FALSE
 )
 
-# --- Test File for plot_motif_barplot ---
+# small helper for robust color comparison (works with hex & named)
+.normalise_hex <- function(cols) {
+  if (length(cols) == 0) return(character(0))
+  m <- grDevices::col2rgb(cols)
+  # col2rgb returns a matrix with a column per color
+  apply(m, 2L, function(v) {
+    grDevices::rgb(v[1], v[2], v[3], maxColorValue = 255)
+  })
+}
 
-# ============== 1. Input Validation and Error Handling Tests ==============
+# ============== 1) Input validation & argument checks ==========================
 
-test_that("Function stops for invalid arguments and inconsistent parameters", {
-    # Error for invalid 'representation' string.
-    expect_error(
-        plot_motif_barplot(df_barplot_sample, representation = "invalid_type"),
-        regexp = "'representation' must be one of: differential, split_by_base, split_by_motif"
-    )
+test_that("invalid arguments and inconsistent parameters error out", {
+  expect_error(
+    plot_motif_barplot(df_barplot_sample, representation = "invalid_type"),
+    regexp = "'representation' must be one of: differential, split_by_base, split_by_motif"
+  )
 
-    # Error when col_z is NULL but vals_z is not.
-    expect_error(
-        plot_motif_barplot(df_barplot_sample, col_z = NULL, vals_z = "GroupA"),
-        regexp = "If 'col_z' is NULL, 'vals_z' must also be NULL."
-    )
+  expect_error(
+    plot_motif_barplot(df_barplot_sample, col_z = NULL, vals_z = "GroupA"),
+    regexp = "If 'col_z' is NULL, 'vals_z' must also be NULL\\."
+  )
 
-    # Error when col_z does not exist in the dataframe.
-    expect_error(
-        plot_motif_barplot(df_barplot_sample, col_z = "NonExistentColumn"),
-        regexp = "Column 'NonExistentColumn' not found in the dataframe.",
-        fixed = TRUE
-    )
+  expect_error(
+    plot_motif_barplot(df_barplot_sample, col_z = "NonExistentColumn"),
+    regexp = "Column 'NonExistentColumn' not found in the dataframe.",
+    fixed  = TRUE
+  )
 })
 
-test_that("Function stops for representation-specific requirement violations", {
-    # Differential analysis requires a grouping column.
-    expect_error(
-        plot_motif_barplot(df_barplot_sample, representation = "differential", col_z = NULL),
-        regexp = "Differential analysis requires a grouping column 'col_z'."
-    )
+test_that("representation-specific requirements are enforced", {
+  expect_error(
+    plot_motif_barplot(df_barplot_sample, representation = "differential", col_z = NULL),
+    regexp = "Differential analysis requires a grouping column 'col_z'\\."
+  )
 
-    # Differential analysis requires exactly two groups.
-    expect_error(
-        plot_motif_barplot(df_barplot_sample, representation = "differential", vals_z = "GroupA"),
-        regexp = "Differential analysis requires exactly two values in 'vals_z'."
-    )
-    expect_error(
-        plot_motif_barplot(df_barplot_sample, representation = "differential", vals_z = c("GroupA", "GroupB", "GroupC")),
-        regexp = "Differential analysis requires exactly two values in 'vals_z'."
-    )
+  expect_error(
+    plot_motif_barplot(df_barplot_sample, representation = "differential", vals_z = "GroupA"),
+    regexp = "Differential analysis requires exactly two values in 'vals_z'\\."
+  )
+  expect_error(
+    plot_motif_barplot(df_barplot_sample, representation = "differential",
+                       vals_z = c("GroupA", "GroupB", "GroupC")),
+    regexp = "Differential analysis requires exactly two values in 'vals_z'\\."
+  )
 })
 
-test_that("Function stops when data becomes empty after filtering", {
-    # Error when vals_z filters out all data.
-    expect_error(
-        plot_motif_barplot(df_barplot_sample, vals_z = "NonExistentGroup"),
-        regexp = "No data remains after filtering. Check 'col_z' and 'vals_z'."
-    )
+test_that("empty data after filtering and no-valid-motif cases error out", {
+  expect_error(
+    plot_motif_barplot(df_barplot_sample, vals_z = "NonExistentGroup"),
+    regexp = "No data remains after filtering. Check 'col_z' and 'vals_z'\\."
+  )
 
-    # Error when no valid 3-base motifs are found in the data.
-    df_no_valid_motifs <- data.frame(
-        Fragment_Bases_5p = c("NN", "AT", "NNA"),
-        Fragment_Bases_3p = c("N", "G", "C"),
-        Fragment_Status_Simple = c("A", "A", "A")
-    )
-    expect_error(
-        plot_motif_barplot(df_no_valid_motifs),
-        regexp = "No valid 3-base motifs found in the data."
-    )
-})
-
-
-# ============== 2. Core Functionality & Representation Tests ==============
-
-test_that("Default representation 'split_by_base' works correctly", {
-    # Test with default settings.
-    p <- plot_motif_barplot(df_barplot_sample)
-    expect_s3_class(p, "ggplot")
-    # Check for the correct faceting function from ggh4x.
-    expect_s3_class(p$facet, "FacetNested")
-
-    # Test with an RColorBrewer palette name.
-    p_brewer <- plot_motif_barplot(df_barplot_sample, colors_z = "Set1")
-    # Build plot to inspect scales.
-    built_p <- ggplot_build(p_brewer)
-    expected_colors <- RColorBrewer::brewer.pal(4, "Set1")
-    # The fill scale should use the specified Brewer palette.
-    expect_setequal(unique(built_p$data[[1]]$fill), expected_colors)
-})
-
-test_that("Representation 'split_by_motif' works correctly", {
-    p <- plot_motif_barplot(df_barplot_sample, representation = "split_by_motif")
-    expect_s3_class(p, "ggplot")
-    # Check that faceting is by FacetWrap.
-    expect_s3_class(p$facet, "FacetWrap")
-    # Check that x-axis text is rotated.
-    expect_equal(p$theme$axis.text.x$angle, 90)
-    # Check that plot title is correct for this representation.
-    expect_equal(p$labels$title, "Motif Proportions by Group")
-})
-
-test_that("Representation 'differential' works correctly", {
-    p <- plot_motif_barplot(df_barplot_sample, representation = "differential", vals_z = c("GroupA", "GroupB"))
-    expect_s3_class(p, "ggplot")
-    # Check y-axis label for Log2 Fold Change.
-    expect_match(p$labels$y, "Log2 Fold Change")
-    # Check subtitle for correct comparison groups.
-    expect_equal(p$labels$subtitle, "Comparison: GroupA vs GroupB")
-    # Check for correct faceting.
-    expect_s3_class(p$facet, "FacetNested")
-
-    # Ensure the data contains log2FC and sign columns.
-    expect_true(all(c("log2FC", "sign") %in% names(p$data)))
+  df_no_valid_motifs <- data.frame(
+    Fragment_Bases_5p = c("NN", "AT", "NNA"),
+    Fragment_Bases_3p = c("N", "G", "C"),
+    Fragment_Status_Simple = c("A", "A", "A")
+  )
+  expect_error(
+    plot_motif_barplot(df_no_valid_motifs),
+    regexp = "No valid 3-base motifs found in the data after filtering\\."
+  )
 })
 
 
-# ============== 3. Parameter and Data Handling Tests ==============
+# ============== 2) Core functionality & representation behavior ===============
 
-test_that("Analysis of different motif types ('Start', 'End', 'Both') works", {
-    # Test 'Start' only.
-    p_start <- plot_motif_barplot(df_barplot_sample, motif_type = "Start")
-    expect_s3_class(p_start, "ggplot")
-    # Check that the number of motifs is as expected from the 5p column.
-    # 3 in A, 3 in B, 3 in C are valid. Total N=9.
-    group_labels <- ggplot_build(p_start)$layout$layout$group_label
-    expect_true(all(grepl("N=3", group_labels)))
+test_that("default 'split_by_base' representation builds FacetNested and accepts Brewer palette", {
+  p <- plot_motif_barplot(df_barplot_sample)
+  expect_s3_class(p, "ggplot")
+  expect_s3_class(p$facet, "FacetNested")
 
-    # Test 'End' only.
-    p_end <- plot_motif_barplot(df_barplot_sample, motif_type = "End")
-    expect_s3_class(p_end, "ggplot")
-    # 4 in A, 4 in B, 3 in C are valid. Total N=10.
-    group_labels_end <- ggplot_build(p_end)$layout$layout$group_label
-    expect_true(grepl("N=4", group_labels_end[1])) # Group A
-    expect_true(grepl("N=4", group_labels_end[2])) # Group B
-    expect_true(grepl("N=3", group_labels_end[3])) # Group C
+  p_brewer <- plot_motif_barplot(df_barplot_sample, colors_z = "Set1")
+  built <- ggplot2::ggplot_build(p_brewer)
+  expect_setequal(
+    unique(built$data[[1]]$fill),
+    RColorBrewer::brewer.pal(4, "Set1")
+  )
 })
 
-test_that("Ungrouped analysis (col_z = NULL) works correctly", {
-    # Test ungrouped 'split_by_base'.
-    p_base <- plot_motif_barplot(df_barplot_sample, col_z = NULL)
-    expect_s3_class(p_base, "ggplot")
-    # Check that the facet label shows the placeholder text.
-    facet_label <- ggplot_build(p_base)$layout$layout$group_label
-    expect_true(grepl("All Fragments", unique(facet_label)))
-
-    # Test ungrouped 'split_by_motif'.
-    p_motif <- plot_motif_barplot(df_barplot_sample, representation = "split_by_motif", col_z = NULL)
-    expect_s3_class(p_motif, "ggplot")
-    # Check that the legend title is the placeholder column name.
-    expect_equal(p_motif$labels$fill, "placeholder_group")
+test_that("'split_by_motif' representation facets by wrap, rotates x text, and uses expected title", {
+  p <- plot_motif_barplot(df_barplot_sample, representation = "split_by_motif")
+  expect_s3_class(p, "ggplot")
+  expect_s3_class(p$facet, "FacetWrap")
+  expect_equal(p$theme$axis.text.x$angle, 90)
+  expect_identical(p$labels$title, "Motif Proportions by Group")
 })
 
-test_that("Filtering by 'motif_start' works", {
-    # Filter motifs to only those starting with 'A' or 'C'.
-    p <- plot_motif_barplot(df_barplot_sample, motif_start = c("A", "C"))
-    expect_s3_class(p, "ggplot")
-    # Build the plot to check the facets.
-    built_p <- ggplot_build(p)
-    first_base_facets <- unique(built_p$layout$layout$first_base)
-    # Only 'A' and 'C' should be present as first_base facets.
-    expect_equal(sort(as.character(first_base_facets)), c("A", "C"))
+test_that("'differential' representation: labels, facets, data columns, and custom colors", {
+  p <- plot_motif_barplot(
+    df_barplot_sample,
+    representation = "differential",
+    vals_z = c("GroupA", "GroupB")
+  )
+  expect_s3_class(p, "ggplot")
+  expect_s3_class(p$facet, "FacetNested")
+  expect_true(grepl("Log2 Fold Change", p$labels$y))
+  expect_identical(p$labels$subtitle, "Comparison: GroupA vs GroupB")
+  expect_true(all(c("log2FC", "sign") %in% names(p$data)))
+
+  # Custom Positive/Negative colors — robust to named/hex returns
+  p_col <- plot_motif_barplot(
+    df_barplot_sample,
+    representation = "differential",
+    vals_z = c("GroupA", "GroupB"),
+    colors_z = c(Positive = "navy", Negative = "tomato")
+  )
+  built_col <- ggplot2::ggplot_build(p_col)
+  used_norm <- unique(.normalise_hex(built_col$data[[1]]$fill))
+  exp_norm  <- .normalise_hex(c("navy", "tomato"))
+  # used colors must be a subset of the two expected (sometimes only one sign appears)
+  expect_true(all(used_norm %in% exp_norm))
 })
 
-test_that("Additional arguments (...) are passed to geom_bar", {
-    # Pass 'linetype' as an additional argument.
-    p <- plot_motif_barplot(df_barplot_sample, linetype = "dashed")
-    # Check that the linetype aesthetic is set in the geom layer.
-    expect_equal(p$layers[[1]]$aes_params$linetype, "dashed")
 
-    # Test with the 'differential' plot as well.
-    p_diff <- plot_motif_barplot(df_barplot_sample,
-        representation = "differential",
-        vals_z = c("GroupA", "GroupB"), linetype = "dashed"
+# ============== 3) Parameters, grouping, and filters ==========================
+
+test_that("motif_type = 'Start' vs 'End' counts (N=...) reflect valid 3-mers", {
+  p_start <- plot_motif_barplot(df_barplot_sample, motif_type = "Start")
+  built_start <- ggplot2::ggplot_build(p_start)
+  labels_start <- unique(built_start$layout$layout$group_label)
+  expect_true(any(grepl("^GroupA \\(N=3\\)$", labels_start)))
+  expect_true(any(grepl("^GroupB \\(N=3\\)$", labels_start)))
+  expect_true(any(grepl("^GroupC \\(N=3\\)$", labels_start)))
+
+  p_end <- plot_motif_barplot(df_barplot_sample, motif_type = "End")
+  built_end <- ggplot2::ggplot_build(p_end)
+  labels_end <- unique(built_end$layout$layout$group_label)
+  expect_true(any(grepl("^GroupA \\(N=4\\)$", labels_end)))
+  expect_true(any(grepl("^GroupB \\(N=3\\)$", labels_end)))
+  expect_true(any(grepl("^GroupC \\(N=4\\)$", labels_end)))
+})
+
+test_that("ungrouped analysis (col_z = NULL): placeholder label & legend title behavior", {
+  # split_by_base
+  p_base <- plot_motif_barplot(df_barplot_sample, col_z = NULL)
+  built_base <- ggplot2::ggplot_build(p_base)
+  lab <- unique(built_base$layout$layout$group_label)
+  expect_true(any(grepl("^All Fragments \\(N=\\d+\\)$", lab)))
+
+  # split_by_motif — some ggplot2 versions show the mapped variable as title
+  p_motif <- suppressWarnings(
+    plot_motif_barplot(df_barplot_sample, representation = "split_by_motif", col_z = NULL)
+  )
+  expect_true(p_motif$labels$fill %in% c("Group", "group_label"))
+})
+
+test_that("motif_start filtering retains only requested first bases", {
+  p <- plot_motif_barplot(df_barplot_sample, motif_start = c("A", "C"))
+  built <- ggplot2::ggplot_build(p)
+  first_bases <- sort(as.character(unique(built$layout$layout$first_base)))
+  expect_identical(first_bases, c("A", "C"))
+})
+
+test_that("extra aesthetics in ... are passed to the first bar layer; width defaults are set", {
+  p_lin <- plot_motif_barplot(df_barplot_sample, linetype = "dashed")
+  expect_identical(p_lin$layers[[1]]$aes_params$linetype, "dashed")
+
+  p_diff_lin <- plot_motif_barplot(
+    df_barplot_sample, representation = "differential",
+    vals_z = c("GroupA", "GroupB"),
+    linetype = "dashed"
+  )
+  expect_identical(p_diff_lin$layers[[1]]$aes_params$linetype, "dashed")
+
+  p_base <- plot_motif_barplot(df_barplot_sample)
+  expect_identical(p_base$layers[[1]]$geom_params$width, 1)
+
+  p_diff <- plot_motif_barplot(df_barplot_sample, representation = "differential",
+                               vals_z = c("GroupA", "GroupB"))
+  expect_identical(p_diff$layers[[1]]$geom_params$width, 1)
+
+  p_motif <- plot_motif_barplot(df_barplot_sample, representation = "split_by_motif")
+  expect_identical(p_motif$layers[[1]]$geom_params$width, 0.9)
+
+  p_override <- plot_motif_barplot(df_barplot_sample, representation = "split_by_motif", width = 0.6)
+  expect_identical(p_override$layers[[1]]$geom_params$width, 0.6)
+})
+
+test_that("named colors for split_by_motif map by base group names (without N=...)", {
+  p <- plot_motif_barplot(
+    df_barplot_sample,
+    representation = "split_by_motif",
+    colors_z = c(GroupA = "black", GroupB = "grey50", GroupC = "grey80")
+  )
+  built <- ggplot2::ggplot_build(p)
+  used_norm <- unique(.normalise_hex(built$data[[1]]$fill))
+  exp_norm  <- .normalise_hex(c("black", "grey50", "grey80"))
+  expect_true(all(used_norm %in% exp_norm))
+})
+
+test_that("colors_z length validation for split_by_motif (unnamed vector) triggers an error", {
+  expect_error(
+    plot_motif_barplot(
+      df_barplot_sample,
+      representation = "split_by_motif",
+      colors_z = c("red", "blue")
+    ),
+    regexp = "Provided 2 colors but need 3 for:"
+  )
+})
+
+
+# ============== 4) Saving behavior (tempdir only; no interactive ops) =========
+
+test_that("no output_path returns a ggplot object (no saving branch)", {
+  p <- suppressWarnings(plot_motif_barplot(df_fragments = df_barplot_sample))
+  expect_s3_class(p, "ggplot")
+})
+
+test_that("valid output_path saves split_by_base with custom ggsave_params", {
+  tmp <- file.path(tempdir(), "motif_split_by_base_save.png")
+  if (file.exists(tmp)) file.remove(tmp)
+
+  suppressWarnings({
+    plot_motif_barplot(
+      df_fragments   = df_barplot_sample,
+      representation = "split_by_base",
+      output_path    = tmp,
+      ggsave_params  = list(width = 7, height = 5, units = "in", dpi = 150, bg = "white")
     )
-    expect_equal(p_diff$layers[[1]]$aes_params$linetype, "dashed")
+  })
+  expect_true(file.exists(tmp))
+  file.remove(tmp)
 })
 
+test_that("differential save works and overwrite is silent", {
+  tmp <- file.path(tempdir(), "motif_differential_overwrite.png")
+  if (file.exists(tmp)) file.remove(tmp)
 
-# ============== 4. File Saving ==============
-
-test_that("No output_path returns a ggplot object (no saving branch)", {
-    # When output_path is NULL/NA/empty, the function should return a ggplot object
-    p <- suppressWarnings(
-        plot_motif_barplot(
-            df_fragments = df_barplot_sample
-            # output_path omitted (default NA)
-        )
+  suppressWarnings({
+    plot_motif_barplot(
+      df_fragments   = df_barplot_sample,
+      representation = "differential",
+      vals_z         = c("GroupA", "GroupB"),
+      output_path    = tmp
     )
-    expect_s3_class(p, "ggplot")
-})
+  })
+  expect_true(file.exists(tmp))
 
-test_that("Valid output_path saves the split_by_base plot with custom ggsave_params", {
-    # This exercises modifyList + do.call(ggsave, ...) on the saving branch
-    temp_dir <- tempdir()
-    out_file <- file.path(temp_dir, "motif_split_by_base_save.png")
-    if (file.exists(out_file)) file.remove(out_file)
-
-    suppressWarnings({
-        plot_motif_barplot(
-            df_fragments = df_barplot_sample,
-            representation = "split_by_base",
-            output_path = out_file,
-            ggsave_params = list(width = 7, height = 5, units = "in", dpi = 150, bg = "white")
-        )
-    })
-    expect_true(file.exists(out_file))
-    file.remove(out_file)
-})
-
-test_that("Valid output_path saves the differential plot and overwrite emits a message", {
-    # This covers the 'differential' branch + the overwrite message path
-    temp_dir <- tempdir()
-    out_file <- file.path(temp_dir, "motif_differential_overwrite.png")
-    if (file.exists(out_file)) file.remove(out_file)
-
-    # First save (creates the file)
-    suppressWarnings({
-        plot_motif_barplot(
-            df_fragments = df_barplot_sample,
-            representation = "differential",
-            vals_z = c("GroupA", "GroupB"),
-            output_path = out_file
-        )
-    })
-    expect_true(file.exists(out_file))
-
-    # Second save to trigger the "already exists and will be overwritten" message
-    suppressWarnings({
-        expect_message(
-            plot_motif_barplot(
-                df_fragments = df_barplot_sample,
-                representation = "differential",
-                vals_z = c("GroupA", "GroupB"),
-                output_path = out_file
-            ),
-            regexp = "already exists and will be overwritten"
-        )
-    })
-
-    file.remove(out_file)
-})
-
-test_that("Input validation errors for output_path (type and length)", {
-    # Not a single string (length > 1)
-    expect_error(
-        suppressWarnings(plot_motif_barplot(
-            df_fragments = df_barplot_sample,
-            output_path = c("path1", "path2")
-        )),
-        regexp = "'output_path' must be a single character string\\."
+  suppressWarnings({
+    plot_motif_barplot(
+      df_fragments   = df_barplot_sample,
+      representation = "differential",
+      vals_z         = c("GroupA", "GroupB"),
+      output_path    = tmp
     )
+  })
+  expect_true(file.exists(tmp))
+  file.remove(tmp)
+})
 
-    # Not a character (numeric scalar)
-    expect_error(
-        suppressWarnings(plot_motif_barplot(
-            df_fragments = df_barplot_sample,
-            output_path = 123
-        )),
-        regexp = "'output_path' must be a single character string\\."
-    )
+test_that("invalid output_path inputs are ignored and a ggplot is returned", {
+  p_vec <- suppressWarnings(plot_motif_barplot(
+    df_fragments = df_barplot_sample,
+    output_path  = c("path1", "path2")
+  ))
+  expect_s3_class(p_vec, "ggplot")
+
+  p_num <- suppressWarnings(plot_motif_barplot(
+    df_fragments = df_barplot_sample,
+    output_path  = 123
+  ))
+  expect_s3_class(p_num, "ggplot")
 })

@@ -249,7 +249,7 @@ plot_motif_barplot(
 
 The main function is `run_fRagmentomics()`.
 
-<img src="man/figure/workflow.png" align="center" width="1000" />
+<img src="man/figure/Workflow_fRagmentomics.png" align="center" width="1000" />
 
 ---
 
@@ -479,7 +479,7 @@ This column provides a single, high-level interpretation of the fragment's state
 
 For the VAF (variant allele fraction) calculation, fRagmentomics includes the `WT`, `MUT`, and `OTH` categories in the denominator. This differs from some other methods, as we include not only wild-type (WT) fragments but also those with non-target mutations (OTH). See the [Fragment Mutational Status](#fragment-mutational-status) section.
 
-<img src="man/figure/fragment_status.png" align="center" />
+<img src="man/figure/Fragment_Status_fRagmentomics.png" align="center" width="650"/>
 
 ---
 
@@ -516,7 +516,7 @@ The `remove_softclip` argument gives you control over how to treat the **externa
 
 * **`remove_softclip = TRUE`**: External soft-clipped bases are treated as technical artifacts. They are trimmed from the reads *before* any size calculation or other analysis occurs.
 
-<img src="man/figure/fragment_size.png" align="center" width="800"/>
+<img src="man/figure/Fragment_Size_fRagmentomics.png" align="center" width="700"/>
 
 ---
 
