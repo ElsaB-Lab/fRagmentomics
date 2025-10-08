@@ -21,8 +21,7 @@
 #'   - For '"split_by_motif"': colors per group (palette, unnamed vector, or a vector named by group names).
 #' @param title Character or NA. Plot title; if NULL/NA/"NA"/empty, a default title is used.
 #' @param output_path Character or NA. If provided and non-empty, the plot is saved to this file.
-#' @param ggsave_params A named list of arguments passed to 'ggplot2::ggsave()'. Defaults:
-#'   'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'.
+#' @param ggsave_params A named list of arguments passed to 'ggplot2::ggsave()'.
 #'
 #' @return A ggplot object.
 #'
@@ -142,10 +141,10 @@ plot_motif_barplot <- function(
   vals_z       = NULL,
   representation = "split_by_base",
   ...,
-  colors_z     = NULL,  # defaults handled per-representation
+  colors_z     = NULL, 
   title        = NULL,
   output_path  = NA_character_,
-  ggsave_params = list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")
+  ggsave_params = list(width = 10, height = 6, units = "in", dpi = 300, bg = "white")
 ) {
   motif_size <- 3  # fixed for this function
 

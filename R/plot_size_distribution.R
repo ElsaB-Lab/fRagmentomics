@@ -20,8 +20,7 @@
 #' @param show_nuc_peaks Logical. If TRUE, adds dashed vertical lines for nucleosome peaks (mono/di/tri).
 #' @param title Character or NA. Plot title; if NULL/NA/"NA"/empty, a default title is used.
 #' @param output_path Character or NA. If provided and non-empty, the plot is saved to this file.
-#' @param ggsave_params A named list of arguments passed to [ggplot2::ggsave()]. Defaults:
-#'   `list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")`.
+#' @param ggsave_params A named list of arguments passed to [ggplot2::ggsave()].
 #'
 #' @return A `ggplot` object representing the size distribution plot (invisibly `NULL` if saved).
 #'
@@ -123,7 +122,7 @@ plot_size_distribution <- function(
   show_nuc_peaks     = TRUE,
   title              = NULL,
   output_path        = NA_character_,
-  ggsave_params      = list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")
+  ggsave_params      = list(width = 10, height = 7, units = "in", dpi = 300, bg = "white")
 ) {
   # ---- basic checks ----
   if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")

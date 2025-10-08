@@ -18,7 +18,6 @@
 #' @param title Character or NA. Plot title; if NULL/NA/"NA"/empty, a default title is used.
 #' @param output_path Character or NA. If provided and non-empty, the plot is saved to this file.
 #' @param ggsave_params Named list passed to [ggplot2::ggsave()].
-#'   Defaults: 'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'.
 #' @param ... Extra arguments forwarded to [ggseqlogo::ggseqlogo()] (e.g., 'stack_width', 'font', or 'col_scheme').
 #'
 #' @return A 'ggplot' object (invisibly NULL if saved).
