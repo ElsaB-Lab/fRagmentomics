@@ -19,7 +19,7 @@ plot_size_distribution(
   show_nuc_peaks = TRUE,
   title = NULL,
   output_path = NA_character_,
-  ggsave_params = list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")
+  ggsave_params = list(width = 10, height = 7, units = "in", dpi = 300, bg = "white")
 )
 }
 \arguments{
@@ -51,8 +51,7 @@ plot_size_distribution(
 
 \item{output_path}{Character or NA. If provided and non-empty, the plot is saved to this file.}
 
-\item{ggsave_params}{A named list of arguments passed to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}. Defaults:
-\code{list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")}.}
+\item{ggsave_params}{A named list of arguments passed to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}.}
 }
 \value{
 A \code{ggplot} object representing the size distribution plot (invisibly \code{NULL} if saved).

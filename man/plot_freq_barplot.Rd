@@ -16,7 +16,7 @@ plot_freq_barplot(
   colors_z = "Dark2",
   title = NULL,
   output_path = NA_character_,
-  ggsave_params = list(width = 8, height = 6, units = "in", dpi = 300, bg = "white"),
+  ggsave_params = list(width = 14, height = 5, units = "in", dpi = 300, bg = "white"),
   show_pvalue = FALSE,
   drop_non_acgt = TRUE
 )

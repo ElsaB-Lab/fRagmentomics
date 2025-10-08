@@ -17,7 +17,7 @@ plot_motif_barplot(
   colors_z = NULL,
   title = NULL,
   output_path = NA_character_,
-  ggsave_params = list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")
+  ggsave_params = list(width = 10, height = 6, units = "in", dpi = 300, bg = "white")
 )
 }
 \arguments{
@@ -55,8 +55,7 @@ plot_motif_barplot(
 
 \item{output_path}{Character or NA. If provided and non-empty, the plot is saved to this file.}
 
-\item{ggsave_params}{A named list of arguments passed to 'ggplot2::ggsave()'. Defaults:
-'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'.}
+\item{ggsave_params}{A named list of arguments passed to 'ggplot2::ggsave()'.}
 }
 \value{
 A ggplot object.

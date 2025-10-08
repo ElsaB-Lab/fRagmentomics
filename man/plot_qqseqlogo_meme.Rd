@@ -43,8 +43,7 @@ If NULL, all unique groups are used.}
 
 \item{output_path}{Character or NA. If provided and non-empty, the plot is saved to this file.}
 
-\item{ggsave_params}{Named list passed to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}.
-Defaults: 'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'.}
+\item{ggsave_params}{Named list passed to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}.}
 
 \item{...}{Extra arguments forwarded to \code{\link[ggseqlogo:ggseqlogo]{ggseqlogo::ggseqlogo()}} (e.g., 'stack_width', 'font', or 'col_scheme').}
 }

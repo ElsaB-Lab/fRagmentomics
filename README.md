@@ -115,33 +115,33 @@ The `plot_size_distribution()` function generates density plots or histograms to
 
 ```r
 # Assuming 'df_results' is the output from run_fRagmentomics()
-plot_size_distribution(
+plot_resultat <- plot_size_distribution(
   df_fragments = df_results,
-  vals_z = c("MUT", "NON-TARGET MUT"),
+  vals_z = c("MUT", "WT"),
   show_histogram = TRUE,
-  show_density = FALSE,
+  show_density = TRUE,
   x_limits = c(100, 420),
-  density_args = list(linewidth = 1.4),
-  histo_args = list(alpha = 0.2)
+  histo_args = list(alpha = 0.2),
+  density_args = list(linewidth = 1.5)
 )
 ```
 
-<img src="man/figure/distribution_size.png" align="center" />
+<img src="man/figure/plot_README_size_distribution.png" align="center" width="700"/>
 
 ### 2. End Motif Sequence Logos
 
 The `plot_qqseqlogo_meme()` function creates sequence logo plots to visualize the nucleotide frequency at each position of the fragment ends.
 
 ```r
-# Plot the sequence logo for the first 6 bases of the 5' end
+# Plot the sequence logo for the first 3 bases in 5p and 3p ends of the fragment
 plot_qqseqlogo_meme(
   df_fragments = df_results,
   motif_size = 3,
-  vals_z = c("MUT", "NON-TARGET MUT")
+  vals_z = c("MUT", "WT")
 )
 ```
 
-<img src="man/figure/ggseqlogo.png" align="center" />
+<img src="man/figure/plot_README_ggseqlogo.png" align="center" width="750"/>
 
 ### 3. Overall Nucleotide Frequency
 
@@ -156,7 +156,7 @@ plot_freq_barplot(
 )
 ```
 
-<img src="man/figure/freq_plot.png" align="center" />
+<img src="man/figure/plot_README_freq_barplot.png" align="center" width="750"/>
 
 ### 4. Detailed 3-Base Motif Proportions
 
@@ -170,7 +170,7 @@ plot_split_by_base <- plot_motif_barplot(
 )
 ```
 
-<img src="man/figure/hierarchical_plot_motif.png" align="center" />
+<img src="man/figure/plot_README_motif_barplot_splitbybase.png" align="center" width="1400"/>
 
 ```r
 # Use the side-by-side representation to visualize 3-mer proportions
@@ -181,7 +181,7 @@ plot_new_motif_view <- plot_motif_barplot(
 )
 ```
 
-<img src="man/figure/sidebyside_plot_motif.png" align="center" />
+<img src="man/figure/plot_README_freq_barplot_splitbymotif.png" align="center" width="1400"/>
 
 ```r
 # Use the differential representation to visualize 3-mer proportions
@@ -192,7 +192,7 @@ plot_motif_barplot(
 )
 ```
 
-<img src="man/figure/differential_plot.png" align="center" />
+<img src="man/figure/plot_README_freq_barplot_differential.png" align="center" width="1400"/>
 
 ---
 
@@ -249,7 +249,7 @@ plot_motif_barplot(
 
 The main function is `run_fRagmentomics()`.
 
-<img src="man/figure/Workflow_fRagmentomics.png" align="center" width="1000" />
+<img src="man/figure/Workflow_fRagmentomics.png" align="center" width="1100" />
 
 ---
 
