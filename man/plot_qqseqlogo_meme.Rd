@@ -13,121 +13,137 @@ plot_qqseqlogo_meme(
   col_z = "Fragment_Status_Simple",
   vals_z = NULL,
   colors_z = NULL,
-  sample_id = NA_character_,
+  title = NULL,
   output_path = NA_character_,
-  ggsave_params = list()
+  ggsave_params = list(width = 12, height = 6, units = "in", dpi = 300, bg = "white"),
+  ...
 )
 }
 \arguments{
-\item{df_fragments}{The input dataframe containing fragment sequence data.}
+\item{df_fragments}{Data frame containing fragment sequence data.}
 
-\item{end_motif_5p}{Character string. The column name for 5' end sequences.}
+\item{end_motif_5p}{Character. Column name for 5' end sequences.}
 
-\item{end_motif_3p}{Character string. The column name for 3' end sequences.}
+\item{end_motif_3p}{Character. Column name for 3' end sequences.}
 
-\item{motif_type}{Character string. Which ends to analyze: 'Start', 'End', or 'Both'.}
+\item{motif_type}{Character. One of 'Start', 'End', or 'Both'.}
 
-\item{motif_size}{A single integer specifying the length of the motif.}
+\item{motif_size}{Integer (>=1). Length of the motif to analyze.}
 
-\item{col_z}{Character string. The column name for grouping/faceting. If NULL, no grouping is applied.}
+\item{col_z}{Character or NULL. Grouping/faceting column. If NULL, all fragments are pooled.}
 
-\item{vals_z}{A character vector of group names to include. If NULL, all groups in 'col_z' are used.}
+\item{vals_z}{Character vector or NULL. Subset of groups from 'col_z' to include.
+If NULL, all unique groups are used.}
 
-\item{colors_z}{The color scheme for nucleotides. Can be NULL (default ggseqlogo colors), a character string naming
-an RColorBrewer palette (e.g., "Dark2"), or a named character vector (e.g., c("A"="blue", "C"="red", ...)).}
+\item{colors_z}{NULL (use ggseqlogo defaults), a single RColorBrewer palette name
+(e.g., "Dark2"), or a named vector for 'A/C/G/T', e.g.
+'c(A="#1B9E77", C="#D95F02", G="#7570B3", T="#E7298A")'.}
 
-\item{sample_id}{Sample identifier.}
+\item{title}{Character or NA. Plot title; if NULL/NA/"NA"/empty, a default title is used.}
 
-\item{output_path}{Character vector for the plot output path.}
+\item{output_path}{Character or NA. If provided and non-empty, the plot is saved to this file.}
 
-\item{ggsave_params}{A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
-'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.}
+\item{ggsave_params}{Named list passed to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}.
+Defaults: 'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'.}
+
+\item{...}{Extra arguments forwarded to \code{\link[ggseqlogo:ggseqlogo]{ggseqlogo::ggseqlogo()}} (e.g., 'stack_width', 'font', or 'col_scheme').}
 }
 \value{
-A 'ggplot' object.
+A 'ggplot' object (invisibly NULL if saved).
 }
 \description{
-Creates a sequence logo plot showing the proportion of each nucleotide at each specified position, with flexible
-grouping and faceting.
+Creates a sequence logo plot showing the proportion of each nucleotide at each
+position, with flexible grouping/faceting.
 }
 \examples{
 ## --- Create a dataset for demonstration ---
-# Set a seed for reproducibility
 set.seed(42)
 
-# Helper function to generate random DNA sequences with a bias
+# Helper to generate random DNA sequences with base bias
 generate_biased_dna <- function(n_seq, len, prob) {
   bases <- c("A", "C", "G", "T")
   replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
 }
 
-# Create 50 "MUT" fragments with a high proportion of 'C' at the ends
+# 50 "MUT" fragments biased toward 'C' at the ends
 df_mut <- data.frame(
   Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
   Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
   Fragment_Status_Simple = "MUT"
 )
 
-# Create 50 "WT" fragments with a high proportion of 'G' at the ends
+# 50 "WT" fragments biased toward 'G' at the ends
 df_wt <- data.frame(
   Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
   Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
   Fragment_Status_Simple = "WT"
 )
 
-# Combine into a single dataframe
+# Combine into a single data frame
 example_df <- rbind(df_mut, df_wt)
 
-## --- Function Calls ---
+## --- Function calls ---
 
-# 1. Default plot: Shows a 3-base motif from both 5' and 3' ends,
-#    separated by a dash, for each group ("MUT" and "WT").
+# 1) Default plot: 3-mer from both 5' and 3' ends, separated by a dash,
+#    faceted by group ("MUT" and "WT").
 p1 <- plot_qqseqlogo_meme(example_df)
 print(p1)
 
-# 2. Analyze a longer, single-end motif: Shows a 5-base motif
-#    from only the 5' end ('motif_type = "Start"').
+# 2) Single-end motif: 5-mer from the 5' end only.
 p2 <- plot_qqseqlogo_meme(
   df_fragments = example_df,
-  motif_type = "Start",
-  motif_size = 5
+  motif_type   = "Start",
+  motif_size   = 5,
+  title        = "5' motif (k=5)"
 )
 print(p2)
 
-# 3. Customizing colors: Use a named RColorBrewer palette.
-#    Note the separator "-" is not a nucleotide and won't be colored.
+# 3) Custom colors using an RColorBrewer palette (first 4 colors mapped to A/C/G/T).
+#    Note: the '-' separator in 'Both' is not colored.
 p3 <- plot_qqseqlogo_meme(
   df_fragments = example_df,
-  colors_z = "Set1"
+  motif_type   = "Both",
+  motif_size   = 3,
+  colors_z     = "Dark2",
+  title        = "Both ends (palette = Dark2)"
 )
 print(p3)
 
-# You can also provide a named vector for full control over colors.
-custom_cols <- c("A" = "#1B9E77", "C" = "#D95F02", "G" = "#7570B3", "T" = "#E7298A")
+# 4) Fully custom nucleotide colors (named vector).
+custom_cols <- c(A = "#1B9E77", C = "#D95F02", G = "#7570B3", T = "#E7298A")
 p4 <- plot_qqseqlogo_meme(
   df_fragments = example_df,
-  motif_type = "Start",
-  colors_z = custom_cols
+  motif_type   = "Start",
+  motif_size   = 3,
+  colors_z     = custom_cols,
+  title        = "Custom nucleotide colors"
 )
 print(p4)
 
-# 4. Ungrouped plot: Analyzes all fragments together as a single group.
-p5 <- plot_qqseqlogo_meme(example_df, col_z = NULL)
+# 5) Ungrouped: analyze all fragments together (single facet).
+p5 <- plot_qqseqlogo_meme(example_df, col_z = NULL, title = "All fragments pooled")
 print(p5)
 
-# 5. Save plot with default settings.
-# plot_qqseqlogo_meme(
-#   df_fragments = example_df,
-#   sample_id = "test01_motif",
-#   output_path = "test01_motif_plot.png"
-# )
+# 6) Passing extra ggseqlogo options via '...' (e.g., stack width and font)
+p6 <- plot_qqseqlogo_meme(
+  df_fragments = example_df,
+  motif_type   = "End",
+  motif_size   = 4,
+  stack_width  = 0.9,
+  font         = "helvetica_regular",
+  title        = "3' motif (k=4, custom stack width)"
+)
+print(p6)
 
-# 6. Save plot with custom dimensions.
+# 7) Save to file (commented out for CRAN)
+# out_file <- file.path(tempdir(), "motif_logo.png")
 # plot_qqseqlogo_meme(
-#   df_fragments = example_df,
-#   sample_id = "test02_motif_custom",
-#   output_path = "test02_motif_custom_plot.png",
-#   ggsave_params = list(width = 15, height = 10, units = "cm")
+#   df_fragments  = example_df,
+#   motif_type    = "Both",
+#   motif_size    = 3,
+#   title         = "Saved motif logo",
+#   output_path   = out_file,
+#   ggsave_params = list(width = 7, height = 5, units = "in", dpi = 300, bg = "white")
 # )
 
 }

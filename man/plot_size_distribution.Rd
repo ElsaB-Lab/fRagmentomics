@@ -17,9 +17,9 @@ plot_size_distribution(
   x_limits = c(0, 750),
   histogram_binwidth = 5,
   show_nuc_peaks = TRUE,
-  sample_id = NA_character_,
+  title = NULL,
   output_path = NA_character_,
-  ggsave_params = list()
+  ggsave_params = list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")
 )
 }
 \arguments{
@@ -29,42 +29,42 @@ plot_size_distribution(
 
 \item{col_z}{A character string specifying the name of the column to use for grouping the data. If NULL, no grouping is applied.}
 
-\item{vals_z}{An optional character vector to filter and display only specific groups from 'col_z'. If NULL, all groups are used.}
+\item{vals_z}{An optional character vector to filter and display only specific groups from \code{col_z}. If NULL, all groups are used.}
 
-\item{histo_args}{A named list of additional arguments to pass to 'ggplot2::geom_histogram()'.}
+\item{histo_args}{A named list of additional arguments passed to \code{\link[ggplot2:geom_histogram]{ggplot2::geom_histogram()}}.}
 
-\item{density_args}{A named list of additional arguments to pass to 'ggplot2::geom_density()'.}
+\item{density_args}{A named list of additional arguments passed to \code{\link[ggplot2:geom_density]{ggplot2::geom_density()}}.}
 
-\item{colors_z}{A character vector of colors for the groups, or a single string naming an RColorBrewer palette.}
+\item{colors_z}{A character vector of colors for the groups (named or unnamed), or a single string naming an RColorBrewer palette.}
 
-\item{show_histogram}{A logical value. If TRUE, a histogram layer is added.}
+\item{show_histogram}{Logical. If TRUE, a histogram layer is added.}
 
-\item{show_density}{A logical value. If TRUE, a density plot layer is added.}
+\item{show_density}{Logical. If TRUE, a density plot layer is added.}
 
-\item{x_limits}{An optional numeric vector of length 2 to set the x-axis limits (e.g., c(0, 700)).}
+\item{x_limits}{Optional numeric vector of length 2 to set the x-axis limits (e.g., \code{c(0, 700)}).}
 
-\item{histogram_binwidth}{A numeric value specifying the bin width for the histogram.}
+\item{histogram_binwidth}{Numeric value specifying the bin width for the histogram.}
 
-\item{show_nuc_peaks}{A logical value. If TRUE, adds vertical lines for nucleosome peaks.}
+\item{show_nuc_peaks}{Logical. If TRUE, adds dashed vertical lines for nucleosome peaks (mono/di/tri).}
 
-\item{sample_id}{Sample identifier.}
+\item{title}{Character or NA. Plot title; if NULL/NA/"NA"/empty, a default title is used.}
 
-\item{output_path}{Character vector for the plot output path.}
+\item{output_path}{Character or NA. If provided and non-empty, the plot is saved to this file.}
 
-\item{ggsave_params}{A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
-'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.}
+\item{ggsave_params}{A named list of arguments passed to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}. Defaults:
+\code{list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")}.}
 }
 \value{
-A 'ggplot' object representing the size distribution plot.
+A \code{ggplot} object representing the size distribution plot (invisibly \code{NULL} if saved).
 }
 \description{
-Generates a plot visualizing the distribution of fragment lengths. It allows for grouping by a
-categorical variable and can represent the distribution as a histogram, a density plot, or an overlay of both.
-It also displays the sample size (N) for each group in the legend.
+Generates a plot visualizing the distribution of fragment lengths. Supports grouping by a
+categorical variable and can represent the distribution as a histogram, a density plot,
+or an overlay of both. The legend displays the sample size (N) per group. Groups with
+fewer than 2 observations are automatically removed when \code{show_density = TRUE}.
 }
 \examples{
 ## --- Create a dataset for demonstration ---
-# Set a seed for reproducibility
 set.seed(42)
 
 # Generate fragment sizes for two groups with different distributions
@@ -91,52 +91,52 @@ example_df_size <- example_df_size[example_df_size$Fragment_Size > 0, ]
 
 ## --- Plotting Examples ---
 
-# 1. Default plot: A grouped density plot with nucleosome peaks shown.
+# 1) Default plot: grouped density with nucleosome peaks.
 p1 <- plot_size_distribution(example_df_size)
 print(p1)
 
-# 2. Histogram plot: Show distributions as histograms instead of density curves.
-#    We add transparency (alpha) so overlapping bars are visible.
+# 2) Histogram only: add transparency so overlapping bars are visible.
 p2 <- plot_size_distribution(
-  df_fragments = example_df_size,
+  df_fragments   = example_df_size,
   show_histogram = TRUE,
-  show_density = FALSE,
-  histo_args = list(alpha = 0.6)
+  show_density   = FALSE,
+  histo_args     = list(alpha = 0.6)
 )
 print(p2)
 
-# 3. Combined plot: Overlay both density curves and histograms.
+# 3) Combined: overlay density curves and histograms.
 p3 <- plot_size_distribution(
-  df_fragments = example_df_size,
+  df_fragments   = example_df_size,
   show_histogram = TRUE,
-  show_density = TRUE,
-  histo_args = list(alpha = 0.4)
+  show_density   = TRUE,
+  histo_args     = list(alpha = 0.4)
 )
 print(p3)
 
-# 4. Ungrouped and customized plot: Analyze all fragments together,
-#    zoom in on the x-axis, and hide the nucleosome peak lines.
+# 4) Ungrouped + zoomed x-axis + no nucleosome peaks.
 p4 <- plot_size_distribution(
-  df_fragments = example_df_size,
-  col_z = NULL,
-  x_limits = c(50, 400),
-  show_nuc_peaks = FALSE
+  df_fragments   = example_df_size,
+  col_z          = NULL,
+  x_limits       = c(50, 400),
+  show_nuc_peaks = FALSE,
+  title          = "All fragments (zoomed)"
 )
 print(p4)
 
-# 5. Save plot with default settings (8x6 inches).
-# plot_size_distribution(
-#   df_fragments = example_df_size,
-#   sample_id = "test01",
-#   output_path = "test01_size_distribution.png"
-# )
+# 5) Custom colors using an RColorBrewer palette.
+p5 <- plot_size_distribution(
+  df_fragments = example_df_size,
+  colors_z     = "Set2",
+  title        = "Fragment size (Set2 palette)"
+)
+print(p5)
 
-# 6. Save plot with custom dimensions in centimeters.
+# 6) Save to file (commented for CRAN):
+# out_png <- file.path(tempdir(), "size_distribution.png")
 # plot_size_distribution(
-#   df_fragments = example_df_size,
-#   sample_id = "test02_custom",
-#   output_path = "test02_custom_size_distribution.png",
-#   ggsave_params = list(width = 20, height = 10, units = "cm", bg = "white")
+#   df_fragments  = example_df_size,
+#   output_path   = out_png,
+#   ggsave_params = list(width = 8, height = 6, units = "in", dpi = 300, bg = "white"),
+#   title         = "Size distribution (saved)"
 # )
-
 }

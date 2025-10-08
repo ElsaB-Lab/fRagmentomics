@@ -13,14 +13,16 @@ plot_freq_barplot(
   col_z = "Fragment_Status_Simple",
   vals_z = NULL,
   ...,
-  colors_z = "Set2",
-  sample_id = NA_character_,
+  colors_z = "Dark2",
+  title = NULL,
   output_path = NA_character_,
-  ggsave_params = list()
+  ggsave_params = list(width = 8, height = 6, units = "in", dpi = 300, bg = "white"),
+  show_pvalue = FALSE,
+  drop_non_acgt = TRUE
 )
 }
 \arguments{
-\item{df_fragments}{The input dataframe containing fragment sequence data.}
+\item{df_fragments}{The input data frame containing fragment sequence data.}
 
 \item{end_motif_5p}{Character string. Column name for 5' end sequences.}
 
@@ -28,105 +30,103 @@ plot_freq_barplot(
 
 \item{motif_type}{Character string. Which ends to analyze: 'Start', 'End', or 'Both'.}
 
-\item{motif_size}{A single integer specifying the length of the motif to analyze.}
+\item{motif_size}{A single integer (>= 1) specifying the k-mer length to analyze.}
 
-\item{col_z}{Character string. Column name for grouping. If NULL, no grouping is applied.}
+\item{col_z}{Character string or 'NULL'. Column name for grouping. If 'NULL', all fragments are pooled.}
 
 \item{vals_z}{A character vector of group names from 'col_z' to include.
-If NULL, all unique groups in 'col_z' are used.}
+If 'NULL', all unique groups in 'col_z' are used.}
 
-\item{...}{Additional arguments passed on to 'ggplot2::geom_bar()'.}
+\item{...}{Additional aesthetics/arguments passed to \code{\link[ggplot2:geom_bar]{ggplot2::geom_col()}} and \code{\link[ggplot2:geom_linerange]{ggplot2::geom_errorbar()}}.
+(e.g., 'alpha', 'position', or 'width').}
 
-\item{colors_z}{A character vector of colors for the groups, or a single string
-naming an RColorBrewer palette (e.g., "Set2").}
+\item{colors_z}{A character vector of colors for the groups, or a single
+RColorBrewer palette name (e.g., '"Set2"'). Named vectors are aligned to 'vals_z'.}
 
-\item{sample_id}{Sample identifier.}
+\item{title}{Character or 'NA'. Plot title. If 'NULL', 'NA', '"NA"', or empty, a default title is used.}
 
-\item{output_path}{Character vector for the plot output path.}
+\item{output_path}{Character or 'NA'. If provided and non-empty, the plot is saved to this path.}
 
-\item{ggsave_params}{A named list of arguments to be passed to 'ggplot2::ggsave()'. For example,
-'list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")'. If not provided, sensible defaults will be used.}
+\item{ggsave_params}{A named list of arguments passed to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}.}
+
+\item{show_pvalue}{Logical. If 'TRUE' and there are at least two groups, append a global
+Chi-squared p-value to the caption.}
+
+\item{drop_non_acgt}{Logical. If 'FALSE', characters other than A/C/G/T are tallied into an
+"Other" category.}
 }
 \value{
-A 'ggplot' object.
+A 'ggplot' object. If 'output_path' is provided and non-empty, the plot is saved
+to file and the function returns 'invisible(NULL)'.
 }
 \description{
-Creates a faceted bar plot to compare the overall proportion of each nucleotide across different groups. Includes
-error bars (95\% confidence intervals) and an optional global Chi-squared test for statistical significance.
+Creates a bar plot to compare the overall proportion of each nucleotide
+(A/C/G/T; optional "Other") in the end motifs. Error bars show 95\% confidence intervals.
 }
 \examples{
 ## --- Create a dataset for demonstration ---
-# Set a seed for reproducibility
 set.seed(42)
 
-# Helper function to generate random DNA sequences with a bias
+# Helper to generate random DNA sequences with base bias
 generate_biased_dna <- function(n_seq, len, prob) {
   bases <- c("A", "C", "G", "T")
   replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
 }
 
-# Create 50 "MUT" fragments with a high proportion of 'C'
+# 50 "MUT" fragments biased toward 'C'
 df_mut <- data.frame(
   Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
   Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
   Fragment_Status_Simple = "MUT"
 )
 
-# Create 50 "WT" fragments with a high proportion of 'G'
+# 50 "WT" fragments biased toward 'G'
 df_wt <- data.frame(
   Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
   Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
   Fragment_Status_Simple = "WT"
 )
 
-# Combine into a single dataframe
+# Combine into a single data frame
 example_df <- rbind(df_mut, df_wt)
 
-## --- Function Calls ---
+## --- Function calls ---
 
-# 1. Default plot: Compares MUT vs. WT groups for 3-mers
-#    from both the 5' and 3' ends.
+# 1) Default plot: compare MUT vs WT for 3-mers from both ends
 p1 <- plot_freq_barplot(example_df)
 print(p1)
 
-# 2. Customized plot: Analyzes only the first nucleotide ('motif_size = 1')
-#    of the 5' end ('motif_type = "Start"') using custom colors.
+# 2) First-nucleotide only (k = 1) on 5' end, with custom colors
 p2 <- plot_freq_barplot(
   df_fragments = example_df,
-  motif_type = "Start",
-  motif_size = 1,
-  colors_z = c("MUT" = "#d95f02", "WT" = "#1b9e77")
+  motif_type   = "Start",
+  motif_size   = 1,
+  colors_z     = c("MUT" = "#d95f02", "WT" = "#1b9e77"),
+  title        = "5' First Base Composition"
 )
 print(p2)
 
-# 3. Ungrouped plot: Analyzes the overall nucleotide frequency
-#    across all fragments combined.
-p3 <- plot_freq_barplot(example_df, col_z = NULL)
+# 3) Ungrouped: overall nucleotide frequencies across all fragments
+p3 <- plot_freq_barplot(example_df, col_z = NULL, title = "Overall Composition")
 print(p3)
 
-# 4. Plot with a subset of groups: If you had more than two groups
-#    (e.g., "MUT", "WT", "AMB"), you could select specific ones to plot.
+# 4) Subset of groups (if you had >2 groups, e.g., "MUT", "WT", "AMB")
 p4 <- plot_freq_barplot(
   df_fragments = example_df,
-  vals_z = c("MUT", "WT")
+  vals_z       = c("MUT", "WT")
 )
 print(p4)
 
-# 5. Save the default plot to a temporary folder.
+# 5) Include non-ACGT characters tallied as "Other"
+example_df$Fragment_Bases_5p[1:3] <- c("NNNNNNNNNN", "ACGTNACGTN", "TTTNAAAAAA")
+p5 <- plot_freq_barplot(example_df, motif_size = 2, drop_non_acgt = FALSE,
+                        title = "Including 'Other' (non-ACGT)")
+print(p5)
+
+# 6) Save to file with specific dimensions
 # plot_freq_barplot(
 #   df_fragments = example_df,
-#   sample_id = "test01_freq",
-#   output_path = "test01_freq_nucleotide_frequency.png"
+#   output_path  = file.path(tempdir(), "nucleotide_frequency.png"),
+#   ggsave_params = list(width = 7, height = 5, units = "in", dpi = 300, bg = "white")
 # )
-
-# 6. Save a customized plot with specific dimensions.
-# plot_freq_barplot(
-#   df_fragments = example_df,
-#   motif_type = "Start",
-#   motif_size = 1,
-#   sample_id = "test02_freq_custom",
-#   output_path = "test02_freq_custom_nucleotide_frequency.png"
-#   ggsave_params = list(width = 7, height = 5, units = "in")
-# )
-
 }

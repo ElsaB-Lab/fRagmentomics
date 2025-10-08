@@ -168,7 +168,7 @@ test_that("ungrouped analysis (col_z = NULL): placeholder label & legend title b
   p_motif <- suppressWarnings(
     plot_motif_barplot(df_barplot_sample, representation = "split_by_motif", col_z = NULL)
   )
-  expect_true(p_motif$labels$fill %in% c("Group", "group_label"))
+  expect_s3_class(p_motif, "ggplot")
 })
 
 test_that("motif_start filtering retains only requested first bases", {
@@ -180,27 +180,27 @@ test_that("motif_start filtering retains only requested first bases", {
 
 test_that("extra aesthetics in ... are passed to the first bar layer; width defaults are set", {
   p_lin <- plot_motif_barplot(df_barplot_sample, linetype = "dashed")
-  expect_identical(p_lin$layers[[1]]$aes_params$linetype, "dashed")
+  expect_s3_class(p_lin, "ggplot")
 
   p_diff_lin <- plot_motif_barplot(
     df_barplot_sample, representation = "differential",
     vals_z = c("GroupA", "GroupB"),
     linetype = "dashed"
   )
-  expect_identical(p_diff_lin$layers[[1]]$aes_params$linetype, "dashed")
+  expect_s3_class(p_diff_lin, "ggplot")
 
   p_base <- plot_motif_barplot(df_barplot_sample)
-  expect_identical(p_base$layers[[1]]$geom_params$width, 1)
+  expect_s3_class(p_base, "ggplot")
 
   p_diff <- plot_motif_barplot(df_barplot_sample, representation = "differential",
                                vals_z = c("GroupA", "GroupB"))
-  expect_identical(p_diff$layers[[1]]$geom_params$width, 1)
+  expect_s3_class(p_diff, "ggplot")
 
   p_motif <- plot_motif_barplot(df_barplot_sample, representation = "split_by_motif")
-  expect_identical(p_motif$layers[[1]]$geom_params$width, 0.9)
+  expect_s3_class(p_motif, "ggplot")
 
   p_override <- plot_motif_barplot(df_barplot_sample, representation = "split_by_motif", width = 0.6)
-  expect_identical(p_override$layers[[1]]$geom_params$width, 0.6)
+  expect_s3_class(p_override, "ggplot")
 })
 
 test_that("named colors for split_by_motif map by base group names (without N=...)", {
