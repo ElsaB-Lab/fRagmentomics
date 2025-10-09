@@ -108,22 +108,21 @@
 #' #   title         = "Size distribution (saved)"
 #' # )
 plot_size_distribution <- function(
-  df_fragments,
-  size_col           = "Fragment_Size",
-  col_z              = "Fragment_Status_Simple",
-  vals_z             = NULL,
-  histo_args         = list(),
-  density_args       = list(),
-  colors_z           = NULL,
-  show_histogram     = FALSE,
-  show_density       = TRUE,
-  x_limits           = c(0, 750),
-  histogram_binwidth = 5,
-  show_nuc_peaks     = TRUE,
-  title              = NULL,
-  output_path        = NA_character_,
-  ggsave_params      = list(width = 10, height = 7, units = "in", dpi = 300, bg = "white")
-) {
+    df_fragments,
+    size_col = "Fragment_Size",
+    col_z = "Fragment_Status_Simple",
+    vals_z = NULL,
+    histo_args = list(),
+    density_args = list(),
+    colors_z = NULL,
+    show_histogram = FALSE,
+    show_density = TRUE,
+    x_limits = c(0, 750),
+    histogram_binwidth = 5,
+    show_nuc_peaks = TRUE,
+    title = NULL,
+    output_path = NA_character_,
+    ggsave_params = list(width = 10, height = 7, units = "in", dpi = 300, bg = "white")) {
   # ---- basic checks ----
   if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
   if (!is.null(col_z) && !col_z %in% names(df_fragments)) {
@@ -149,11 +148,13 @@ plot_size_distribution <- function(
   }
   .resolve_group_palette <- function(keys, colors_z) {
     # keys are legend labels (e.g., "MUT (N=123)")
-    if (is.null(colors_z)) return(NULL)
+    if (is.null(colors_z)) {
+      return(NULL)
+    }
 
     # Brewer palette name
     if (is.character(colors_z) && length(colors_z) == 1 &&
-        colors_z %in% rownames(RColorBrewer::brewer.pal.info)) {
+      colors_z %in% rownames(RColorBrewer::brewer.pal.info)) {
       maxc <- RColorBrewer::brewer.pal.info[colors_z, "maxcolors"]
       n <- length(keys)
       if (is.na(maxc) || maxc < n) stop(sprintf("Palette '%s' must support at least %d colors.", colors_z, n))
@@ -165,8 +166,10 @@ plot_size_distribution <- function(
     # unnamed vector → take in order
     if (is.null(names(colors_z))) {
       if (length(colors_z) < length(keys)) {
-        stop(sprintf("Provided %d colors but need %d for: %s",
-                     length(colors_z), length(keys), paste(keys, collapse = ", ")))
+        stop(sprintf(
+          "Provided %d colors but need %d for: %s",
+          length(colors_z), length(keys), paste(keys, collapse = ", ")
+        ))
       }
       vals <- colors_z[seq_along(keys)]
       names(vals) <- keys
@@ -174,7 +177,9 @@ plot_size_distribution <- function(
     }
 
     # named vector → try exact match, then fallback to base group names without (N=…)
-    if (all(keys %in% names(colors_z))) return(colors_z[keys])
+    if (all(keys %in% names(colors_z))) {
+      return(colors_z[keys])
+    }
     base_keys <- sub(" \\(N=.*\\)$", "", keys)
     if (all(base_keys %in% names(colors_z))) {
       vals <- colors_z[base_keys]
@@ -189,7 +194,7 @@ plot_size_distribution <- function(
   # Save col_z for legend
   original_col_z <- col_z
   legend_name <- if (is.null(original_col_z)) NULL else original_col_z
-  
+
   is_grouped <- !is.null(col_z)
   if (!is_grouped) {
     df_fragments$..group.. <- "All Fragments"
@@ -208,7 +213,9 @@ plot_size_distribution <- function(
   # remove groups with < 2 points for density (to avoid errors)
   if (is_grouped && show_density) {
     group_counts <- df_filtered %>% dplyr::count(.data[[col_z]], name = "n")
-    keep <- group_counts %>% dplyr::filter(n >= 2) %>% dplyr::pull(.data[[col_z]])
+    keep <- group_counts %>%
+      dplyr::filter(n >= 2) %>%
+      dplyr::pull(.data[[col_z]])
     if (length(keep) < nrow(group_counts)) {
       message("Note: Groups with fewer than 2 data points were removed as they cannot be plotted (density).")
     }
@@ -229,10 +236,11 @@ plot_size_distribution <- function(
     n_total <- nrow(df_filtered)
     single_lab <- paste0("All Fragments (N=", n_total, ")")
     df_filtered[[col_z]] <- factor(df_filtered[[col_z]],
-                                  levels = "All Fragments",
-                                  labels = single_lab)
+      levels = "All Fragments",
+      labels = single_lab
+    )
   } else {
-    # Grouped 
+    # Grouped
     group_counts_final <- df_filtered %>% dplyr::count(.data[[col_z]], name = "n")
     group_totals <- group_counts_final %>%
       dplyr::mutate(group = factor(.data[[col_z]], levels = vals_z)) %>%
@@ -258,7 +266,7 @@ plot_size_distribution <- function(
   # density layer
   if (show_density) {
     dens_defaults <- list(na.rm = TRUE)
-    density_args  <- .clean_args(dens_defaults, density_args)
+    density_args <- .clean_args(dens_defaults, density_args)
     p <- p + do.call(ggplot2::geom_density, density_args)
   }
 
@@ -291,7 +299,7 @@ plot_size_distribution <- function(
     ) +
     ggplot2::theme_bw(base_size = 14) +
     ggplot2::theme(
-      plot.title   = ggplot2::element_text(hjust = 0.5, face = "bold"),
+      plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"),
       legend.title = ggplot2::element_text(face = "bold"),
       legend.position = "bottom",
       panel.grid.major = ggplot2::element_blank(),
@@ -300,7 +308,7 @@ plot_size_distribution <- function(
       axis.line = ggplot2::element_line(colour = "black")
     ) +
     ggplot2::scale_y_continuous(
-      expand = ggplot2::expansion(mult = c(0, 0.10))  # 0% bottom gap, +10% headroom
+      expand = ggplot2::expansion(mult = c(0, 0.10)) # 0% bottom gap, +10% headroom
     )
 
   if (!is.null(x_limits)) {
@@ -309,7 +317,7 @@ plot_size_distribution <- function(
 
   # ---- save if requested ----
   if (!is.null(output_path) && is.character(output_path) &&
-      length(output_path) == 1L && !is.na(output_path) && nzchar(output_path)) {
+    length(output_path) == 1L && !is.na(output_path) && nzchar(output_path)) {
     out_dir <- dirname(output_path)
     if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -319,8 +327,8 @@ plot_size_distribution <- function(
 
     ggplot2::ggsave(
       filename = output_path, plot = p,
-      width  = gp$width, height = gp$height, units = gp$units,
-      dpi    = gp$dpi,   bg     = gp$bg
+      width = gp$width, height = gp$height, units = gp$units,
+      dpi = gp$dpi, bg = gp$bg
     )
     return(invisible(NULL))
   }

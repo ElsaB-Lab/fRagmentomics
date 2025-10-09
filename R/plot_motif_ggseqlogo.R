@@ -123,37 +123,37 @@
 #' #   output_path   = out_file,
 #' #   ggsave_params = list(width = 7, height = 5, units = "in", dpi = 300, bg = "white")
 #' # )
-#' 
+#'
 plot_qqseqlogo_meme <- function(
-  df_fragments,
-  end_motif_5p = "Fragment_Bases_5p",
-  end_motif_3p = "Fragment_Bases_3p",
-  motif_type   = "Both",
-  motif_size   = 3,
-  col_z        = "Fragment_Status_Simple",
-  vals_z       = NULL,
-  colors_z     = NULL,
-  title        = NULL,
-  output_path  = NA_character_,
-  ggsave_params = list(width = 12, height = 6, units = "in", dpi = 300, bg = "white"),
-  ...
-) {
+    df_fragments,
+    end_motif_5p = "Fragment_Bases_5p",
+    end_motif_3p = "Fragment_Bases_3p",
+    motif_type = "Both",
+    motif_size = 3,
+    col_z = "Fragment_Status_Simple",
+    vals_z = NULL,
+    colors_z = NULL,
+    title = NULL,
+    output_path = NA_character_,
+    ggsave_params = list(width = 12, height = 6, units = "in", dpi = 300, bg = "white"),
+    ...) {
   stopifnot(is.data.frame(df_fragments))
-  if (!motif_type %in% c("Start","End","Both")) stop("'motif_type' must be 'Start', 'End', or 'Both'.")
-  if (!is.numeric(motif_size) || length(motif_size)!=1L || motif_size<1L) stop("'motif_size' must be a single integer >= 1.")
+  if (!motif_type %in% c("Start", "End", "Both")) stop("'motif_type' must be 'Start', 'End', or 'Both'.")
+  if (!is.numeric(motif_size) || length(motif_size) != 1L || motif_size < 1L) stop("'motif_size' must be a single integer >= 1.")
   if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
   is_grouped <- !is.null(col_z)
   if (!is_grouped) {
-    df_fragments$..group.. <- "All Fragments"; col_z <- "..group.."
+    df_fragments$..group.. <- "All Fragments"
+    col_z <- "..group.."
   } else if (!col_z %in% names(df_fragments)) {
     stop(sprintf("Column '%s' not found in the dataframe.", col_z))
   }
 
   # Uppercase sequences (forced)
-  if (motif_type %in% c("Start","Both") && end_motif_5p %in% names(df_fragments)) {
+  if (motif_type %in% c("Start", "Both") && end_motif_5p %in% names(df_fragments)) {
     df_fragments[[end_motif_5p]] <- toupper(df_fragments[[end_motif_5p]])
   }
-  if (motif_type %in% c("End","Both") && end_motif_3p %in% names(df_fragments)) {
+  if (motif_type %in% c("End", "Both") && end_motif_3p %in% names(df_fragments)) {
     df_fragments[[end_motif_3p]] <- toupper(df_fragments[[end_motif_3p]])
   }
 
@@ -166,78 +166,84 @@ plot_qqseqlogo_meme <- function(
 
   # Cap motif_size
   min_len_available <- Inf
-  if (motif_type %in% c("Start","Both")) {
+  if (motif_type %in% c("Start", "Both")) {
     s5 <- stats::na.omit(df_filtered[[end_motif_5p]])
     if (length(s5) > 0) min_len_available <- min(min_len_available, min(nchar(s5)))
   }
-  if (motif_type %in% c("End","Both")) {
+  if (motif_type %in% c("End", "Both")) {
     s3 <- stats::na.omit(df_filtered[[end_motif_3p]])
     if (length(s3) > 0) min_len_available <- min(min_len_available, min(nchar(s3)))
   }
   if (!is.finite(min_len_available)) stop("All selected sequence columns are empty or NA.")
   if (motif_size > min_len_available) {
-    warning(sprintf("Requested 'motif_size' (%d) exceeds shortest sequence (%d). Using %d.",
-                    motif_size, min_len_available, min_len_available), call. = FALSE)
+    warning(sprintf(
+      "Requested 'motif_size' (%d) exceeds shortest sequence (%d). Using %d.",
+      motif_size, min_len_available, min_len_available
+    ), call. = FALSE)
     motif_size <- min_len_available
   }
 
   # Extract motifs per group (A/C/G/T only; '-' allowed as separator for 'Both')
-	process_group <- function(group_df) {
-		group_name <- as.character(unique(group_df[[col_z]]))
-		start_motifs <- character(0)
-		end_motifs <- character(0)
+  process_group <- function(group_df) {
+    group_name <- as.character(unique(group_df[[col_z]]))
+    start_motifs <- character(0)
+    end_motifs <- character(0)
 
-		if (motif_type %in% c("Start", "Both")) {
-			s <- stats::na.omit(group_df[[end_motif_5p]])
-			if (length(s)) {
-				n_short <- sum(nchar(s) < motif_size)
-				if (n_short > 0) {
-					warning(sprintf(
-						"For group '%s', removed %d 5' sequences shorter than motif_size (%d).",
-						group_name, n_short, motif_size
-					), call. = FALSE)
-				}
-				s <- s[nchar(s) >= motif_size]
-				if (length(s)) start_motifs <- substr(s, 1, motif_size)
-				# filtration non-ACGT
-				start_motifs <- start_motifs[!stringr::str_detect(start_motifs, "[^ACGT]")]
-			}
-		}
+    if (motif_type %in% c("Start", "Both")) {
+      s <- stats::na.omit(group_df[[end_motif_5p]])
+      if (length(s)) {
+        n_short <- sum(nchar(s) < motif_size)
+        if (n_short > 0) {
+          warning(sprintf(
+            "For group '%s', removed %d 5' sequences shorter than motif_size (%d).",
+            group_name, n_short, motif_size
+          ), call. = FALSE)
+        }
+        s <- s[nchar(s) >= motif_size]
+        if (length(s)) start_motifs <- substr(s, 1, motif_size)
+        # filtration non-ACGT
+        start_motifs <- start_motifs[!stringr::str_detect(start_motifs, "[^ACGT]")]
+      }
+    }
 
-		if (motif_type %in% c("End", "Both")) {
-			s <- stats::na.omit(group_df[[end_motif_3p]])
-			if (length(s)) {
-				n_short <- sum(nchar(s) < motif_size)
-				if (n_short > 0) {
-					warning(sprintf(
-						"For group '%s', removed %d 3' sequences shorter than motif_size (%d).",
-						group_name, n_short, motif_size
-					), call. = FALSE)
-				}
-				s <- s[nchar(s) >= motif_size]
-				if (length(s)) end_motifs <- stringr::str_sub(s, -motif_size, -1L)
-    		# filtration non-ACGT
-				end_motifs <- end_motifs[!stringr::str_detect(end_motifs, "[^ACGT]")]
-			}
-		}
+    if (motif_type %in% c("End", "Both")) {
+      s <- stats::na.omit(group_df[[end_motif_3p]])
+      if (length(s)) {
+        n_short <- sum(nchar(s) < motif_size)
+        if (n_short > 0) {
+          warning(sprintf(
+            "For group '%s', removed %d 3' sequences shorter than motif_size (%d).",
+            group_name, n_short, motif_size
+          ), call. = FALSE)
+        }
+        s <- s[nchar(s) >= motif_size]
+        if (length(s)) end_motifs <- stringr::str_sub(s, -motif_size, -1L)
+        # filtration non-ACGT
+        end_motifs <- end_motifs[!stringr::str_detect(end_motifs, "[^ACGT]")]
+      }
+    }
 
-		if (motif_type == "Both") {
-			n <- min(length(start_motifs), length(end_motifs))
-			if (n == 0) {
-				return(character(0))
-			}
-			paste0(start_motifs[seq_len(n)], "-", end_motifs[seq_len(n)])
-		} else if (motif_type == "Start") start_motifs else end_motifs
-	}
+    if (motif_type == "Both") {
+      n <- min(length(start_motifs), length(end_motifs))
+      if (n == 0) {
+        return(character(0))
+      }
+      paste0(start_motifs[seq_len(n)], "-", end_motifs[seq_len(n)])
+    } else if (motif_type == "Start") start_motifs else end_motifs
+  }
 
   groups <- df_filtered %>% dplyr::group_split(.data[[col_z]])
-  motifs  <- purrr::map(groups, process_group)
+  motifs <- purrr::map(groups, process_group)
   names(motifs) <- purrr::map_chr(groups, ~ as.character(unique(.x[[col_z]])))
   motifs <- motifs[purrr::map_int(motifs, length) > 0]
-  if (!length(motifs)) return(ggplot2::ggplot() + ggplot2::theme_void() + ggplot2::labs(title = "No data to display"))
+  if (!length(motifs)) {
+    return(ggplot2::ggplot() +
+      ggplot2::theme_void() +
+      ggplot2::labs(title = "No data to display"))
+  }
   names(motifs) <- paste0(names(motifs), " (N=", purrr::map_int(motifs, length), ")")
 
-	# --- Color scheme (default ggseqlogo if NULL) ---
+  # --- Color scheme (default ggseqlogo if NULL) ---
   dots <- list(...)
   color_scheme <- NULL
 
@@ -276,7 +282,7 @@ plot_qqseqlogo_meme <- function(
       pal <- stats::setNames(colors_z, c("A", "C", "G", "T"))
       color_scheme <- ggseqlogo::make_col_scheme(chars = names(pal), cols = unname(pal))
     } else {
-      stop("'colors_z' must be NULL, a valid RColorBrewer palette name, a named vector for A/C/G/T, or an 
+      stop("'colors_z' must be NULL, a valid RColorBrewer palette name, a named vector for A/C/G/T, or an
 			unnamed vector of 4 colors.")
     }
   }
@@ -286,39 +292,41 @@ plot_qqseqlogo_meme <- function(
 
   # ---- CALL ggseqlogo ----
   args <- c(
-    list(motifs),                             
+    list(motifs),
     list(method = "prob"),
     if (is.null(dots$stack_width)) list(stack_width = 0.95) else list(),
-    if (is.null(dots$font))        list(font = "helvetica_regular") else list(),
-    if (!is.null(color_scheme))     list(col_scheme = color_scheme) else list(),
+    if (is.null(dots$font)) list(font = "helvetica_regular") else list(),
+    if (!is.null(color_scheme)) list(col_scheme = color_scheme) else list(),
     dots
   )
-	base_logo <- withCallingHandlers(
-		do.call(ggseqlogo::ggseqlogo, args),
-		warning = function(w) {
-			msg <- conditionMessage(w) # Remove this exact warning
-			if (grepl("The `<scale>` argument of `guides\\(\\)` cannot be `FALSE`", msg)) {
-				invokeRestart("muffleWarning")
-			}
-		}
-	)
+  base_logo <- withCallingHandlers(
+    do.call(ggseqlogo::ggseqlogo, args),
+    warning = function(w) {
+      msg <- conditionMessage(w) # Remove this exact warning
+      if (grepl("The `<scale>` argument of `guides\\(\\)` cannot be `FALSE`", msg)) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
 
-	p <- base_logo +
-		ggplot2::labs(
-			title = if (is.null(title) || is.na(title) || !nzchar(title) || identical(title, "NA")) {
-				"Sequence Motif Composition"
-			} else {
-				title
-			},
-			y = "Frequency", x = "Position"
-		)
+  p <- base_logo +
+    ggplot2::labs(
+      title = if (is.null(title) || is.na(title) || !nzchar(title) || identical(title, "NA")) {
+        "Sequence Motif Composition"
+      } else {
+        title
+      },
+      y = "Frequency", x = "Position"
+    )
 
   # Custom x labels & theme (white strips), as before
   motif_len <- nchar(motifs[[1]][1])
   custom_labels <- NULL
-  if (motif_type == "Start")      custom_labels <- as.character(seq_len(motif_len))
-  else if (motif_type == "End")   custom_labels <- as.character((-motif_len):-1)
-  else if (motif_type == "Both")  custom_labels <- as.character(c(seq_len(motif_size), "", (-motif_size):-1))
+  if (motif_type == "Start") {
+    custom_labels <- as.character(seq_len(motif_len))
+  } else if (motif_type == "End") {
+    custom_labels <- as.character((-motif_len):-1)
+  } else if (motif_type == "Both") custom_labels <- as.character(c(seq_len(motif_size), "", (-motif_size):-1))
 
   facet_names <- names(motifs)
   base_annotation_df <- tibble::tibble(x_pos = seq_len(motif_len), label = custom_labels)
@@ -345,22 +353,24 @@ plot_qqseqlogo_meme <- function(
     )
 
   if (motif_type == "Both") {
-    p <- p + ggplot2::geom_vline(xintercept = motif_size + 1, linetype = "dashed",
-                                 color = "grey40", linewidth = 0.8)
+    p <- p + ggplot2::geom_vline(
+      xintercept = motif_size + 1, linetype = "dashed",
+      color = "grey40", linewidth = 0.8
+    )
   }
 
   # Save if requested
   if (!is.null(output_path) && is.character(output_path) &&
-      length(output_path) == 1L && !is.na(output_path) && nzchar(output_path)) {
+    length(output_path) == 1L && !is.na(output_path) && nzchar(output_path)) {
     out_dir <- dirname(output_path)
     if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
     ggplot2::ggsave(
       filename = output_path, plot = p,
-      width  = ggsave_params$width,
+      width = ggsave_params$width,
       height = ggsave_params$height,
-      units  = ggsave_params$units,
-      dpi    = ggsave_params$dpi,
-      bg     = ggsave_params$bg
+      units = ggsave_params$units,
+      dpi = ggsave_params$dpi,
+      bg = ggsave_params$bg
     )
     return(invisible(NULL))
   }

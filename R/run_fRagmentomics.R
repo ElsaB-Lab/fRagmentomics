@@ -46,6 +46,7 @@
 #' @param retain_fail_qc Boolean. If set to TRUE, retain fragments that failed the various quality checks in the output.
 #' @param tmp_folder Crun_fRagmentomicsharacter vector for the temporary folder path.
 #' @param output_path Character vector for the fragmentomics table output path.
+#' @param verbose Boolean. If set to TRUE, print all the warnings and the prints.
 #' @param n_cores Number of cores for parallel computation.
 #'
 #' @return A dataframe containing extracted fragment-level information.
@@ -119,6 +120,7 @@ run_fRagmentomics <- function(
     retain_fail_qc = FALSE,
     tmp_folder = tempdir(),
     output_path = NA_character_,
+    verbose = FALSE,
     n_cores = 8) {
   # Load inputs, check parameters and normalize ========================================================================
 
@@ -146,6 +148,7 @@ run_fRagmentomics <- function(
     retain_fail_qc,
     tmp_folder,
     output_path,
+    verbose,
     n_cores
   )
 
@@ -160,7 +163,7 @@ run_fRagmentomics <- function(
   on.exit(close(fasta_fafile), add = TRUE)
 
   # Normalize mutations
-  df_mut_norm <- normalize_mut(df_mut_raw, fasta, fasta_fafile, one_based, tmp_folder)
+  df_mut_norm <- normalize_mut(df_mut_raw, fasta, fasta_fafile, one_based, tmp_folder, verbose)
 
   # Run per-mutation analysis ==========================================================================================
   # Initialize parallel cluster
@@ -314,7 +317,9 @@ run_fRagmentomics <- function(
     mask_fail_qc <- df_fragments_info_final[["Fragment_QC"]] != "OK"
     nfrag_fail_qc <- sum(mask_fail_qc)
     df_fragments_info_final <- df_fragments_info_final[!mask_fail_qc, , drop = FALSE]
-    message(sprintf("Removed '%d' fragments that fail quality checks from output. Set `retain_fail_qc` to TRUE to retain them.", nfrag_fail_qc))
+    if (verbose) {
+      message(sprintf("Removed '%d' fragments that fail quality checks from output. Set `retain_fail_qc` to TRUE to retain them.", nfrag_fail_qc))
+    }
   }
 
   # -------------------------------
@@ -324,18 +329,24 @@ run_fRagmentomics <- function(
   if (!is.null(output_path) && !is.na(output_path) && output_path != "") {
     # Check if the file already exists and warn the user if it will be overwritten
     if (file.exists(output_path)) {
-      message(sprintf("File '%s' already exists and will be overwritten.", output_path))
+      if (verbose) {
+        message(sprintf("File '%s' already exists and will be overwritten.", output_path))
+      }
     } else {
       # Check if the file parent folder already exists
       output_parent <- dirname(output_path)
       if (!dir.exists(output_parent)) {
-        message(sprintf("Folder '%s' does not exist and will be created", output_parent))
+        if (verbose) {
+          message(sprintf("Folder '%s' does not exist and will be created", output_parent))
+        }
         dir.create(output_parent, showWarnings = FALSE, recursive = TRUE)
       }
     }
 
     # Write the data frame to the file
-    message(sprintf("Writing results to: %s", output_path))
+    if (verbose) {
+      message(sprintf("Writing results to: %s", output_path))
+    }
     write.table(
       df_fragments_info_final,
       file = output_path,

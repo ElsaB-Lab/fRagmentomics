@@ -83,6 +83,7 @@ test_that("check_parameters", {
     retain_fail_qc = FALSE,
     tmp_folder = tempdir(),
     output_path = "./test",
+    verbose = TRUE,
     n_cores = 1L
   )
 
@@ -107,6 +108,7 @@ test_that("check_parameters", {
         retain_fail_qc = valid_params$retain_fail_qc,
         tmp_folder = valid_params$tmp_folder,
         output_path = valid_params$output_path,
+        verbose = valid_params$verbose,
         n_cores = valid_params$n_cores
       )
     )
@@ -132,6 +134,7 @@ test_that("check_parameters", {
       retain_fail_qc = valid_params$retain_fail_qc,
       tmp_folder = valid_params$tmp_folder,
       output_path = valid_params$output_path,
+      verbose = valid_params$verbose,
       n_cores = valid_params$n_cores
     ),
     "The Mutation file does not exist",
@@ -158,6 +161,7 @@ test_that("check_parameters", {
       retain_fail_qc = valid_params$retain_fail_qc,
       tmp_folder = valid_params$tmp_folder,
       output_path = valid_params$output_path,
+      verbose = valid_params$verbose,
       n_cores = valid_params$n_cores
     ),
     "The BAM file does not exist",
@@ -184,6 +188,7 @@ test_that("check_parameters", {
       retain_fail_qc = valid_params$retain_fail_qc,
       tmp_folder = valid_params$tmp_folder,
       output_path = valid_params$output_path,
+      verbose = valid_params$verbose,
       n_cores = valid_params$n_cores
     ),
     "The FASTA file does not exist",
@@ -213,6 +218,7 @@ test_that("check_parameters", {
       retain_fail_qc = valid_params$retain_fail_qc,
       tmp_folder = valid_params$tmp_folder,
       output_path = valid_params$output_path,
+      verbose = valid_params$verbose,
       n_cores = valid_params$n_cores
     ),
     "Creating BAM index..."
@@ -241,9 +247,38 @@ test_that("check_parameters", {
       retain_fail_qc = valid_params$retain_fail_qc,
       tmp_folder = valid_params$tmp_folder,
       output_path = valid_params$output_path,
+      verbose = valid_params$verbose,
       n_cores = valid_params$n_cores
     ),
     "Creating FASTA index..."
+  )
+
+  # ---------------------------------------------------------------------------
+  # 7. Missing FASTA index: remove the FASTA index from fasta_no_index but remove the message
+  # ---------------------------------------------------------------------------
+  fai_path <- paste0(fasta_no_index, ".fai")
+  if (file.exists(fai_path)) file.remove(fai_path)
+
+  expect_no_message(
+    check_parameters(
+      mut = mut_existing,
+      bam = bam_existing,
+      fasta = fasta_no_index,
+      sample = valid_params$sample,
+      neg_offset_mate_search = valid_params$neg_offset_mate_search,
+      pos_offset_mate_search = valid_params$pos_offset_mate_search,
+      one_based = valid_params$one_based,
+      flag_bam_list = valid_params$flag_bam_list,
+      report_tlen = valid_params$report_tlen,
+      report_softclip = valid_params$report_softclip,
+      report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
+      remove_softclip = valid_params$remove_softclip,
+      retain_fail_qc = valid_params$retain_fail_qc,
+      tmp_folder = valid_params$tmp_folder,
+      output_path = valid_params$output_path,
+      verbose = FALSE,
+      n_cores = valid_params$n_cores
+    )
   )
 
   # ---------------------------------------------------------------------------
@@ -315,6 +350,7 @@ test_that("check_parameters individual parameter validations", {
   expect_error(check_report_tlen(1L), "must be a single logical")
   expect_error(check_report_softclip(NULL), "must be a single logical")
   expect_error(check_retain_fail_qc(NULL), "must be a single logical")
+  expect_error(check_verbose(NULL), "must be a single logical")
 
   # Report 5p/3p bases
   expect_error(check_report_bases_fragm_5p_3p(5), "must be integer")

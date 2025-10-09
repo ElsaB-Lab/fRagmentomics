@@ -134,6 +134,7 @@ df_frag_basic <- run_fRagmentomics(
   bam = bam_file,
   fasta = fasta_file,
   sample_id = "cfdna-test-01",
+  verbose = FALSE,
   n_cores = 2
 )
 
@@ -171,6 +172,7 @@ df_frag_advanced <- run_fRagmentomics(
   report_softclip = TRUE,
   retain_fail_qc = TRUE,
   report_5p_3p_bases_fragment = 3,
+  verbose = FALSE,
   n_cores = 2
 )
 

@@ -132,25 +132,26 @@
 #' #   ggsave_params  = list(width = 12, height = 8, units = "in", dpi = 300, bg = "white")
 #' # )
 plot_motif_barplot <- function(
-  df_fragments,
-  end_motif_5p = "Fragment_Bases_5p",
-  end_motif_3p = "Fragment_Bases_3p",
-  motif_type   = "Both",
-  motif_start  = NULL,
-  col_z        = "Fragment_Status_Simple",
-  vals_z       = NULL,
-  representation = "split_by_base",
-  ...,
-  colors_z     = NULL, 
-  title        = NULL,
-  output_path  = NA_character_,
-  ggsave_params = list(width = 10, height = 6, units = "in", dpi = 300, bg = "white")
-) {
-  motif_size <- 3  # fixed for this function
+    df_fragments,
+    end_motif_5p = "Fragment_Bases_5p",
+    end_motif_3p = "Fragment_Bases_3p",
+    motif_type = "Both",
+    motif_start = NULL,
+    col_z = "Fragment_Status_Simple",
+    vals_z = NULL,
+    representation = "split_by_base",
+    ...,
+    colors_z = NULL,
+    title = NULL,
+    output_path = NA_character_,
+    ggsave_params = list(width = 10, height = 6, units = "in", dpi = 300, bg = "white")) {
+  motif_size <- 3 # fixed for this function
 
   # ---- Helpers ----
   .clean_dots <- function(dots) {
-    if (!length(dots)) return(dots)
+    if (!length(dots)) {
+      return(dots)
+    }
     keep <- (lengths(dots) > 0) & (!vapply(dots, is.null, logical(1)))
     dots <- dots[keep]
     if ("position" %in% names(dots)) {
@@ -169,9 +170,9 @@ plot_motif_barplot <- function(
     }
     # single Brewer palette
     if (is.character(colors_z) && length(colors_z) == 1 &&
-        colors_z %in% rownames(RColorBrewer::brewer.pal.info)) {
+      colors_z %in% rownames(RColorBrewer::brewer.pal.info)) {
       maxc <- RColorBrewer::brewer.pal.info[colors_z, "maxcolors"]
-      n    <- length(keys)
+      n <- length(keys)
       if (is.na(maxc) || maxc < n) {
         stop(sprintf("Palette '%s' must support at least %d colors.", colors_z, n))
       }
@@ -182,8 +183,10 @@ plot_motif_barplot <- function(
     # unnamed vector → in order
     if (is.null(names(colors_z))) {
       if (length(colors_z) < length(keys)) {
-        stop(sprintf("Provided %d colors but need %d for: %s",
-                     length(colors_z), length(keys), paste(keys, collapse = ", ")))
+        stop(sprintf(
+          "Provided %d colors but need %d for: %s",
+          length(colors_z), length(keys), paste(keys, collapse = ", ")
+        ))
       }
       vals <- colors_z[seq_along(keys)]
       names(vals) <- keys
@@ -215,7 +218,8 @@ plot_motif_barplot <- function(
   if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
   is_grouped <- !is.null(col_z)
   if (!is_grouped) {
-    df_fragments$..group.. <- "All Fragments"; col_z <- "..group.."
+    df_fragments$..group.. <- "All Fragments"
+    col_z <- "..group.."
   } else if (!col_z %in% names(df_fragments)) {
     stop(sprintf("Column '%s' not found in the dataframe.", col_z))
   }
@@ -253,7 +257,7 @@ plot_motif_barplot <- function(
 
   analysis_df <- dplyr::bind_rows(motifs_list) %>%
     tidyr::drop_na(motif) %>%
-    dplyr::mutate(motif = stringr::str_sub(motif, 1, motif_size)) %>%  # conserve ton esthétique/choix
+    dplyr::mutate(motif = stringr::str_sub(motif, 1, motif_size)) %>% # conserve ton esthétique/choix
     dplyr::filter(stringr::str_detect(motif, "^[ACGT]{3}$"))
 
   if (!is.null(motif_start)) {
@@ -303,8 +307,10 @@ plot_motif_barplot <- function(
 
     # Layer (no bottom gap, symmetric limits with +10% headroom)
     bar_args <- c(
-      list(mapping = ggplot2::aes(x = third_base, y = log2FC, fill = sign),
-           stat = "identity", color = "black", linewidth = 0.2),
+      list(
+        mapping = ggplot2::aes(x = third_base, y = log2FC, fill = sign),
+        stat = "identity", color = "black", linewidth = 0.2
+      ),
       dots
     )
     if (!user_set_width) bar_args$width <- 1
@@ -320,7 +326,6 @@ plot_motif_barplot <- function(
     p <- p +
       ggplot2::scale_y_continuous(limits = lim, expand = c(0, 0))
     plot_xlab <- "Third Base"
-
   } else {
     # common additions for proportion plots
     total_counts <- analysis_df %>% dplyr::count(group, name = "total_n")
@@ -341,8 +346,10 @@ plot_motif_barplot <- function(
       fill_vals <- .resolve_palette(base_levels, colors_z, base_defaults)
 
       bar_args <- c(
-        list(mapping = ggplot2::aes(x = third_base, y = proportion, fill = second_base),
-             stat = "identity", color = "black", linewidth = 0.2),
+        list(
+          mapping = ggplot2::aes(x = third_base, y = proportion, fill = second_base),
+          stat = "identity", color = "black", linewidth = 0.2
+        ),
         dots
       )
       if (!user_set_width) bar_args$width <- 1
@@ -353,14 +360,13 @@ plot_motif_barplot <- function(
         ggplot2::scale_fill_manual(values = fill_vals, name = "2nd Base") +
         ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.10)))
       plot_xlab <- "Third Base"
-
     } else if (representation == "split_by_motif") {
       # Colors by group_label
       group_keys <- levels(plot_data$group_label)
 
       # default palette for groups
       if ("Set2" %in% rownames(RColorBrewer::brewer.pal.info) &&
-          length(group_keys) <= RColorBrewer::brewer.pal.info["Set2", "maxcolors"]) {
+        length(group_keys) <= RColorBrewer::brewer.pal.info["Set2", "maxcolors"]) {
         grp_defaults <- RColorBrewer::brewer.pal(length(group_keys), "Set2")
         names(grp_defaults) <- group_keys
       } else {
@@ -370,8 +376,10 @@ plot_motif_barplot <- function(
       fill_vals <- .resolve_palette(group_keys, colors_z, grp_defaults)
 
       bar_args <- c(
-        list(mapping = ggplot2::aes(x = motif, y = proportion, fill = group_label),
-             stat = "identity", color = "black", linewidth = 0.2),
+        list(
+          mapping = ggplot2::aes(x = motif, y = proportion, fill = group_label),
+          stat = "identity", color = "black", linewidth = 0.2
+        ),
         dots
       )
       if (!user_set_width) bar_args$width <- 0.9
@@ -379,23 +387,23 @@ plot_motif_barplot <- function(
 
       p <- ggplot2::ggplot(plot_data) +
         do.call(ggplot2::geom_bar, bar_args) +
-        ggplot2::facet_wrap(~ first_base, scales = "free_x", nrow = 1) +
-        ggplot2::scale_fill_manual(values = fill_vals,
-                                   name = if (is.null(original_col_z)) NULL else original_col_z) +
+        ggplot2::facet_wrap(~first_base, scales = "free_x", nrow = 1) +
+        ggplot2::scale_fill_manual(
+          values = fill_vals,
+          name = if (is.null(original_col_z)) NULL else original_col_z
+        ) +
         ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0, 0.10)))
       plot_xlab <- "Motif"
     }
   }
 
   # ---- Titles & theme ----
-  auto_title <- switch(
-    representation,
+  auto_title <- switch(representation,
     "differential"   = "Differential Motif Usage",
     "split_by_base"  = "Motif Proportions at Fragment Ends",
     "split_by_motif" = "Motif Proportions by Group"
   )
-  plot_subtitle <- switch(
-    representation,
+  plot_subtitle <- switch(representation,
     "differential"   = paste("Comparison:", vals_z[1], "vs", vals_z[2]),
     "split_by_base"  = "Hierarchical view by base position",
     "split_by_motif" = "Grouped by motif"
@@ -408,7 +416,7 @@ plot_motif_barplot <- function(
 
   p <- p +
     ggplot2::labs(
-      title    = if (is.null(title) || is.na(title) || !nzchar(title) || identical(title, "NA")) auto_title else title,
+      title = if (is.null(title) || is.na(title) || !nzchar(title) || identical(title, "NA")) auto_title else title,
       subtitle = plot_subtitle,
       y = plot_ylab, x = plot_xlab
     ) +
@@ -420,26 +428,26 @@ plot_motif_barplot <- function(
         hjust = if (representation == "split_by_motif") 1 else 0.5
       ),
       strip.background = ggplot2::element_rect(fill = "white", color = "black", linewidth = 0.5),
-      strip.text       = ggplot2::element_text(face = "bold"),
-      panel.spacing    = grid::unit(0.2, "lines"),
-      legend.position  = "right",
+      strip.text = ggplot2::element_text(face = "bold"),
+      panel.spacing = grid::unit(0.2, "lines"),
+      legend.position = "right",
       panel.grid.major.x = ggplot2::element_blank(),
       panel.grid.major.y = ggplot2::element_line(linetype = "dashed", color = "grey85"),
-      panel.grid.minor   = ggplot2::element_blank()
+      panel.grid.minor = ggplot2::element_blank()
     )
 
   # ---- Save if requested ----
   if (!is.null(output_path) && is.character(output_path) &&
-      length(output_path) == 1L && !is.na(output_path) && nzchar(output_path)) {
+    length(output_path) == 1L && !is.na(output_path) && nzchar(output_path)) {
     out_dir <- dirname(output_path)
     if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
     ggplot2::ggsave(
       filename = output_path, plot = p,
-      width  = ggsave_params$width,
+      width = ggsave_params$width,
       height = ggsave_params$height,
-      units  = ggsave_params$units,
-      dpi    = ggsave_params$dpi,
-      bg     = ggsave_params$bg
+      units = ggsave_params$units,
+      dpi = ggsave_params$dpi,
+      bg = ggsave_params$bg
     )
     return(invisible(NULL))
   }

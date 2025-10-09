@@ -94,8 +94,10 @@
 #'
 #' # 5) Include non-ACGT characters tallied as "Other"
 #' example_df$Fragment_Bases_5p[1:3] <- c("NNNNNNNNNN", "ACGTNACGTN", "TTTNAAAAAA")
-#' p5 <- plot_freq_barplot(example_df, motif_size = 2, drop_non_acgt = FALSE,
-#'                         title = "Including 'Other' (non-ACGT)")
+#' p5 <- plot_freq_barplot(example_df,
+#'   motif_size = 2, drop_non_acgt = FALSE,
+#'   title = "Including 'Other' (non-ACGT)"
+#' )
 #' print(p5)
 #'
 #' # 6) Save to file with specific dimensions
@@ -105,21 +107,20 @@
 #' #   ggsave_params = list(width = 7, height = 5, units = "in", dpi = 300, bg = "white")
 #' # )
 plot_freq_barplot <- function(
-  df_fragments,
-  end_motif_5p = "Fragment_Bases_5p",
-  end_motif_3p = "Fragment_Bases_3p",
-  motif_type = "Both",
-  motif_size = 3,
-  col_z = "Fragment_Status_Simple",
-  vals_z = NULL,
-  ...,
-  colors_z = "Dark2",
-  title = NULL,
-  output_path = NA_character_,
-  ggsave_params = list(width = 14, height = 5, units = "in", dpi = 300, bg = "white"),
-  show_pvalue = FALSE,
-  drop_non_acgt = TRUE
-) {
+    df_fragments,
+    end_motif_5p = "Fragment_Bases_5p",
+    end_motif_3p = "Fragment_Bases_3p",
+    motif_type = "Both",
+    motif_size = 3,
+    col_z = "Fragment_Status_Simple",
+    vals_z = NULL,
+    ...,
+    colors_z = "Dark2",
+    title = NULL,
+    output_path = NA_character_,
+    ggsave_params = list(width = 14, height = 5, units = "in", dpi = 300, bg = "white"),
+    show_pvalue = FALSE,
+    drop_non_acgt = TRUE) {
   # ---- Capture & sanitize dots to avoid duplicate/invalid args ----
   dots <- list(...)
   if (length(dots)) {
@@ -270,7 +271,7 @@ plot_freq_barplot <- function(
   plot_data <- dplyr::filter(plot_data, nucleotide %in% nuc_levels)
   plot_data$nucleotide <- factor(plot_data$nucleotide, levels = nuc_levels)
   plot_data$group <- factor(plot_data$group, levels = vals_z)
- y_max <- min(1, max(plot_data$ci_high, na.rm = TRUE) * 1.10)
+  y_max <- min(1, max(plot_data$ci_high, na.rm = TRUE) * 1.10)
 
   # ---- Labels & global χ² ----
   group_totals <- dplyr::distinct(plot_data, group, total_bases_in_group) |>
@@ -341,13 +342,13 @@ plot_freq_barplot <- function(
   p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = group, y = frequency, fill = group)) +
     geom_col_layer +
     geom_errorbar_layer +
-    ggplot2::facet_wrap(~ nucleotide, scales = "free_x", nrow = 1) +
+    ggplot2::facet_wrap(~nucleotide, scales = "free_x", nrow = 1) +
     ggplot2::scale_x_discrete(labels = x_labels) +
-		scale_y_continuous(
-			labels = scales::percent_format(accuracy = 1),
-			limits = c(0, y_max),
-			expand = c(0, 0)
-		) +
+    scale_y_continuous(
+      labels = scales::percent_format(accuracy = 1),
+      limits = c(0, y_max),
+      expand = c(0, 0)
+    ) +
     ggplot2::scale_fill_manual(values = colors_vec, name = if (!is_grouped) NULL else col_z, labels = x_labels) +
     ggplot2::theme_bw(base_size = 14) +
     ggplot2::labs(
@@ -357,32 +358,32 @@ plot_freq_barplot <- function(
       caption = plot_caption
     ) +
     ggplot2::theme(
-      legend.position = "right",                     
-      axis.text.x    = ggplot2::element_blank(),   
-      axis.ticks.x   = ggplot2::element_blank(),   
-      plot.caption   = ggplot2::element_text(hjust = 0, size = 10, face = "italic"),
-      strip.text     = ggplot2::element_text(face = "bold", size = 12),
-   		strip.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "right",
+      axis.text.x = ggplot2::element_blank(),
+      axis.ticks.x = ggplot2::element_blank(),
+      plot.caption = ggplot2::element_text(hjust = 0, size = 10, face = "italic"),
+      strip.text = ggplot2::element_text(face = "bold", size = 12),
+      strip.background = ggplot2::element_rect(fill = "white", color = NA),
       panel.grid.major.x = ggplot2::element_blank(),
-      panel.grid.minor   = ggplot2::element_blank(),
-      legend.title  = ggplot2::element_text(size = 11),
-      legend.text   = ggplot2::element_text(size = 10)
+      panel.grid.minor = ggplot2::element_blank(),
+      legend.title = ggplot2::element_text(size = 11),
+      legend.text = ggplot2::element_text(size = 10)
     )
 
   # ---- Save if requested ----
   if (is.null(output_path) || !is.character(output_path) ||
-      length(output_path) != 1L || is.na(output_path) || !nzchar(output_path)) {
+    length(output_path) != 1L || is.na(output_path) || !nzchar(output_path)) {
     return(p)
   }
 
   ggplot2::ggsave(
     filename = output_path,
     plot = p,
-    width  = ggsave_params$width,
+    width = ggsave_params$width,
     height = ggsave_params$height,
-    units  = ggsave_params$units,
-    dpi    = ggsave_params$dpi,
-    bg     = ggsave_params$bg
+    units = ggsave_params$units,
+    dpi = ggsave_params$dpi,
+    bg = ggsave_params$bg
   )
   invisible(NULL)
 }

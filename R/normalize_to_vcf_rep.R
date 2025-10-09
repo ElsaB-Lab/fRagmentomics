@@ -31,7 +31,8 @@ normalize_to_vcf_rep <- function(
     ref,
     alt,
     fasta_fafile,
-    one_based) {
+    one_based,
+    verbose) {
   # Remove all the forbidden characters (-, ., _, NA)
   result <- normalize_na_representation(ref, alt)
   ref_norm <- result$ref
@@ -96,7 +97,9 @@ normalize_to_vcf_rep <- function(
   )
 
   if (ref_matches_fasta) {
-    message("Reference allele matches FASTA")
+    if (verbose) {
+      message("Reference allele matches FASTA")
+    }
     # Return the final normalized values
     return(list(chr = chr_norm, pos = pos_norm, ref = ref_norm, alt = alt_norm))
   } else {

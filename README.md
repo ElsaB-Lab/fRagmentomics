@@ -255,11 +255,11 @@ The main function is `run_fRagmentomics()`.
 
 ## Output
 
-fRagmentomics can extract mutational informations and fragmentomics features for each fragment. The output is a dataframe, one line per fragment, containing:
+fRagmentomics can extract mutational informations and fragmentomic features for each fragment. The output is a dataframe, one line per fragment, containing:
 
 ### Mutation informations
 
-   * **`Chromosome`**/**`Position`**/**`Ref`**/**`Alt`**: Mutation information **after** the normalisation.
+   * **`Chromosome`**/**`Position`**/**`Ref`**/**`Alt`**: Mutation information **after** the normalization.
    * **`Input_Mutation`**: Input mutation information.
 
 ### Fragment mutational status
@@ -289,7 +289,7 @@ For more details, see [Definition of Fragment Status](#definition-of-fragment-st
 
        This approach differs from another conventional VAF calculation that might only use reference-matching fragments in the denominator.
 
-### Fragmentomics features
+### Fragmentomic features
 
 For more details, see [Definition of Fragment Size](#definition-of-fragment-size).
 

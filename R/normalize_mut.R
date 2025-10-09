@@ -11,7 +11,7 @@
 #' @return a dataframe with normalized mutations representations containing columns CHROM, POS, REF, ALT
 #'
 #' @keywords internal
-normalize_mut <- function(df_mut, fasta, fasta_fafile, one_based, tmp_folder) {
+normalize_mut <- function(df_mut, fasta, fasta_fafile, one_based, tmp_folder, verbose) {
   df_mut_norm <- data.frame()
 
   for (i in seq_len(nrow(df_mut))) {
@@ -35,7 +35,8 @@ normalize_mut <- function(df_mut, fasta, fasta_fafile, one_based, tmp_folder) {
       ref = ref,
       alt = alt,
       fasta_fafile = fasta_fafile,
-      one_based = one_based
+      one_based = one_based,
+      verbose = verbose
     )
 
     # Sanity check to see if ref != fasta
@@ -55,7 +56,8 @@ normalize_mut <- function(df_mut, fasta, fasta_fafile, one_based, tmp_folder) {
       ref        = ref_norm,
       alt        = alt_norm,
       fasta      = fasta,
-      tmp_folder = tmp_folder
+      tmp_folder = tmp_folder,
+      verbose    = verbose
     )
 
     # Sanity check to see if bcftools worked properly

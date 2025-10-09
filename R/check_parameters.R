@@ -25,10 +25,11 @@ check_parameters <- function(
     retain_fail_qc,
     tmp_folder,
     output_path,
+    verbose,
     n_cores) {
   check_mut(mut)
-  check_bam(bam)
-  check_fasta(fasta)
+  check_bam(bam, verbose)
+  check_fasta(fasta, verbose)
   check_sample(sample_id)
   check_neg_offset_mate_search(neg_offset_mate_search)
   check_pos_offset_mate_search(pos_offset_mate_search)
@@ -41,6 +42,7 @@ check_parameters <- function(
   check_retain_fail_qc(retain_fail_qc)
   check_tmp_folder(tmp_folder)
   check_output_path(output_path)
+  check_verbose(verbose)
   check_n_cores(n_cores)
 }
 
@@ -71,7 +73,7 @@ check_mut <- function(mut) {
 #' @importFrom Rsamtools indexBam
 #'
 #' @noRd
-check_bam <- function(bam) {
+check_bam <- function(bam, verbose) {
   # Check if the bam have a correct extension
   if (!grepl("\\.bam$", bam)) {
     stop("The file does not have a valid BAM extension (.bam): ", bam)
@@ -87,7 +89,9 @@ check_bam <- function(bam) {
 
   # If the BAM index is missing, create it
   if (!file.exists(bam_index)) {
-    message("Creating BAM index...")
+    if (verbose) {
+      message("Creating BAM index...")
+    }
     Rsamtools::indexBam(bam)
   }
 }
@@ -99,7 +103,7 @@ check_bam <- function(bam) {
 #' @importFrom Rsamtools indexFa
 #'
 #' @noRd
-check_fasta <- function(fasta) {
+check_fasta <- function(fasta, verbose) {
   if (!grepl("\\.fa(sta)?$", fasta)) {
     stop("The file does not have a valid FASTA extension (.fa or .fasta): ", fasta)
   }
@@ -110,7 +114,9 @@ check_fasta <- function(fasta) {
 
   fasta_index <- paste0(fasta, ".fai")
   if (!file.exists(fasta_index)) {
-    message("Creating FASTA index...")
+    if (verbose) {
+      message("Creating FASTA index...")
+    }
     Rsamtools::indexFa(fasta)
   }
 }
@@ -295,6 +301,17 @@ check_output_path <- function(output_path) {
   # Validate the input type
   if (!is.character(output_path) || length(output_path) != 1) {
     stop("'output_path' must be a single character string.")
+  }
+}
+
+#' Check if the verbose parameter is valid
+#'
+#' @inheritParams check_parameters
+#'
+#' @noRd
+check_verbose <- function(verbose) {
+  if (!is.logical(verbose) || length(verbose) != 1) {
+    stop("verbose must be a single logical value.")
   }
 }
 

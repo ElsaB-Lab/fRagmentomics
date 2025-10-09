@@ -19,7 +19,8 @@ test_that("normalize_to_vcf_rep", {
     ref = "G",
     alt = "A",
     fasta = fasta_loaded_19,
-    one_based = TRUE
+    one_based = TRUE,
+    verbose = TRUE
   )
   expect_equal(out1$chr, "chr1")
   expect_equal(out1$pos, 503)
@@ -35,7 +36,8 @@ test_that("normalize_to_vcf_rep", {
     ref = "GTT",
     alt = "-",
     fasta = fasta_loaded_19,
-    one_based = TRUE
+    one_based = TRUE,
+    verbose = TRUE
   )
   # For a deletion, we expect an anchor base prepended to both REF and ALT,
   # and pos shifts left by 1.
@@ -53,7 +55,8 @@ test_that("normalize_to_vcf_rep", {
     ref = "",
     alt = "AT",
     fasta = fasta_loaded_19,
-    one_based = TRUE
+    one_based = TRUE,
+    verbose = TRUE
   )
   expect_equal(out3$chr, "chr1")
   expect_equal(out3$pos, 501)
@@ -70,7 +73,8 @@ test_that("normalize_to_vcf_rep", {
     ref = "GGTT",
     alt = "G_",
     fasta = fasta_loaded_19,
-    one_based = TRUE
+    one_based = TRUE,
+    verbose = TRUE
   )
   expect_equal(out4$chr, "chr1")
   expect_equal(out4$pos, 502)
@@ -86,7 +90,8 @@ test_that("normalize_to_vcf_rep", {
     ref = "GGTT",
     alt = "A",
     fasta = fasta_loaded_19,
-    one_based = TRUE
+    one_based = TRUE,
+    verbose = TRUE
   )
   expect_equal(out5$chr, "chr1")
   expect_equal(out5$pos, 502)
@@ -102,7 +107,8 @@ test_that("normalize_to_vcf_rep", {
     ref = "A",
     alt = "GAT",
     fasta = fasta_loaded_19,
-    one_based = TRUE
+    one_based = TRUE,
+    verbose = TRUE
   )
   expect_equal(out6$chr, "chr1")
   expect_equal(out6$pos, 501)
@@ -118,7 +124,8 @@ test_that("normalize_to_vcf_rep", {
     ref = "GT",
     alt = "AC",
     fasta = fasta_loaded_19,
-    one_based = FALSE
+    one_based = FALSE,
+    verbose = TRUE
   )
   expect_equal(out7$chr, "chr1")
   expect_equal(out7$pos, 503)
@@ -134,7 +141,8 @@ test_that("normalize_to_vcf_rep", {
     ref = "A",
     alt = "T",
     fasta = fasta_loaded_38,
-    one_based = TRUE
+    one_based = TRUE,
+    verbose = TRUE
   )
   expect_equal(out8$chr, "chr1")
   expect_equal(out8$pos, 503)
@@ -150,7 +158,8 @@ test_that("normalize_to_vcf_rep", {
     ref = "G",
     alt = "A",
     fasta = fasta_loaded_19,
-    one_based = TRUE
+    one_based = TRUE,
+    verbose = TRUE
   )
   expect_equal(out8$chr, "chr1")
   expect_equal(out8$pos, 503)
@@ -167,9 +176,34 @@ test_that("normalize_to_vcf_rep", {
       ref = "T", # Incorrect reference allele
       alt = "A",
       fasta = fasta_loaded_19,
-      one_based = TRUE
+      one_based = TRUE,
+      verbose = TRUE
     ),
     "Mismatch found"
   )
   expect_null(out9)
+
+  # --------------------------------------------------------------------------
+  # Case 11: Expect no message when verbose = FALSE
+  # --------------------------------------------------------------------------
+  expect_no_message(
+    out <- normalize_to_vcf_rep(
+      chr = "chr1",
+      pos = 503,
+      ref = "G",
+      alt = "A",
+      fasta = fasta_loaded_19,
+      one_based = TRUE,
+      verbose = FALSE
+    )
+  )
+  expect_equal(out$chr, "chr1")
+  expect_equal(out$pos, 503)
+  expect_equal(out$ref, "G")
+  expect_equal(out$alt, "A")
+
+  close(fasta_loaded_38)
+  close(fasta_loaded_19)
 })
+
+
