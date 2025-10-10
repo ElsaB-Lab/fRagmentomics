@@ -34,7 +34,7 @@ test_that("read mut", {
   expect_warning(
     expect_error(
       read_mut("8:555:TAC,_,,T:TA"),
-      "After reading, the mutation information is empty. No valid mutation data found."
+      "After reading and filtering, the mutation information is empty. No valid mutation data found."
     ),
     "REF can not be multiallelic"
   )
@@ -43,17 +43,21 @@ test_that("read mut", {
   # Miss Ref or Alt
   expect_error(
     read_mut("chr1:123:A"),
-    "Error: The parameter 'mut' \\(chr1:123:A\\) is not in the expected format \\(.tsv, .vcf, chr:pos:ref:alt\\)."
+    "The parameter 'mut' ('chr1:123:A') is not in the expected format (.tsv, .vcf, chr:pos:ref:alt).",
+    fixed = TRUE
   )
   # Add extra parameter
   expect_error(
     read_mut("chr1:123:A:T:extra"),
-    "Error: The parameter 'mut' \\(chr1:123:A:T:extra\\) is not in the expected format \\(.tsv, .vcf, chr:pos:ref:alt\\)."
+    "The parameter 'mut' ('chr1:123:A:T:extra') is not in the expected format (.tsv, .vcf, chr:pos:ref:alt).",
+    fixed = TRUE
   )
+
   # Invalid_format
   expect_error(
     read_mut("invalid_format"),
-    "Error: The parameter 'mut' \\(invalid_format\\) is not in the expected format \\(.tsv, .vcf, chr:pos:ref:alt\\)."
+    "The parameter 'mut' ('invalid_format') is not in the expected format (.tsv, .vcf, chr:pos:ref:alt).",
+    fixed = TRUE
   )
 
   #---------------------------------------

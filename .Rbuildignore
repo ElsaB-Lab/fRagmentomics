@@ -1,3 +1,4 @@
+^tags$
 ^LICENSE$
 ^Makefile$
 ^index.html$
@@ -6,3 +7,11 @@ usethis::use_build_ignore(".github")
 ^\.github$
 ^CHANGELOG\.md$
 ^fRagmentomics\.yaml$
+^utils$
+^fRagmentomics_.*\.pdf$
+^vignettes/.*\.html$
+^vignettes/.*\.pdf$
+^vignettes/.*_cache$
+
+^doc$
+^Meta$

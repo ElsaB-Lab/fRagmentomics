@@ -40,6 +40,7 @@ __pycache__/
 # R
 *.Rproj.user
 *.Rproj
+*.RData
 renv.lock
 activate.R
 renv/
@@ -47,6 +48,11 @@ renv/
 .Renviron
 .Rhistory
 .Rproj.user
+*.Rbuild
+*.Rcheck
+vignettes/*.html
+vignettes/*.pdf
+inst/doc
 
 # Open cached files
 *.m~
@@ -61,3 +67,5 @@ renv/
 *.exe
 *.o
 *.so
+/doc/
+/Meta/
