@@ -138,8 +138,8 @@ plot_qqseqlogo_meme <- function(
     ggsave_params = list(width = 12, height = 6, units = "in", dpi = 300, bg = "white"),
     ...) {
   stopifnot(is.data.frame(df_fragments))
-  if (!motif_type %in% c("Start", "End", "Both")) stop("'motif_type' must be 'Start', 'End', or 'Both'.")
-  if (!is.numeric(motif_size) || length(motif_size) != 1L || motif_size < 1L) stop("'motif_size' must be a single integer >= 1.")
+  if (!motif_type %in% c("Start", "End", "Both")) stop("motif_type' must be 'Start', 'End', or 'Both'.")
+  if (!is.numeric(motif_size) || length(motif_size) != 1L || motif_size < 1L) stop("motif_size' must be a single integer >= 1.")
   if (is.null(col_z) && !is.null(vals_z)) stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
   is_grouped <- !is.null(col_z)
   if (!is_grouped) {
@@ -282,7 +282,7 @@ plot_qqseqlogo_meme <- function(
       pal <- stats::setNames(colors_z, c("A", "C", "G", "T"))
       color_scheme <- ggseqlogo::make_col_scheme(chars = names(pal), cols = unname(pal))
     } else {
-      stop("'colors_z' must be NULL, a valid RColorBrewer palette name, a named vector for A/C/G/T, or an
+      stop("colors_z' must be NULL, a valid RColorBrewer palette name, a named vector for A/C/G/T, or an
 			unnamed vector of 4 colors.")
     }
   }
@@ -309,7 +309,7 @@ plot_qqseqlogo_meme <- function(
     }
   )
 
-  p <- base_logo +
+  final_plot <- base_logo +
     ggplot2::labs(
       title = if (is.null(title) || is.na(title) || !nzchar(title) || identical(title, "NA")) {
         "Sequence Motif Composition"
@@ -332,8 +332,8 @@ plot_qqseqlogo_meme <- function(
   base_annotation_df <- tibble::tibble(x_pos = seq_len(motif_len), label = custom_labels)
   annotation_df <- tidyr::crossing(group = factor(facet_names, levels = facet_names), base_annotation_df)
 
-  p$coordinates$clip <- "off"
-  p <- p +
+  final_plot$coordinates$clip <- "off"
+  final_plot <- final_plot +
     ggplot2::geom_text(
       data = annotation_df, ggplot2::aes(x = x_pos, y = -0.1, label = label),
       size = 5, inherit.aes = FALSE
@@ -353,7 +353,7 @@ plot_qqseqlogo_meme <- function(
     )
 
   if (motif_type == "Both") {
-    p <- p + ggplot2::geom_vline(
+    final_plot <- final_plot + ggplot2::geom_vline(
       xintercept = motif_size + 1, linetype = "dashed",
       color = "grey40", linewidth = 0.8
     )
@@ -365,7 +365,7 @@ plot_qqseqlogo_meme <- function(
     out_dir <- dirname(output_path)
     if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
     ggplot2::ggsave(
-      filename = output_path, plot = p,
+      filename = output_path, plot = final_plot,
       width = ggsave_params$width,
       height = ggsave_params$height,
       units = ggsave_params$units,
@@ -374,5 +374,5 @@ plot_qqseqlogo_meme <- function(
     )
     return(invisible(NULL))
   }
-  p
+  final_plot
 }

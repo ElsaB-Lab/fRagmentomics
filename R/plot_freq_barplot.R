@@ -15,12 +15,12 @@
 #' @param ... Additional aesthetics/arguments passed to [ggplot2::geom_col()] and [ggplot2::geom_errorbar()].
 #'   (e.g., 'alpha', 'position', or 'width').
 #' @param colors_z A character vector of colors for the groups, or a single
-#'   RColorBrewer palette name (e.g., '"Set2"'). Named vectors are aligned to 'vals_z'.
-#' @param title Character or 'NA'. Plot title. If 'NULL', 'NA', '"NA"', or empty, a default title is used.
+#'   RColorBrewer palette name (e.g., "Set2"). Named vectors are aligned to 'vals_z'.
+#' @param title Character or 'NA'. Plot title. If 'NULL', 'NA', "NA" or empty, a default title is used.
 #' @param output_path Character or 'NA'. If provided and non-empty, the plot is saved to this path.
 #' @param ggsave_params A named list of arguments passed to [ggplot2::ggsave()].
 #' @param show_pvalue Logical. If 'TRUE' and there are at least two groups, append a global
-#'   Chi-squared p-value to the caption.
+#'   Chi-squared final_plot-value to the caption.
 #' @param drop_non_acgt Logical. If 'FALSE', characters other than A/C/G/T are tallied into an
 #'   "Other" category.
 #'
@@ -137,10 +137,10 @@ plot_freq_barplot <- function(
   # ---- Basic checks ----
   stopifnot(is.data.frame(df_fragments))
   if (!motif_type %in% c("Start", "End", "Both")) {
-    stop("'motif_type' must be one of 'Start', 'End', or 'Both'.")
+    stop("otif_type' must be one of 'Start', 'End', or 'Both'.")
   }
   if (!is.numeric(motif_size) || length(motif_size) != 1L || motif_size < 1L) {
-    stop("'motif_size' must be a single integer >= 1.")
+    stop("otif_size' must be a single integer >= 1.")
   }
 
   # Sequence column presence
@@ -287,7 +287,7 @@ plot_freq_barplot <- function(
       contingency <- stats::xtabs(total_count ~ nucleotide + group, data = tmp)
       chi <- stats::chisq.test(contingency, simulate.p.value = TRUE, B = 5000L)
       plot_caption <- paste0(
-        plot_caption, "\nGlobal comparison (Chi-squared), p = ",
+        plot_caption, "\nGlobal comparison (Chi-squared), final_plot = ",
         scales::pvalue(chi$p.value)
       )
     }
@@ -339,7 +339,7 @@ plot_freq_barplot <- function(
   )
 
   # ---- Plot ----
-  p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = group, y = frequency, fill = group)) +
+  final_plot <- ggplot2::ggplot(plot_data, ggplot2::aes(x = group, y = frequency, fill = group)) +
     geom_col_layer +
     geom_errorbar_layer +
     ggplot2::facet_wrap(~nucleotide, scales = "free_x", nrow = 1) +
@@ -373,12 +373,12 @@ plot_freq_barplot <- function(
   # ---- Save if requested ----
   if (is.null(output_path) || !is.character(output_path) ||
     length(output_path) != 1L || is.na(output_path) || !nzchar(output_path)) {
-    return(p)
+    return(final_plot)
   }
 
   ggplot2::ggsave(
     filename = output_path,
-    plot = p,
+    plot = final_plot,
     width = ggsave_params$width,
     height = ggsave_params$height,
     units = ggsave_params$units,

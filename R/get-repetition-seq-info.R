@@ -33,8 +33,8 @@ get_repetition_seq_info <- function(chr, pos, ref, alt, fasta, mutation_type) {
     indel_seq <- substring(ref, 2)
   } else { # SNV or No change
     warning(paste0(
-      "Input alleles (REF='", ref, "', ALT='", alt,
-      "') do not represent an indel or mutation_type '", mutation_type, "' is not 'insertion' or 'deletion'. ",
+      "Input alleles (REF=", ref, ", ALT=", alt,
+      ") do not represent an indel or mutation_type ", mutation_type, " is not 'insertion' or 'deletion'. ",
       "This mutation cannot be processed as an indel by this function. ",
       "Returning NULL."
     ))
@@ -44,8 +44,8 @@ get_repetition_seq_info <- function(chr, pos, ref, alt, fasta, mutation_type) {
   # Warning if the derived indel sequence is empty
   if (nchar(indel_seq) == 0) {
     warning(paste0(
-      "Derived indel sequence is empty for REF='", ref, "', ALT='", alt,
-      "', mutation_type='", mutation_type, "'. This might indicate an error in the indel representation ",
+      "Derived indel sequence is empty for REF=", ref, ", ALT=", alt,
+      ", mutation_type=", mutation_type, ". This might indicate an error in the indel representation ",
       "(e.g., alt/ref allele too short for substring(..., 2)). ",
       "This mutation cannot be processed as an indel. ",
       "Returning NULL."

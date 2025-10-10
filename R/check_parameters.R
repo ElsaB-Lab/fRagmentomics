@@ -181,7 +181,7 @@ check_one_based <- function(one_based) {
 check_flag_bam_list <- function(flag_bam_list) {
   # Check if the input is a list
   if (!is.list(flag_bam_list)) {
-    stop("'flag_bam_list' must be a list.")
+    stop("flag_bam_list' must be a list.")
   }
 
   # Check if all values in the list are logical (TRUE, FALSE, or NA)
@@ -300,7 +300,7 @@ check_output_path <- function(output_path) {
 
   # Validate the input type
   if (!is.character(output_path) || length(output_path) != 1) {
-    stop("'output_path' must be a single character string.")
+    stop("output_path' must be a single character string.")
   }
 }
 

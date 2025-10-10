@@ -11,14 +11,14 @@
 #' @param col_z Character string. Column name for grouping. If NULL, no grouping is applied.
 #' @param vals_z A character vector of group names from 'col_z' to include. If NULL, all unique groups in 'col_z' are used.
 #' @param representation Character string. The type of plot to generate.
-#'   - '"split_by_base"' (default): A proportion plot with hierarchical axes, splitting motifs by each base position into facets.
-#'   - '"differential"': A log2 fold change plot comparing two groups.
-#'   - '"split_by_motif"': A proportion plot with motifs on the x-axis, with bars for different groups placed side-by-side.
+#'   - "split_by_base" (default): A proportion plot with hierarchical axes, splitting motifs by each base position into facets.
+#'   - "differential": A log2 fold change plot comparing two groups.
+#'   - "split_by_motif": A proportion plot with motifs on the x-axis, with bars for different groups placed side-by-side.
 #' @param ... Additional arguments passed on to 'ggplot2::geom_bar()'.
 #' @param colors_z Colors for the representation:
-#'   - For '"split_by_base"': 4 colors for A/C/G/T, or a single RColorBrewer palette name.
-#'   - For '"differential"': 2 colors for 'Positive'/'Negative' (named vector or palette).
-#'   - For '"split_by_motif"': colors per group (palette, unnamed vector, or a vector named by group names).
+#'   - For "split_by_base": 4 colors for A/C/G/T, or a single RColorBrewer palette name.
+#'   - For "differential": 2 colors for 'Positive'/'Negative' (named vector or palette).
+#'   - For "split_by_motif": colors per group (palette, unnamed vector, or a vector named by group names).
 #' @param title Character or NA. Plot title; if NULL/NA/"NA"/empty, a default title is used.
 #' @param output_path Character or NA. If provided and non-empty, the plot is saved to this file.
 #' @param ggsave_params A named list of arguments passed to 'ggplot2::ggsave()'.
@@ -210,7 +210,7 @@ plot_motif_barplot <- function(
   # ---- Validate representation ----
   valid_reps <- c("differential", "split_by_base", "split_by_motif")
   if (!representation %in% valid_reps) {
-    stop(sprintf("'representation' must be one of: %s", paste(valid_reps, collapse = ", ")))
+    stop(sprintf("representation' must be one of: %s", paste(valid_reps, collapse = ", ")))
   }
   original_col_z <- col_z
 
@@ -315,7 +315,7 @@ plot_motif_barplot <- function(
     )
     if (!user_set_width) bar_args$width <- 1
 
-    p <- ggplot2::ggplot(diff_data) +
+    final_plot <- ggplot2::ggplot(diff_data) +
       do.call(ggplot2::geom_bar, bar_args) +
       ggplot2::geom_hline(yintercept = 0, color = "darkgrey", linewidth = 1) +
       ggh4x::facet_nested(~ first_base + second_base, scales = "free_x") +
@@ -323,7 +323,7 @@ plot_motif_barplot <- function(
 
     max_abs <- max(abs(diff_data$log2FC), na.rm = TRUE)
     lim <- c(-1.1 * max_abs, 1.1 * max_abs)
-    p <- p +
+    final_plot <- final_plot +
       ggplot2::scale_y_continuous(limits = lim, expand = c(0, 0))
     plot_xlab <- "Third Base"
   } else {
@@ -354,7 +354,7 @@ plot_motif_barplot <- function(
       )
       if (!user_set_width) bar_args$width <- 1
 
-      p <- ggplot2::ggplot(plot_data) +
+      final_plot <- ggplot2::ggplot(plot_data) +
         do.call(ggplot2::geom_bar, bar_args) +
         ggh4x::facet_nested(~ group_label + first_base + second_base, scales = "free_x") +
         ggplot2::scale_fill_manual(values = fill_vals, name = "2nd Base") +
@@ -385,7 +385,7 @@ plot_motif_barplot <- function(
       if (!user_set_width) bar_args$width <- 0.9
       if (!"position" %in% names(dots)) bar_args$position <- ggplot2::position_dodge(preserve = "single")
 
-      p <- ggplot2::ggplot(plot_data) +
+      final_plot <- ggplot2::ggplot(plot_data) +
         do.call(ggplot2::geom_bar, bar_args) +
         ggplot2::facet_wrap(~first_base, scales = "free_x", nrow = 1) +
         ggplot2::scale_fill_manual(
@@ -414,7 +414,7 @@ plot_motif_barplot <- function(
     "Proportion"
   }
 
-  p <- p +
+  final_plot <- final_plot +
     ggplot2::labs(
       title = if (is.null(title) || is.na(title) || !nzchar(title) || identical(title, "NA")) auto_title else title,
       subtitle = plot_subtitle,
@@ -442,7 +442,7 @@ plot_motif_barplot <- function(
     out_dir <- dirname(output_path)
     if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
     ggplot2::ggsave(
-      filename = output_path, plot = p,
+      filename = output_path, plot = final_plot,
       width = ggsave_params$width,
       height = ggsave_params$height,
       units = ggsave_params$units,
@@ -452,5 +452,5 @@ plot_motif_barplot <- function(
     return(invisible(NULL))
   }
 
-  p
+  final_plot
 }

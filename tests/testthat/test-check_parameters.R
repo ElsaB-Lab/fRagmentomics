@@ -362,7 +362,7 @@ test_that("check_parameters individual parameter validations", {
   # Output folder
   expect_silent(check_output_path(NA))
   expect_silent(check_output_path(""))
-  expect_error(check_output_path(42), "'output_path' must be a single character string.")
+  expect_error(check_output_path(42), "output_path' must be a single character string.")
 
   # n_cores
   expect_error(check_n_cores(2), "must be integer")

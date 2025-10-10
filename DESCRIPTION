@@ -30,6 +30,7 @@ biocViews:
     Software,
     IndelDetection
 Suggests:
+    ragg,   
     covr,
     testthat (>= 3.0.0),
     knitr,

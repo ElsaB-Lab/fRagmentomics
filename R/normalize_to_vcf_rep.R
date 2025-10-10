@@ -112,7 +112,7 @@ normalize_to_vcf_rep <- function(
 #' Clean allele strings by removing ambiguous characters
 #'
 #' @description A helper function that removes common representations for missing or null alleles (e.g., '-', '.', '_', 'NA')
-#' from reference and alternate allele strings, converting them to empty strings ('""').
+#' from reference and alternate allele strings, converting them to empty strings ("").
 #'
 #' @inheritParams normalize_to_vcf_rep
 #'

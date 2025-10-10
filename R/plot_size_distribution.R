@@ -250,7 +250,7 @@ plot_size_distribution <- function(
   }
 
   # ---- base plot ----
-  p <- ggplot2::ggplot(df_filtered, ggplot2::aes(x = .data[[size_col]], color = .data[[col_z]]))
+  final_plot <- ggplot2::ggplot(df_filtered, ggplot2::aes(x = .data[[size_col]], color = .data[[col_z]]))
 
   # histogram layer
   if (show_histogram) {
@@ -260,38 +260,38 @@ plot_size_distribution <- function(
       binwidth = histogram_binwidth
     )
     histo_args <- .clean_args(histo_defaults, histo_args)
-    p <- p + do.call(ggplot2::geom_histogram, histo_args)
+    final_plot <- final_plot + do.call(ggplot2::geom_histogram, histo_args)
   }
 
   # density layer
   if (show_density) {
     dens_defaults <- list(na.rm = TRUE)
     density_args <- .clean_args(dens_defaults, density_args)
-    p <- p + do.call(ggplot2::geom_density, density_args)
+    final_plot <- final_plot + do.call(ggplot2::geom_density, density_args)
   }
 
   # nucleosome peaks
   if (show_nuc_peaks) {
     nuc_peaks <- c(mono = 167, di = 334, tri = 501)
-    p <- p + ggplot2::geom_vline(xintercept = nuc_peaks, linetype = "dashed", color = "grey30")
+    final_plot <- final_plot + ggplot2::geom_vline(xintercept = nuc_peaks, linetype = "dashed", color = "grey30")
   }
 
   # ---- colors ----
   group_keys <- levels(df_filtered[[col_z]])
   pal <- .resolve_group_palette(group_keys, colors_z)
   if (!is.null(pal)) {
-    p <- p + ggplot2::scale_color_manual(values = pal, name = legend_name)
-    if (show_histogram) p <- p + ggplot2::scale_fill_manual(values = pal, name = legend_name)
+    final_plot <- final_plot + ggplot2::scale_color_manual(values = pal, name = legend_name)
+    if (show_histogram) final_plot <- final_plot + ggplot2::scale_fill_manual(values = pal, name = legend_name)
   } else {
     # force consistent legend titles
-    p <- p + ggplot2::scale_color_discrete(name = legend_name)
-    if (show_histogram) p <- p + ggplot2::scale_fill_discrete(name = legend_name)
+    final_plot <- final_plot + ggplot2::scale_color_discrete(name = legend_name)
+    if (show_histogram) final_plot <- final_plot + ggplot2::scale_fill_discrete(name = legend_name)
   }
 
   # ---- labels, theme, axes ----
   y_lab <- if (show_histogram || show_density) "Density" else "Count"
   auto_title <- "Fragment Size Distribution"
-  p <- p +
+  final_plot <- final_plot +
     ggplot2::labs(
       title = if (is.null(title) || is.na(title) || !nzchar(title) || identical(title, "NA")) auto_title else title,
       x = "Fragment Size (bp)",
@@ -312,7 +312,7 @@ plot_size_distribution <- function(
     )
 
   if (!is.null(x_limits)) {
-    p <- p + ggplot2::coord_cartesian(xlim = x_limits)
+    final_plot <- final_plot + ggplot2::coord_cartesian(xlim = x_limits)
   }
 
   # ---- save if requested ----
@@ -326,12 +326,12 @@ plot_size_distribution <- function(
     gp <- utils::modifyList(defaults, ggsave_params)
 
     ggplot2::ggsave(
-      filename = output_path, plot = p,
+      filename = output_path, plot = final_plot,
       width = gp$width, height = gp$height, units = gp$units,
       dpi = gp$dpi, bg = gp$bg
     )
     return(invisible(NULL))
   }
 
-  p
+  final_plot
 }
