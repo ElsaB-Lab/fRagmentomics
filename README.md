@@ -98,6 +98,10 @@ installation from source of all dependencies.
 Rscript -e 'install.packages("remotes");remotes::install_github("ElsaB-Lab/fRagmentomics")'
 ```
 
+NOTE: If you encounter compilation issues with the command above, for instance with Rsamtools or one of its dependencies
+such as BiocParallel, you may install precompiled binaries before trying to install again via `mamba install
+-c bioconda bioconductor-rsamtools`.
+
 **2. Install from conda**
 
 ```r

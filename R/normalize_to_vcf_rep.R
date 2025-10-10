@@ -97,13 +97,10 @@ normalize_to_vcf_rep <- function(
   )
 
   if (ref_matches_fasta) {
-    if (verbose) {
-      message("Reference allele matches FASTA")
-    }
     # Return the final normalized values
     return(data.frame(chr = chr_norm, pos = pos_norm, ref = ref_norm, alt = alt_norm))
   } else {
-    warning(sprintf("Mismatch found between ref and fasta for (%s %d %s).", chr, pos, ref))
+    warning(sprintf("Mismatch found between ref and fasta for (%s %d %s). Skipping the mutation.", chr, pos, ref))
     return(NULL)
   }
 }

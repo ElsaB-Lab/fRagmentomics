@@ -158,7 +158,7 @@ run_fRagmentomics <- function(
   if (apply_bcftools_norm){
     bcftools_path <- check_bcftools_is_installed()
     if (verbose){
-      print(paste("Found bcftools at:", bcftools_path))
+      message(sprintf("Found bcftools at: '%s'.", bcftools_path))
     }
   }
 
@@ -355,7 +355,7 @@ run_fRagmentomics <- function(
       output_parent <- dirname(output_path)
       if (!dir.exists(output_parent)) {
         if (verbose) {
-          message(sprintf("Folder '%s' does not exist and will be created", output_parent))
+          message(sprintf("Folder '%s' does not exist and will be created.", output_parent))
         }
         dir.create(output_parent, showWarnings = FALSE, recursive = TRUE)
       }
@@ -363,7 +363,7 @@ run_fRagmentomics <- function(
 
     # Write the data frame to the file
     if (verbose) {
-      message(sprintf("Writing results to: %s", output_path))
+      message(sprintf("Writing results to: %s.", output_path))
     }
     write.table(
       df_fragments_info_final,

@@ -198,7 +198,8 @@ parser_tsv <- function(tsv_file) {
           REF   = readr::col_character(),
           ALT   = readr::col_character()
         ),
-        na = character()
+        na = character(),
+        progress = FALSE
       )
     },
     error = function(e) {
