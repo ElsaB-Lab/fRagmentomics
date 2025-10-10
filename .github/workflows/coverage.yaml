@@ -1,6 +1,7 @@
 name: Test & Coverage
 
 on:
+  workflow_dispatch:  
   push:
     branches: [main]
   pull_request:
@@ -9,6 +10,8 @@ on:
 jobs:
   covr:
     runs-on: ubuntu-latest
+    env:
+      R_BUILD_VIGNETTES: "false"
 
     steps:
       - uses: actions/checkout@v3
@@ -19,8 +22,7 @@ jobs:
           r-version: '4.3.3'
 
       - name: Check R version
-        run: |
-          Rscript --version
+        run: Rscript --version
         shell: bash
 
       - name: Install system dependencies (including bcftools)
@@ -33,31 +35,31 @@ jobs:
             bcftools
         shell: bash
 
-      - name: Install R package dependencies (including rcmdcheck)
+      - name: Install R package dependencies (including rcmdcheck & covr)
         run: |
-          install.packages(c("rcmdcheck", "remotes", "BiocManager"), repos = "https://cloud.r-project.org", Ncpus = 2)
+          install.packages(c("rcmdcheck", "remotes", "BiocManager", "covr"), repos = "https://cloud.r-project.org", Ncpus = 2)
           options(repos = BiocManager::repositories())
           BiocManager::install(ask = FALSE, update = FALSE)
           remotes::install_deps(dependencies = TRUE, Ncpus = 2)
-          if (!requireNamespace("rcmdcheck", quietly = TRUE)) {
-            stop("rcmdcheck package is required but was not installed.")
-          }
+          if (!requireNamespace("rcmdcheck", quietly = TRUE)) stop("rcmdcheck package is required but was not installed.")
         shell: Rscript {0}
 
       - name: Check package using rcmdcheck (runs tests)
         run: |
           options(crayon.enabled = TRUE)
-          # Test failures will be reported in detail in the output of this command.
-          check_results <- rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-build-vignettes", "--as-cran"), error_on = "warning")
+          rcmdcheck::rcmdcheck(
+            args       = c("--no-manual", "--as-cran"),
+            build_args = c("--no-build-vignettes"),
+            error_on   = "warning"
+          )
         shell: Rscript {0}
 
       - name: Calculate and upload coverage (only if check passed)
+        if: ${{ !env.ACT }}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
-          if (!requireNamespace("covr", quietly = TRUE)) {
-            stop("covr package not found. It should have been installed from Suggests.")
-          }
+          if (!requireNamespace("covr", quietly = TRUE)) stop("covr not found")
           cov <- covr::package_coverage(type = "tests")
           print(cov)
           covr::codecov(coverage = cov, token = Sys.getenv("CODECOV_TOKEN"))

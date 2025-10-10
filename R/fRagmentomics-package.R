@@ -14,7 +14,7 @@ NULL
 #' fragment overlapping one or multiple mutations of interest, starting from a
 #' sequencing file containing aligned reads (BAM file). fRagmentomics supports
 #' multiple mutation input formats (e.g., VCF, TSV, or string
-#' “chr:pos:ref:alt” representation), accommodates one-based and zero-based
+#' "chr:pos:ref:alt" representation), accommodates one-based and zero-based
 #' genomic conventions, handles mutation representation ambiguities, and accepts
 #' any reference file and species in FASTA format.
 #'

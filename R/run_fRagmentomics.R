@@ -130,8 +130,7 @@ run_fRagmentomics <- function(
   report_5p_3p_bases_fragment <- as.integer(report_5p_3p_bases_fragment)
   n_cores <- as.integer(n_cores)
 
-  # Check if bam and fasta exist
-  # Check if fasta is indexed
+  # Check if all params pass QC
   check_parameters(
     mut,
     bam,

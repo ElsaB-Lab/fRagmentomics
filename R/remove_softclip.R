@@ -23,7 +23,7 @@ remove_softclip <- function(read_stats) {
     softclip_3p <- str_match(cigar, "(\\d+)S(?:\\d+H)?$")
     n_softclip_3p <- if (is.na(softclip_3p[1, 2])) 0 else as.integer(softclip_3p[1, 2])
 
-    # Trim sequence et quality
+    # Trim sequence and quality
     seq_len <- nchar(seq)
     new_seq <- substr(seq,
         start = n_softclip_5p + 1,

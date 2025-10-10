@@ -257,7 +257,7 @@ plot_motif_barplot <- function(
 
   analysis_df <- dplyr::bind_rows(motifs_list) %>%
     tidyr::drop_na(motif) %>%
-    dplyr::mutate(motif = stringr::str_sub(motif, 1, motif_size)) %>% # conserve ton esthétique/choix
+    dplyr::mutate(motif = stringr::str_sub(motif, 1, motif_size)) %>%
     dplyr::filter(stringr::str_detect(motif, "^[ACGT]{3}$"))
 
   if (!is.null(motif_start)) {
