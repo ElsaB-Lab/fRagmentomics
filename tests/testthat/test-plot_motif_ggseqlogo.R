@@ -14,16 +14,16 @@
 
 df_motif_sample <- data.frame(
   Fragment_Bases_5p = c(
-    "ACGT", "ACGG", "AGTA", "CCTT",        # Short
-    "TGCAT", "TGAAC", "TGCAC", NA,         # Long
-    "GATTACA", "GATTANA",                  # Mixed (with 'N' later in string)
-    "GC"                                   # Short entry (too short for k=3)
+    "ACGT", "ACGG", "AGTA", "CCTT", # Short
+    "TGCAT", "TGAAC", "TGCAC", NA, # Long
+    "GATTACA", "GATTANA", # Mixed (with 'N' later in string)
+    "GC" # Short entry (too short for k=3)
   ),
   Fragment_Bases_3p = c(
-    "TGCA", "CCGG", "TACT", "AAGG",        # Short
-    "ATGCA", "GTTCA", "GTGCA", "A",        # Long (one too short)
-    "TACAATG", "TANAATG",                  # Mixed (one has N)
-    "CG"                                   # Short
+    "TGCA", "CCGG", "TACT", "AAGG", # Short
+    "ATGCA", "GTTCA", "GTGCA", "A", # Long (one too short)
+    "TACAATG", "TANAATG", # Mixed (one has N)
+    "CG" # Short
   ),
   Fragment_Status_Simple = c(
     rep("Short", 4),
@@ -41,7 +41,9 @@ df_motif_sample <- data.frame(
 }
 
 .to_hex <- function(cols) {
-  if (length(cols) == 0) return(character(0))
+  if (length(cols) == 0) {
+    return(character(0))
+  }
   m <- grDevices::col2rgb(cols)
   apply(m, 2L, function(v) grDevices::rgb(v[1], v[2], v[3], maxColorValue = 255))
 }
@@ -59,13 +61,13 @@ test_that("errors for invalid arguments", {
   expect_error(
     plot_qqseqlogo_meme(df_motif_sample, col_z = "NonExistentCol"),
     regexp = "Column 'NonExistentCol' not found in the dataframe.",
-    fixed  = TRUE
+    fixed = TRUE
   )
 
   # Invalid motif_type
   expect_error(
     plot_qqseqlogo_meme(df_motif_sample, motif_type = "InvalidType"),
-    regexp = "'motif_type' must be 'Start', 'End', or 'Both'\\."
+    regexp = "motif_type' must be 'Start', 'End', or 'Both'\\."
   )
 })
 
@@ -99,7 +101,7 @@ test_that("ungrouped and grouped analyses return ggplot and facet labels", {
   labs <- as.character(unique(layout_g[[group_col_g]]))
   # Ensure both groups appear with counts, but don't pin the exact N
   expect_true(any(grepl("^Short \\(N=\\d+\\)$", labs)))
-  expect_true(any(grepl("^Long \\(N=\\d+\\)$",  labs)))
+  expect_true(any(grepl("^Long \\(N=\\d+\\)$", labs)))
 })
 
 # ============== 3) Motif extraction and handling =============================
@@ -135,7 +137,7 @@ test_that("warnings: motif_size capped when too large; short sequences per-group
     plot_qqseqlogo_meme(df_motif_sample, motif_type = "Start", motif_size = 3)
   )
   expect_true(
-    any(grepl("Requested 'motif_size'", wrn_start)),
+    any(grepl("Requested 'motif_size", wrn_start)),
     info = paste("Warnings seen (Start):", paste(wrn_start, collapse = " | "))
   )
 
@@ -144,7 +146,7 @@ test_that("warnings: motif_size capped when too large; short sequences per-group
     plot_qqseqlogo_meme(df_motif_sample, motif_type = "End", motif_size = 3, vals_z = "Long")
   )
   expect_true(
-    any(grepl("Requested 'motif_size'", wrn_end)) ||
+    any(grepl("Requested 'motif_size", wrn_end)) ||
       any(grepl("removed \\d+ 3' sequences shorter than motif_size", wrn_end)),
     info = paste("Warnings seen (End):", paste(wrn_end, collapse = " | "))
   )
@@ -211,12 +213,12 @@ test_that("RColorBrewer palette name uses four A/C/G/T colors", {
 
 test_that("named vector must include A/C/G/T; unnamed must have 4 colors; invalid palette name errors meaningfully", {
   expect_error(
-    suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = c(A="blue", C="red"))),
+    suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = c(A = "blue", C = "red"))),
     regexp = "Custom colors are incomplete: missing G, T\\."
   )
 
   expect_error(
-    suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = c("red","green","blue"))),
+    suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = c("red", "green", "blue"))),
     regexp = "An unnamed vector must contain exactly 4 colors \\(received: 3\\)\\."
   )
 
@@ -229,7 +231,7 @@ test_that("named vector must include A/C/G/T; unnamed must have 4 colors; invali
 
 test_that("user-supplied col_scheme in ... takes precedence over colors_z", {
   cs <- ggseqlogo::make_col_scheme(
-    chars = c("A","C","G","T"),
+    chars = c("A", "C", "G", "T"),
     cols  = c("#111111", "#222222", "#333333", "#444444")
   )
   p <- plot_qqseqlogo_meme(

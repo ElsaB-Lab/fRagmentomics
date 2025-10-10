@@ -243,7 +243,7 @@ parser_tsv <- function(tsv_file) {
 
 #' Parse a string for variant information
 #'
-#' @description This low-level parser reads a '"chr:pos:ref:alt"' formatted string, performs basic structural checks,
+#' @description This low-level parser reads a "chr:pos:ref:alt" formatted string, performs basic structural checks,
 #' and extracts the four components into a data frame. It does not expand multi-allelic sites.
 #'
 #' @param mut String chr:pos:ref:alt

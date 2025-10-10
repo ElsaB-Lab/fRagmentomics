@@ -29,9 +29,9 @@ echo -e "\nChecking for function names that are strictly included in others..."
 for ((i = 0; i < ${#sorted_functions[@]}; i++)); do
     for ((j = i + 1; j < ${#sorted_functions[@]}; j++)); do
         if [[ "${sorted_functions[i]}" == *"${sorted_functions[j]}"* && "${sorted_functions[i]}" != "${sorted_functions[j]}" ]]; then
-            echo "Warning: '${sorted_functions[j]}' is strictly included in '${sorted_functions[i]}'"
+            echo "Warning: '${sorted_functions[j]}' is strictly included in '${sorted_functions[i]}"
         elif [[ "${sorted_functions[j]}" == *"${sorted_functions[i]}"* && "${sorted_functions[i]}" != "${sorted_functions[j]}" ]]; then
-            echo "Warning: '${sorted_functions[i]}' is strictly included in '${sorted_functions[j]}'"
+            echo "Warning: '${sorted_functions[i]}' is strictly included in '${sorted_functions[j]}"
         fi
     done
 done

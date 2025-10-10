@@ -4,16 +4,16 @@
 
 df_barplot_sample <- data.frame(
   Fragment_Bases_5p = c(
-    "ACG", "ACT", "AGA",   # GroupA
-    "AGT", "CAT", "CCT",   # GroupB
-    "GAT", "GGT", "TGA",   # GroupC
-    "NNN", "ANC", NA       # Invalid motifs spread across groups
+    "ACG", "ACT", "AGA", # GroupA
+    "AGT", "CAT", "CCT", # GroupB
+    "GAT", "GGT", "TGA", # GroupC
+    "NNN", "ANC", NA # Invalid motifs spread across groups
   ),
   Fragment_Bases_3p = c(
-    "TGA", "TCA", "TCT",   # GroupA
-    "TGT", "GTA", "AGG",   # GroupB
-    "ATC", "ACC", "TCA",   # GroupC
-    "TCA", "ANT", "CCT"    # Invalid motifs
+    "TGA", "TCA", "TCT", # GroupA
+    "TGT", "GTA", "AGG", # GroupB
+    "ATC", "ACC", "TCA", # GroupC
+    "TCA", "ANT", "CCT" # Invalid motifs
   ),
   Fragment_Status_Simple = c(
     "GroupA", "GroupA", "GroupA",
@@ -26,7 +26,9 @@ df_barplot_sample <- data.frame(
 
 # small helper for robust color comparison (works with hex & named)
 .normalise_hex <- function(cols) {
-  if (length(cols) == 0) return(character(0))
+  if (length(cols) == 0) {
+    return(character(0))
+  }
   m <- grDevices::col2rgb(cols)
   # col2rgb returns a matrix with a column per color
   apply(m, 2L, function(v) {
@@ -39,7 +41,7 @@ df_barplot_sample <- data.frame(
 test_that("invalid arguments and inconsistent parameters error out", {
   expect_error(
     plot_motif_barplot(df_barplot_sample, representation = "invalid_type"),
-    regexp = "'representation' must be one of: differential, split_by_base, split_by_motif"
+    regexp = "representation' must be one of: differential, split_by_base, split_by_motif"
   )
 
   expect_error(
@@ -50,7 +52,7 @@ test_that("invalid arguments and inconsistent parameters error out", {
   expect_error(
     plot_motif_barplot(df_barplot_sample, col_z = "NonExistentColumn"),
     regexp = "Column 'NonExistentColumn' not found in the dataframe.",
-    fixed  = TRUE
+    fixed = TRUE
   )
 })
 
@@ -65,8 +67,10 @@ test_that("representation-specific requirements are enforced", {
     regexp = "Differential analysis requires exactly two values in 'vals_z'\\."
   )
   expect_error(
-    plot_motif_barplot(df_barplot_sample, representation = "differential",
-                       vals_z = c("GroupA", "GroupB", "GroupC")),
+    plot_motif_barplot(df_barplot_sample,
+      representation = "differential",
+      vals_z = c("GroupA", "GroupB", "GroupC")
+    ),
     regexp = "Differential analysis requires exactly two values in 'vals_z'\\."
   )
 })
@@ -104,7 +108,7 @@ test_that("default 'split_by_base' representation builds FacetNested and accepts
   )
 })
 
-test_that("'split_by_motif' representation facets by wrap, rotates x text, and uses expected title", {
+test_that("'plit_by_motif' representation facets by wrap, rotates x text, and uses expected title", {
   p <- plot_motif_barplot(df_barplot_sample, representation = "split_by_motif")
   expect_s3_class(p, "ggplot")
   expect_s3_class(p$facet, "FacetWrap")
@@ -112,7 +116,7 @@ test_that("'split_by_motif' representation facets by wrap, rotates x text, and u
   expect_identical(p$labels$title, "Motif Proportions by Group")
 })
 
-test_that("'differential' representation: labels, facets, data columns, and custom colors", {
+test_that("'Differential' representation: labels, facets, data columns, and custom colors", {
   p <- plot_motif_barplot(
     df_barplot_sample,
     representation = "differential",
@@ -133,7 +137,7 @@ test_that("'differential' representation: labels, facets, data columns, and cust
   )
   built_col <- ggplot2::ggplot_build(p_col)
   used_norm <- unique(.normalise_hex(built_col$data[[1]]$fill))
-  exp_norm  <- .normalise_hex(c("navy", "tomato"))
+  exp_norm <- .normalise_hex(c("navy", "tomato"))
   # used colors must be a subset of the two expected (sometimes only one sign appears)
   expect_true(all(used_norm %in% exp_norm))
 })
@@ -183,7 +187,8 @@ test_that("extra aesthetics in ... are passed to the first bar layer; width defa
   expect_s3_class(p_lin, "ggplot")
 
   p_diff_lin <- plot_motif_barplot(
-    df_barplot_sample, representation = "differential",
+    df_barplot_sample,
+    representation = "differential",
     vals_z = c("GroupA", "GroupB"),
     linetype = "dashed"
   )
@@ -192,8 +197,10 @@ test_that("extra aesthetics in ... are passed to the first bar layer; width defa
   p_base <- plot_motif_barplot(df_barplot_sample)
   expect_s3_class(p_base, "ggplot")
 
-  p_diff <- plot_motif_barplot(df_barplot_sample, representation = "differential",
-                               vals_z = c("GroupA", "GroupB"))
+  p_diff <- plot_motif_barplot(df_barplot_sample,
+    representation = "differential",
+    vals_z = c("GroupA", "GroupB")
+  )
   expect_s3_class(p_diff, "ggplot")
 
   p_motif <- plot_motif_barplot(df_barplot_sample, representation = "split_by_motif")
@@ -211,7 +218,7 @@ test_that("named colors for split_by_motif map by base group names (without N=..
   )
   built <- ggplot2::ggplot_build(p)
   used_norm <- unique(.normalise_hex(built$data[[1]]$fill))
-  exp_norm  <- .normalise_hex(c("black", "grey50", "grey80"))
+  exp_norm <- .normalise_hex(c("black", "grey50", "grey80"))
   expect_true(all(used_norm %in% exp_norm))
 })
 

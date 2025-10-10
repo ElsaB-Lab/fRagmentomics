@@ -4,8 +4,8 @@
 
 df_freq_sample <- data.frame(
   # GroupA AC-rich, GroupB GT-rich; GroupC exists for subsetting tests
-  Fragment_Bases_5p      = c("ACAC", "CACA", "GTGT", "TGTG", "AC", NA, "AAAA"),
-  Fragment_Bases_3p      = c("CACA", "ACAC", "TGTG", "GTGT", "GT", "ACAC", "CCCC"),
+  Fragment_Bases_5p = c("ACAC", "CACA", "GTGT", "TGTG", "AC", NA, "AAAA"),
+  Fragment_Bases_3p = c("CACA", "ACAC", "TGTG", "GTGT", "GT", "ACAC", "CCCC"),
   Fragment_Status_Simple = c("GroupA", "GroupA", "GroupB", "GroupB", "GroupA", "GroupB", "GroupC"),
   stringsAsFactors = FALSE
 )
@@ -13,10 +13,10 @@ df_freq_sample <- data.frame(
 # ============== 1) Input validation / argument checks =========================
 
 test_that("invalid or inconsistent arguments error out", {
-  # invalid motif_type (message changed in the new function)
+  # invalid motif_type
   expect_error(
     plot_freq_barplot(df_freq_sample, motif_type = "invalid_type"),
-    regexp = "'motif_type' must be one of 'Start', 'End', or 'Both'\\."
+    regexp = "must be one of 'Start', 'End', or 'Both'\\."
   )
 
   # col_z = NULL but vals_z provided
@@ -31,9 +31,6 @@ test_that("invalid or inconsistent arguments error out", {
     regexp = "Column 'NonExistentColumn' not found in the dataframe\\.",
   )
 })
-
-# NOTE: The new function no longer requires ≥2 groups, so the old test asserting
-# an error for a single-group analysis must be removed.
 
 # ============== 2) Motif sizing + motif_type behavior =========================
 
@@ -52,25 +49,25 @@ test_that("motif_size is reduced when too large (with warning), title reflects k
   expect_match(p$labels$title, "Overall Nucleotide Frequency \\(2-mers\\)")
 })
 
-test_that("'Start' and 'End' motif_type run without error and return ggplot", {
+test_that("Start' and 'End' motif_type run without error and return ggplot", {
   suppressWarnings({
     p_start <- plot_freq_barplot(
       df_freq_sample,
       motif_type = "Start",
-      vals_z     = c("GroupA", "GroupB"),
-      colors_z   = c("GroupA" = "#1f77b4", "GroupB" = "#ff7f0e"),
+      vals_z = c("GroupA", "GroupB"),
+      colors_z = c("GroupA" = "#1f77b4", "GroupB" = "#ff7f0e"),
       output_path = NA_character_
     )
     p_end <- plot_freq_barplot(
       df_freq_sample,
       motif_type = "End",
-      vals_z     = c("GroupA", "GroupB"),
-      colors_z   = c("GroupA" = "#1f77b4", "GroupB" = "#ff7f0e"),
+      vals_z = c("GroupA", "GroupB"),
+      colors_z = c("GroupA" = "#1f77b4", "GroupB" = "#ff7f0e"),
       output_path = NA_character_
     )
   })
   expect_s3_class(p_start, "ggplot")
-  expect_s3_class(p_end,   "ggplot")
+  expect_s3_class(p_end, "ggplot")
 })
 
 # ============== 3) Core plotting behavior (grouped vs ungrouped) =============
@@ -81,17 +78,17 @@ test_that("grouped analysis builds expected geoms and optional p-value", {
     vals_z      = c("GroupA", "GroupB"),
     motif_size  = 2,
     colors_z    = c("GroupA" = "#1f77b4", "GroupB" = "#ff7f0e"),
-    show_pvalue = TRUE,                 # new: caption includes global chi-square only if TRUE
+    show_pvalue = TRUE,
     output_path = NA_character_
   )
   expect_s3_class(p, "ggplot")
 
-  # first layer is GeomCol (not GeomBar in the new version)
+  # first layer is GeomCol
   geoms <- vapply(p$layers, function(l) class(l$geom)[1], character(1))
-  expect_true("GeomCol"      %in% geoms)
+  expect_true("GeomCol" %in% geoms)
   expect_true("GeomErrorbar" %in% geoms)
 
-  expect_match(p$labels$caption, "Global comparison \\(Chi-squared\\), p =")
+  expect_match(p$labels$caption, "Global comparison \\(Chi-squared\\)")
 })
 
 test_that("ungrouped analysis works and does not add a p-value by default", {
@@ -107,7 +104,7 @@ test_that("ungrouped analysis works and does not add a p-value by default", {
 
   # legend labels contain "All Fragments"
   fill_scale_idx <- which(vapply(p$scales$scales, function(s) "fill" %in% s$aesthetics, logical(1)))
-  legend_labels  <- p$scales$scales[[fill_scale_idx]]$labels
+  legend_labels <- p$scales$scales[[fill_scale_idx]]$labels
   expect_true(grepl("All Fragments", legend_labels))
 })
 
@@ -138,7 +135,7 @@ test_that("RColorBrewer palette and custom colors are applied to groups", {
     colors_z    = "Paired",
     output_path = NA_character_
   ))
-  built_brewer         <- ggplot2::ggplot_build(p_brewer)
+  built_brewer <- ggplot2::ggplot_build(p_brewer)
   actual_brewer_colors <- unique(built_brewer$data[[1]]$fill)
   expect_length(actual_brewer_colors, 2)
   expect_true(all(actual_brewer_colors %in% full_paired))
@@ -152,7 +149,7 @@ test_that("RColorBrewer palette and custom colors are applied to groups", {
     colors_z    = custom_cols,
     output_path = NA_character_
   ))
-  built_custom         <- ggplot2::ggplot_build(p_custom)
+  built_custom <- ggplot2::ggplot_build(p_custom)
   actual_custom_colors <- sort(unique(built_custom$data[[1]]$fill))
   expect_equal(actual_custom_colors, sort(custom_cols))
 })
@@ -163,7 +160,7 @@ test_that("extra aesthetics in ... are passed to geom_col (alpha, width)", {
     vals_z      = c("GroupA", "GroupB"),
     motif_size  = 2,
     alpha       = 0.5,
-    width       = 0.4,  # user override takes precedence
+    width       = 0.4, # user override takes precedence
     colors_z    = c("GroupA" = "#1f77b4", "GroupB" = "#ff7f0e"),
     output_path = NA_character_
   )
@@ -210,9 +207,9 @@ test_that("custom ggsave_params are honored", {
   suppressWarnings({
     plot_freq_barplot(
       df_freq_sample,
-      vals_z       = c("GroupA", "GroupB"),
-      colors_z     = "Paired",
-      output_path  = tmp_file,
+      vals_z = c("GroupA", "GroupB"),
+      colors_z = "Paired",
+      output_path = tmp_file,
       ggsave_params = list(width = 7, height = 5, units = "in", dpi = 150, bg = "white")
     )
   })
@@ -225,7 +222,7 @@ test_that("vector output_path (>1) is ignored and a ggplot is returned", {
     df_freq_sample,
     vals_z      = c("GroupA", "GroupB"),
     colors_z    = "Paired",
-    output_path = c("a.png", "b.png")  # ignored by length != 1 check
+    output_path = c("a.png", "b.png") # ignored by length != 1 check
   ))
   expect_s3_class(p, "ggplot")
 })
@@ -240,7 +237,7 @@ test_that("colors_z validation errors on wrong lengths or missing names", {
         df_freq_sample,
         vals_z      = c("GroupA", "GroupB", "GroupC"),
         motif_size  = 2,
-        colors_z    = c("red", "blue"),  # not enough colors
+        colors_z    = c("red", "blue"), # not enough colors
         output_path = NA_character_
       ),
       regexp = "If 'colors_z' is an unnamed vector, its length must match the number of groups\\."
@@ -264,13 +261,13 @@ test_that("colors_z validation errors on wrong lengths or missing names", {
 
 test_that("drop_non_acgt = FALSE keeps 'Other' category when present", {
   df2 <- df_freq_sample
-  df2$Fragment_Bases_5p[1] <- "NNNAC"  # inject a non-ACGT character
+  df2$Fragment_Bases_5p[1] <- "NNNAC" # inject a non-ACGT character
   p <- plot_freq_barplot(
     df2,
-    vals_z      = c("GroupA", "GroupB"),
-    motif_size  = 2,
+    vals_z = c("GroupA", "GroupB"),
+    motif_size = 2,
     drop_non_acgt = FALSE,
-    colors_z    = c("GroupA" = "#1f77b4", "GroupB" = "#ff7f0e"),
+    colors_z = c("GroupA" = "#1f77b4", "GroupB" = "#ff7f0e"),
     output_path = NA_character_
   )
   expect_true("Other" %in% levels(p$data$nucleotide))

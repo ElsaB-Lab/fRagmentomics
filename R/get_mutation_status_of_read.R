@@ -16,11 +16,11 @@
 #' @return
 #' A character string indicating the mutational status of the read. Possible values include:
 #' \itemize{
-#'  \item '"WT"': Wild-Type. The read matches the reference sequence.
-#'  \item '"MUT"': Mutant. The read matches the alternate allele.
-#'  \item '"AMB"': Ambiguous. The read is too short or the context is too complex to definitively assign a status.
-#'  \item '"OTH"': Other. An alteration is found, but it is not the one of interest.
-#'  \item For INDELs, the status may be combined with a descriptive message (e.g., '"AMB by cigar-free search..."').
+#'  \item "WT": Wild-Type. The read matches the reference sequence.
+#'  \item "MUT": Mutant. The read matches the alternate allele.
+#'  \item "AMB": Ambiguous. The read is too short or the context is too complex to definitively assign a status.
+#'  \item "OTH": Other. An alteration is found, but it is not the one of interest.
+#'  \item For INDELs, the status may be combined with a descriptive message (e.g., "AMB by cigar-free search...").
 #' }
 #'
 #' @keywords internal

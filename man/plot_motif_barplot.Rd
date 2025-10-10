@@ -37,18 +37,18 @@ plot_motif_barplot(
 
 \item{representation}{Character string. The type of plot to generate.
 \itemize{
-\item '"split_by_base"' (default): A proportion plot with hierarchical axes, splitting motifs by each base position into facets.
-\item '"differential"': A log2 fold change plot comparing two groups.
-\item '"split_by_motif"': A proportion plot with motifs on the x-axis, with bars for different groups placed side-by-side.
+\item "split_by_base" (default): A proportion plot with hierarchical axes, splitting motifs by each base position into facets.
+\item "differential": A log2 fold change plot comparing two groups.
+\item "split_by_motif": A proportion plot with motifs on the x-axis, with bars for different groups placed side-by-side.
 }}
 
 \item{...}{Additional arguments passed on to 'ggplot2::geom_bar()'.}
 
 \item{colors_z}{Colors for the representation:
 \itemize{
-\item For '"split_by_base"': 4 colors for A/C/G/T, or a single RColorBrewer palette name.
-\item For '"differential"': 2 colors for 'Positive'/'Negative' (named vector or palette).
-\item For '"split_by_motif"': colors per group (palette, unnamed vector, or a vector named by group names).
+\item For "split_by_base": 4 colors for A/C/G/T, or a single RColorBrewer palette name.
+\item For "differential": 2 colors for 'Positive'/'Negative' (named vector or palette).
+\item For "split_by_motif": colors per group (palette, unnamed vector, or a vector named by group names).
 }}
 
 \item{title}{Character or NA. Plot title; if NULL/NA/"NA"/empty, a default title is used.}
