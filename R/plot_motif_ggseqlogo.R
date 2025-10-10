@@ -77,7 +77,6 @@
 #' print(p2)
 #'
 #' # 3) Custom colors using an RColorBrewer palette (first 4 colors mapped to A/C/G/T).
-#' #    Note: the '-' separator in 'Both' is not colored.
 #' p3 <- plot_qqseqlogo_meme(
 #'   df_fragments = example_df,
 #'   motif_type   = "Both",

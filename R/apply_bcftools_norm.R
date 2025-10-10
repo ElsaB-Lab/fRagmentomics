@@ -93,7 +93,6 @@ apply_bcftools_norm <- function(chr, pos, ref, alt, fasta, tmp_folder, verbose) 
       }
 
       # Read normalized VCF into a df
-      # On capture l'éventuelle erreur si le parsing échoue
       normalized_variants <- parser_vcf(tmp_out_vcf)
     }
   }
@@ -101,7 +100,6 @@ apply_bcftools_norm <- function(chr, pos, ref, alt, fasta, tmp_folder, verbose) 
   # Return the dataframe with normalized variant data (ou NULL si erreur)
   normalized_variants
 }
-
 
 #' Create a temporary VCF file
 #'

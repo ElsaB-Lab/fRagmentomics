@@ -45,7 +45,7 @@ test_that("sanity check read mut", {
     info = "At least one warning 'Invalid row' was expected"
   )
 
-  # --- 2. Test si POS est string ---
+  # --- 2. Test if POS is a string ---
   valid_mut_info2 <- data.frame(
     CHROM = c("chr9", "chrX", "chrY"),
     POS = c("181920", "", "."),
