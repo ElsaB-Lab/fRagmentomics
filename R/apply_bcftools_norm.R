@@ -1,12 +1,30 @@
+#' Check that bcftools system dependency is available.
+#'
+#' @keywords internal
+check_bcftools_is_installed <- function() {
+  bcftools_path <- Sys.which("bcftools")
+  if (bcftools_path == "") {
+    stop(
+      "bcftools is not in your PATH.\n",
+      "Please install it and ensure it's available in your system's PATH.\n",
+      "See the package vignette for installation instructions."
+    )
+  }
+  return(bcftools_path)
+}
+
+
 #' Normalize a single variant using bcftools norm
 #'
 #' @description This function normalizes a single variant by leveraging the external 'bcftools norm' command. It writes
 #' the variant to a temporary VCF file, executes 'bcftools norm' for left-alignment and parsimonious representation,
 #' and then reads the normalized result back into a data frame.
 #'
-#' @inheritParams normalize_to_vcf_rep
-#' @param fasta Character vector for the folder temporary path.
-#' @param tmp_folder Character vector for the folder temporary path.
+#' @inheritParams normalize_mut
+#' @param chr A string representing the chromosome.
+#' @param pos An integer representing the position.
+#' @param ref A string representing the reference allele.
+#' @param alt A string representing the alternative allele.
 #'
 #' @return A dataframe containing normalized variant information with bcftools.
 #'

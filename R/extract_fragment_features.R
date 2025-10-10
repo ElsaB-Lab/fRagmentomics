@@ -192,7 +192,7 @@ extract_fragment_features <- function(df_sam,
   # Put sample if not NA
   # -------------------------------
   if (!is.na(sample_id)) {
-    as.character(final_row_fragment$Sample_Id <- sample_id)
+    final_row_fragment <- c(list(Sample_Id = as.character(sample_id)), final_row_fragment)
   }
 
   # -------------------------------
@@ -221,14 +221,14 @@ extract_fragment_features <- function(df_sam,
       read_stats_3p$QUAL
     )
 
-    as.character(final_row_fragment$Fragment_Bases_5p <-
-      fragment_bases_5p_3p$fragment_bases_5p)
-    as.character(final_row_fragment$Fragment_Bases_3p <-
-      fragment_bases_5p_3p$fragment_bases_3p)
-    as.character(final_row_fragment$Fragment_Basqs_5p <-
-      fragment_bases_5p_3p$fragment_basqs_5p)
-    as.character(final_row_fragment$Fragment_Basqs_3p <-
-      fragment_bases_5p_3p$fragment_basqs_3p)
+    final_row_fragment$Fragment_Bases_5p <-
+      as.character(fragment_bases_5p_3p$fragment_bases_5p)
+    final_row_fragment$Fragment_Bases_3p <-
+      as.character(fragment_bases_5p_3p$fragment_bases_3p)
+    final_row_fragment$Fragment_Basqs_5p <-
+      as.character(fragment_bases_5p_3p$fragment_basqs_5p)
+    final_row_fragment$Fragment_Basqs_3p <-
+      as.character(fragment_bases_5p_3p$fragment_basqs_3p)
   }
 
   # -------------------------------
@@ -242,10 +242,10 @@ extract_fragment_features <- function(df_sam,
       read_stats_3p$CIGAR
     )
 
-    as.integer(final_row_fragment$Nb_Fragment_Bases_Softclip_5p <-
-      fragment_bases_softclip_5p_3p$nb_softclip_5p)
-    as.integer(final_row_fragment$Nb_Fragment_Bases_Softclip_3p <-
-      fragment_bases_softclip_5p_3p$nb_softclip_3p)
+    final_row_fragment$Nb_Fragment_Bases_Softclip_5p <-
+      as.integer(fragment_bases_softclip_5p_3p$nb_softclip_5p)
+    final_row_fragment$Nb_Fragment_Bases_Softclip_3p <-
+      as.integer(fragment_bases_softclip_5p_3p$nb_softclip_3p)
   }
 
   # Add VAF column

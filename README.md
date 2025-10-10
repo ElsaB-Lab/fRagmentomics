@@ -3,6 +3,33 @@
 ![Version](https://img.shields.io/badge/version-0.99.0-blue)
 [![codecov](https://codecov.io/gh/ElsaB-Lab/fRagmentomics/graph/badge.svg?token=OMTSCRO7LJ)](https://codecov.io/gh/ElsaB-Lab/fRagmentomics)
 
+* [Overview](#overview)
+* [Installation](#installation)
+    * [Prerequisites](#prerequisites)
+    * [System Dependencies](#system-dependencies)
+    * [R Package Installation](#r-package-installation)
+* [Quick Start](#quick-start)
+* [Visualizations](#visualizations)
+    * [1. Fragment Size Distribution](#1-fragment-size-distribution)
+    * [2. End Motif Sequence Logos](#2-end-motif-sequence-logos)
+    * [3. Overall Nucleotide Frequency](#3-overall-nucleotide-frequency)
+    * [4. Detailed 3-Base Motif Proportions](#4-detailed-3-base-motif-proportions)
+* [Input](#input)
+* [Workflow](#workflow)
+* [Output](#output)
+    * [All columns](#all-columns)
+    * [¹ Details on `BASE` and `BASQ` Columns](#-details-on-base-and-basq-columns)
+    * [² Details on Variant Allele Frequency (`VAF`) Calculation](#-details-on-variant-allele-frequency-vaf-calculation)
+* [Explanation of Mutational Status assignment](#explanation-of-mutational-status-assignment)
+    * [The Challenge: Ambiguity in Short Reads](#the-challenge-ambiguity-in-short-reads)
+    * [The fRagmentomics Solution: Context-Aware Comparison](#the-fragmentomics-solution-context-aware-comparison)
+    * [Definition of Fragment Status](#definition-of-fragment-status)
+* [Explanation of Fragment Size](#explanation-of-fragment-size)
+    * [An Indel-Aware Method](#an-indel-aware-method)
+    * [Handling Soft-Clipped Bases](#handling-soft-clipped-bases)
+* [Contributing and Bug Reports](#contributing-and-bug-reports)
+* [License](#license)
+
 ## Overview
 
 Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. However, the majority of cfDNA originates
@@ -17,12 +44,25 @@ compared to healthy cfDNA fragments (see [Snyder et al. Cancer Cell. 2016](https
 
 With the growing interest in the characteristics of cfDNA fragments,  i.e "fragmentomics", some tools have been
 published to analyse fragmentomic features ([Wang et al. Genome Biol.
-2025](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-025-03607-5)). However, few tools are publicly
-available and, to our knowledge, there is not yet a tool for both extracting fragmentomics and retrieving the mutation
-status of fragments for the complete set of possible small mutations, i.e SNV, MNV, and indel. *fRagmentomics* addresses
-this challenge and allows us to extract a  (fragment length, 5′/3′ end motifs, inner distance, aligned position, etc.) and its mutational status, whether a single-nucleotide variant (SNV), a multi-nucleotide variant (MNV), an insertion or a deletion (indel). Indeed, indels play a key role in precision oncology, whereby for example deletions in exon 19 of the epidermal growth factor receptor (EGFR) gene identify patients with non-small-cell lung cancer who respond to gefitinib ([Lynch et al. N Engl J Med. 2004](https://www.nejm.org/doi/full/10.1056/NEJMoa040938)). The main reason for this is that the genotyping of each individual fragment using predefined mutations is quite challenging for indels due to the multiple alignment representations ([Tan et al. Bioinformatics. 2015](https://academic.oup.com/bioinformatics/article/31/13/2202/196142?login=true)) and because short reads may only partially cover indel contexts, especially in repetitive sequence, leading to ambiguous evidence. ([Narzisi et al. Frontiers. 2015](https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2015.00008/full)). Additionally, the calculation of the exact fragment size is in practice more involved than a simple difference between the aligned positions of the fragment boundaries ([official SAM/BAM file format documentation](https://samtools.github.io/hts-specs/SAMv1.pdf)).
+2025](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-025-03607-5)). However, only a few tools are
+currently available, and to our knowledge, none provide an integrated solution for both extracting fragmentomic features
+and determining the mutational status of individual fragments across all classes of small variants, namely
+single-nucleotide variants (SNVs), multinucleotide variants (MNVs), and insertions/deletions (indels).
+This current gap exists largely because indel-aware fragment genotyping is particularly complex. Indels can be
+represented in multiple valid ways across alignments ([Tan et al. Bioinformatics.
+2015](https://academic.oup.com/bioinformatics/article/31/13/2202/196142?login=true)) and short reads often incompletely
+span the indel context, especially within repetitive regions, leading to ambiguous or conflicting evidence ([Narzisi et al.
+Frontiers. 2015](https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2015.00008/full)).
+Yet, indels include key clinical biomarkers such as EGFR exon 19 deletions that identify patients with non-small-cell
+lung cancer responsive to gefitinib ([Lynch et al. N Engl J Med. 2004](https://www.nejm.org/doi/full/10.1056/NEJMoa040938)).
+*fRagmentomics* fills the gap by providing an integrated framework that simultaneously derives fragmentomic descriptors (e.g. length,
+5′/3′ end motifs, inner distance, genomic coordinates) and assigns a mutation status to each fragment based on a user-specified list of small mutations of any type.
+Furthermore, *fragmentomics* addresses the complexity of determining exactly the fragment size which, because of indels, is more involved than a simple difference between the aligned positions of the fragment boundaries ([official SAM/BAM file format
+documentation](https://samtools.github.io/hts-specs/SAMv1.pdf)).
 
-**fRagmentomics** provides a standardized and user-friendly R package that reports fragment features (size, end motifs, position) and mutational status using a BAM file with sequenced fragments and a user-defined list of SNV, MNV, or indel mutations. By providing a framework allowing a per-fragment analysis, fRagmentomics aims to support the interpretation of liquid biopsy results and the discovery of new associations between fragments characteristics and fragment tissue of origin or human diseases, particularly cancer.
+In summary, *fRagmentomics* is a standardized and user-friendly R package that integrates fragmentomic feature extraction
+with fragment-level mutation annotation across all classes of small variants. This design allows users to efficiently
+explore fragment-level patterns in cfDNA, improving downstream interpretation of liquid biopsy sequencing data.
 
 ---
 
@@ -34,10 +74,11 @@ fRagmentomics is built and tested under **R version 4.4.3**.
 
 ### System Dependencies
 
-fRagmentomics requires **`bcftools` (version 1.21 recommended)** for variant normalization. Please, ensure it is installed and accessible in your system's PATH.
+fRagmentomics optionally makes use **`bcftools`** (tested with version 1.21) for variant normalization. If using
+`apply_bcftools_norm=TRUE` argument, please, ensure it is installed and accessible in your system's PATH.
 
-We recommend using a conda environment with bcftools and other dependencies installed but you can also use any other
-environment manager or rely on tools already installed in your system:
+We recommend using a conda environment with bcftools installed but you can also use any other environment manager or
+rely on tools already installed in your system.
 
 ```sh
 # conda install -c bioconda mamba
@@ -46,28 +87,21 @@ mamba install -c bioconda bcftools=1.21
 
 ### R Package Installation
 
-**1. Install Dependencies**
+You may install the package from github or from conda.
 
-First, install all required packages from CRAN and Bioconductor using the `BiocManager` package.
+**1. Install from github**
 
-```r
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
+When installing from github, pre-installing dependencies via conda can greatly speed up the installation time by avoid
+installation from source of all dependencies.
 
-# A single command to install all required packages
-BiocManager::install(c(
-    "devtools", "Rsamtools", "GenomicRanges", "Biostrings", "IRanges", "ggseqlogo",
-    "GenomeInfoDb", "dplyr", "ggplot2", "tidyr", "stringr", "purrr", "future", "future.apply",
-    "progressr", "RColorBrewer", "magrittr", "ggh4x", "tibble", "scales", "readr"
-))
+```bash
+Rscript -e 'install.packages("remotes");remotes::install_github("ElsaB-Lab/fRagmentomics")'
 ```
 
-**2. Install fRagmentomics**
-
-Finally, install fRagmentomics directly from GitHub.
+**2. Install from conda**
 
 ```r
-devtools::install_github("ElsaB-Lab/fRagmentomics")
+mamba install -c elsab-lab r-fragmentomics
 ```
 
 After these steps are complete, you can load the package into your R session with `library(fRagmentomics)`.
@@ -102,19 +136,20 @@ Now, run the main analysis function with these files. We'll use 2 cores for this
 
 ```r
 # Run the full analysis pipeline
-df_results <- run_fRagmentomics(
+df_fragments <- run_fRagmentomics(
     mut = mut_file,
     bam = bam_file,
     fasta = fasta_file,
     sample_id = "cfdna-test-01",
+    apply_bcftools_norm = TRUE,
     n_cores = 2
 )
 
 # View the first few rows of the output data frame
-head(df_results)
+head(df_fragments)
 ```
 
-The resulting `df_results` data frame contains the per-fragment analysis, ready for exploration and visualization with the package's plotting functions. You can also save this data frame to a tab-separated (`.tsv`) file by providing a path to the `output_file` argument.
+The resulting `df_fragments` data frame contains the per-fragment analysis, ready for exploration and visualization with the package's plotting functions. You can also save this data frame to a tab-separated (`.tsv`) file by providing a path to the `output_file` argument.
 
 ---
 
@@ -127,9 +162,9 @@ fRagmentomics includes plotting functions to help you visualize the fragmentomic
 The `plot_size_distribution()` function generates density plots or histograms to compare the distribution of fragment lengths between different groups (e.g., `MUT` vs. `NON-TARGET MUT`).
 
 ```r
-# Assuming 'df_results' is the output from run_fRagmentomics()
+# Assuming 'df_fragments' is the output from run_fRagmentomics()
 plot_resultat <- plot_size_distribution(
-  df_fragments = df_results,
+  df_fragments = df_fragments,
   vals_z = c("MUT", "WT"),
   show_histogram = TRUE,
   show_density = TRUE,
@@ -148,7 +183,7 @@ The `plot_qqseqlogo_meme()` function creates sequence logo plots to visualize th
 ```r
 # Plot the sequence logo for the first 3 bases in 5p and 3p ends of the fragment
 plot_qqseqlogo_meme(
-  df_fragments = df_results,
+  df_fragments = df_fragments,
   motif_size = 3,
   vals_z = c("MUT", "WT")
 )
@@ -163,7 +198,7 @@ The `plot_freq_barplot()` function creates a faceted bar plot to show the overal
 ```r
 # Analyze the overall nucleotide frequency in the bases of the 5-bases start and end sequences
 plot_freq_barplot(
-  df_fragments = df_results,
+  df_fragments = df_fragments,
   motif_type = "Both", # can be changed to "Start" or "End"
   motif_size = 5
 )
@@ -173,11 +208,20 @@ plot_freq_barplot(
 
 ### 4. Detailed 3-Base Motif Proportions
 
-The `plot_motif_barplot()` function shows the frequency of specific 3-base motifs at fragment ends. It has three visualization modes (`representation`): a hierarchical plot (default), a differential log2 fold-change plot, and a side-by-side comparison plot.
+The `plot_motif_barplot()` function shows the frequency of specific 3-base motifs at fragment ends. It has three
+visualization modes (`representation`):
+
+1. `representation="split_by_base"` bars are split hierarchically by first, second, and third base and each
+   fragment category has its own facet (default).
+2. `representation="split_by_motif" `bars are grouped by fragment categories across each motif and motifs are sorted
+   alphabetically.
+3. `representation="differential"` bars are split hierarchically by first, second, and third base and bars height
+   represent a log2 fold-change plot between two fragment categories (supports only two categories).
+
 ```r
 # Use the default hierarchical representation to visualize 3-mer proportions
 plot_split_by_base <- plot_motif_barplot(
-  df_results,
+  df_fragments,
   representation = "split_by_base",
   vals_z = c("MUT", "NON-TARGET MUT")
 )
@@ -188,7 +232,7 @@ plot_split_by_base <- plot_motif_barplot(
 ```r
 # Use the side-by-side representation to visualize 3-mer proportions
 plot_new_motif_view <- plot_motif_barplot(
-  df_results,
+  df_fragments,
   representation = "split_by_motif",
   vals_z = c("MUT", "NON-TARGET MUT")
 )
@@ -199,7 +243,7 @@ plot_new_motif_view <- plot_motif_barplot(
 ```r
 # Use the differential representation to visualize 3-mer proportions
 plot_motif_barplot(
-  df_results,
+  df_fragments,
   representation = "differential",
   vals_z = c("MUT", "NON-TARGET MUT")
 )
@@ -215,8 +259,9 @@ plot_motif_barplot(
     from experiments of targeted sequencing of cfDNA).
     The function `run_fRagmentomics` preprocesses the BAM file to select reads relevant to each mutation. By default:
     * It only considers reads within a user-configurable window (default=2000 bp window, 1000 bp before - `neg_offset_mate_search` and 1000bp after - `pos_offset_mate_search`).
-    * It applies a default filter to keep only primary, paired reads while removing unmapped, secondary, supplementary, and duplicate alignments. This corresponds to the default settings of the `flag_bam_list` argument.
-    **Note**: All of these filtering parameters can be customized when calling the `run_fRagmentomics()` function.
+    * It applies a default filter to keep only paired reads (not to be confounded with "properly paired reads") while removing unmapped, secondary, supplementary, and duplicate alignments. This corresponds to the default settings of the `flag_bam_list` argument.
+
+    **NOTE**: The above filtering parameters can be customized when calling the `run_fRagmentomics()` function.
 <br>
 
 2.  **`mut`**: Specifies the mutations to be analyzed. Three input formats are supported:
@@ -230,7 +275,8 @@ plot_motif_barplot(
 
     * A single **string** in the format `"chr:pos:ref:alt"`.
 
-    The package accepts mutation positions in either **1-based** or **0-based** coordinates and normalizes them to the conventional 1-based system for analysis.
+    The package accepts mutation positions in either **1-based** or **0-based** (in that case the user must set the
+    argument `one_based=FALSE`) coordinates and normalizes them to the conventional 1-based system for analysis.
 
     For indels, the package can handle several positional conventions and allele representations. The following table summarizes the accepted formats:
 
@@ -250,11 +296,19 @@ plot_motif_barplot(
     | Deletion of **"AT"** from "G**AT**"  | `GAT`        | `G`          | Position of the anchor base (`G`)           |
     | Insertion of **"CT**" after "A"    | `A`          | `ACT`        | Position of the anchor base (`A`)           |
 
-    **Important**: Regardless of the input format, fRagmentomics normalizes all variants using **`bcftools norm`**. This process ensures that indels are **left-aligned** and have a **standardized representation**. This is critical for matching the variant to sequences observed in the BAM file. After normalization, the position of an indel will correspond to the base preceding the event, and both `REF` and `ALT` alleles will be padded with this anchor base, following the VCF standard. For more details, see [Tan A, et al. 2015](https://doi.org/10.1093/bioinformatics/btv112).
+    **Important**: Regardless of the input format, fRagmentomics optionally (recommended but deactivated by default to allow for
+    an execution free of any system dependency) normalizes all variants using **`bcftools norm`**. We **strongly
+    recommend** systematically setting `apply_bcftools_norm=TRUE` when executing `run_fRagmentomics` function. This
+    process ensures that indels are **left-aligned** and have a **standardized representation**. This is critical for
+    matching the variant to sequences observed in the BAM file. After normalization, the position of an indel will
+    correspond to the base preceding the event, and both `REF` and `ALT` alleles will be padded with this anchor base,
+    following the VCF standard. For more details, see [Tan A, et al.
+    2015](https://doi.org/10.1093/bioinformatics/btv112).
 
     <br>
 
-3.  **`fasta`**: A path to the reference genome FASTA file. This must be the same reference file that was used to align the BAM file. An index (`.fai`) is required and will be created if not found.
+3.  **`fasta`**: A path to the reference genome FASTA file. This must be the same reference file that was used to align
+    the BAM file. The fasta index (`.fai`) will be created if not found.
 
 ---
 
@@ -268,57 +322,79 @@ The main function is `run_fRagmentomics()`.
 
 ## Output
 
-fRagmentomics can extract mutational informations and fragmentomic features for each fragment. The output is a dataframe, one line per fragment, containing:
+fRagmentomics can extract informations about the mutational status and fragmentomic features for each fragment. The
+output is a dataframe with one line per fragment and the following headers:
 
-### Mutation informations
+### All columns
 
-   * **`Chromosome`**/**`Position`**/**`Ref`**/**`Alt`**: Mutation information **after** the normalization.
-   * **`Input_Mutation`**: Input mutation information.
+***
 
-### Fragment mutational status
+| Column | Description |
+| :--- | :--- |
+| **_Mutation Information_** | |
+| 1 - `Sample_Id` | User-provided sample identifier. |
+| 2 - `Chromosome` | Chromosome of the mutation **after** normalization. |
+| 3 - `Position` | Start position of the mutation **after** normalization. |
+| 4 - `Ref` | Reference allele **after** normalization. |
+| 5 - `Alt` | Alternate allele **after** normalization. |
+| 6 - `Input_Mutation` | The original mutation information as provided in the input file. |
+| **_Fragment & Read Status_** | |
+| 7 - `Fragment_Id` | The read name (QNAME) that uniquely identifies the DNA fragment. |
+| 8 - `Fragment_QC` | Quality control status. Is `"OK"` for valid pairs or contains a failure reason. |
+| 9 - `Fragment_Status_Simple` | Simplified mutation status of the fragment ("MUT", "WT", "OTH", "N/I"). |
+| 10 - `Fragment_Status_Detail` | Detailed mutation status, created by concatenating read statuses if they differ. |
+| 11 - `Read_5p_Status` | Mutation status for the 5' read ("MUT", "WT", "NA", "AMB", "DISCORDANT"). |
+| 12 - `Read_3p_Status` | Mutation status for the 3' read ("MUT", "WT", "NA", "AMB", "DISCORDANT"). |
+| 13 - `BASE_5p` | Base(s) from the 5' read covering the variant position.[¹](#footnote1) |
+| 14 - `BASE_3p` | Base(s) from the 3' read covering the variant position.[¹](#footnote1) |
+| 15 - `BASQ_5p` | Base quality/qualities from the 5' read covering the variant position.[¹](#footnote1) |
+| 16 - `BASQ_3p` | Base quality/qualities from the 3' read covering the variant position.[¹](#footnote1) |
+| 17 - `VAF` | Variant Allele Frequency, expressed as a percentage.[²](#footnote2) |
+| **_Fragmentomic & Alignment Features_** | |
+| 18 - `Fragment_Size` | The size of the DNA fragment. |
+| 19 - `POS_5p` | 1-based leftmost mapping position of the 5' read. |
+| 20 - `POS_3p` | 1-based leftmost mapping position of the 3' read. |
+| 21 - `Fragment_Bases_5p` | The first `n` bases from the 5' end of the fragment. |
+| 22 - `Fragment_Bases_3p` | The last `n` bases from the 3' end of the fragment. |
+| **_Other Information_** | |
+| 23 - `FLAG_5p` | SAM flag for the 5' read. |
+| 24 - `FLAG_3p` | SAM flag for the 3' read. |
+| 25 - `MAPQ_5p` | Mapping quality for the 5' read. |
+| 26 - `MAPQ_3p` | Mapping quality for the 3' read. |
+| 27 - `CIGAR_5p` | CIGAR string for the 5' read. |
+| 28 - `CIGAR_3p` | CIGAR string for the 3' read. |
+| 29 - `TLEN` | Template length of the fragment, from the BAM file. |
+| 30 - `Fragment_Basqs_5p` | The first `n` base qualities from the 5' end of the fragment. |
+| 31 - `Fragment_Basqs_3p` | The last `n` base qualities from the 3' end of the fragment. |
+| 32 - `Nb_Fragment_Bases_Softclip_5p` | Number of soft-clipped bases at the 5' end of the fragment. |
+| 33 - `Nb_Fragment_Bases_Softclip_3p` | Number of soft-clipped bases at the 3' end of the fragment. |
+---
 
-For more details, see [Definition of Fragment Status](#definition-of-fragment-status).
+### <a name="footnote1"></a>¹ Details on `BASE` and `BASQ` Columns
 
-   * **`Read_5p_Status`** & **`Read_3p_Status`**: Mutation status of each read in "MUT", "WT", "NA", "AMB" and "DISCORDANT".
-   * **`Fragment_Status_Detail`**: Mutation status of the fragment. Created by concatenating the `Read_5p_Status` and `Read_3p_Status` if they are different.
-   * **`Fragment_Status_Simple`**: Mutation status of the fragment in "MUT", "WT", "OTH" and "N/I".
-   * **`BASE_5p`**/**`BASQ_5p`** & **`BASE_3p`**/**`BASQ_3p`**:
+The information represented in the `BASE` and `BASQ` columns depends on the variant type:
 
-        | Variant Type          | Base and Base Quality Represented        |
-        |-----------------------|-----------------------|
-        | SNV | The ALT base at the variant position |
-        | MNV | ALT bases covering all variant positions |
-        | INS | Base before the insertion + inserted bases |
-        | DEL | Base before the deletion |
+| Variant Type | Base and Base Quality Represented |
+| :--- | :--- |
+| **SNV** | The ALT base at the variant position. |
+| **MNV** | ALT bases covering all variant positions. |
+| **INS** | Base before the insertion + inserted bases. |
+| **DEL** | Base before the deletion. |
 
-   * **`VAF`**: The **Variant Allele Frequency** for the mutation, expressed as a percentage.
-       >**VAF** = 100 * (`Number of MUT Fragments`) / (`Number of MUT Fragments` + `Number of WT Fragments` + `Number of WT Fragments`)
+<br>
 
-       **Important Note on the Calculation:**
-       * The denominator includes **all** informative fragments that cover the position of the mutation of interest. This means it counts both:
-           1.  Fragments that match the **reference (WT) allele**.
-           2.  Fragments that carry **the mutation of interest**.
-           3.  Fragments that carry **another different mutation** at the same position (a third allele).
+### <a name="footnote2"></a>² Details on Variant Allele Frequency (`VAF`) Calculation
 
-       This approach differs from another conventional VAF calculation that might only use reference-matching fragments in the denominator.
+The **Variant Allele Frequency** is the percentage of fragments supporting the alternate allele compared to all informative fragments covering the variant site.
 
-### Fragmentomic features
+The formula used is:
+   >**VAF** = 100 * (`Number of MUT Fragments`) / (`Number of MUT Fragments` + `Number of WT Fragments` + `Number of OTH Fragments`)
 
-For more details, see [Definition of Fragment Size](#definition-of-fragment-size).
-
-   * **`Fragment_Size`**
-   * **`Fragment_Bases_5p/3p`** & **`Fragment_Basqs_5p/3p`**: The first and last `n` bases/qualities of the fragment's ends. The number `n` is set by the `report_5p_3p_bases_fragment` argument (included if `n` > 0).
-
-### Other informations
-
-   * **`Sample_Id`**: The user-provided sample identifier. (Included if the `sample_id` argument is set).
-   * **`Fragment_Id`**: The read name (QNAME) that identifies the fragment.
-   * **`Fragment_QC`**: The quality control status. Will be `"OK"` for valid pairs or will contain a message describing the reason for failure.
-
-   * **`FLAG_5p/3p`**, **`MAPQ_5p/3p`**, **`CIGAR_5p/3p`**, **`POS_5p/3p`**: Alignment information for each read (Flag, Mapping Quality, CIGAR string, and Position), taken from the BAM file.
-
-   * **`TLEN`**: The fragment's template length. (Included if `report_tlen = TRUE`).
-   * **`Nb_Fragment_Bases_Softclip_5p/3p`**: The number of soft-clipped bases at the 5' and 3' ends of the fragment. (Included if `report_softclip = TRUE`).
+**NOTE:**
+The denominator includes **all** fragments that reliably cover the mutation's position i.e.
+1.  Fragments that carry **the mutation of interest** (MUT).
+2.  Fragments that match the **reference allele** (WT).
+3.  Fragments that carry **a different alteration** at the same position (a third allele).
 
 ---
 
@@ -381,7 +457,7 @@ For each variant, two local templates are built:
 
 * A **mutant (MUT) template** carrying the alternate allele
 
-For each indel and MNV, the function first calculates the **minimum required sequence length** needed to unambiguously confirm the variant. This calculation considers both the size of the variant and the surrounding sequence (e.g., tandem repeats).
+For each indel and SNV/MNV, the function first calculates the **minimum required sequence length** needed to unambiguously confirm the variant. This calculation considers both the size of the variant and the surrounding sequence (e.g., tandem repeats).
 
 Unless `remove_softclipping = TRUE`, soft-clipped bases are included in the comparison.
 

@@ -15,9 +15,9 @@ apply_bcftools_norm(chr, pos, ref, alt, fasta, tmp_folder, verbose)
 
 \item{alt}{A string representing the alternative allele.}
 
-\item{fasta}{Character vector for the folder temporary path.}
+\item{fasta}{Path to the FASTA file for the reference sequence used for generating the BAM file.}
 
-\item{tmp_folder}{Character vector for the folder temporary path.}
+\item{tmp_folder}{Character vector for the temporary folder path.}
 
 \item{verbose}{Boolean. If set to TRUE, print all the warnings and the prints.}
 }

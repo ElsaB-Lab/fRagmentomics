@@ -21,6 +21,7 @@ run_fRagmentomics(
   report_5p_3p_bases_fragment = 5,
   remove_softclip = FALSE,
   retain_fail_qc = FALSE,
+  apply_bcftools_norm = FALSE,
   tmp_folder = tempdir(),
   output_path = NA_character_,
   verbose = FALSE,
@@ -62,7 +63,10 @@ extremity bases in the output.}
 
 \item{retain_fail_qc}{Boolean. If set to TRUE, retain fragments that failed the various quality checks in the output.}
 
-\item{tmp_folder}{Crun_fRagmentomicsharacter vector for the temporary folder path.}
+\item{apply_bcftools_norm}{Boolean. If set to TRUE, apply bcftools norm on each input variant to normalize it.
+Require that bcftools command is installed and available in the PATH.}
+
+\item{tmp_folder}{Character vector for the temporary folder path.}
 
 \item{output_path}{Character vector for the fragmentomics table output path.}
 

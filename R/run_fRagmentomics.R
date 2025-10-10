@@ -44,7 +44,9 @@
 #'  extremity bases in the output.
 #' @param remove_softclip Boolean. If set to TRUE, trim soft-clipped bases from the 5' end of Read 5p and from the 3' end of Read 3p.
 #' @param retain_fail_qc Boolean. If set to TRUE, retain fragments that failed the various quality checks in the output.
-#' @param tmp_folder Crun_fRagmentomicsharacter vector for the temporary folder path.
+#' @param apply_bcftools_norm Boolean. If set to TRUE, apply bcftools norm on each input variant to normalize it.
+#'  Require that bcftools command is installed and available in the PATH.
+#' @param tmp_folder Character vector for the temporary folder path.
 #' @param output_path Character vector for the fragmentomics table output path.
 #' @param verbose Boolean. If set to TRUE, print all the warnings and the prints.
 #' @param n_cores Number of cores for parallel computation.
@@ -118,6 +120,7 @@ run_fRagmentomics <- function(
     report_5p_3p_bases_fragment = 5,
     remove_softclip = FALSE,
     retain_fail_qc = FALSE,
+    apply_bcftools_norm = FALSE,
     tmp_folder = tempdir(),
     output_path = NA_character_,
     verbose = FALSE,
@@ -151,6 +154,14 @@ run_fRagmentomics <- function(
     n_cores
   )
 
+  # Check system dependencey
+  if (apply_bcftools_norm){
+    bcftools_path <- check_bcftools_is_installed()
+    if (verbose){
+      print(paste("Found bcftools at:", bcftools_path))
+    }
+  }
+
   # Load and remove bad mutations
   df_mut_raw <- read_mut(mut)
   df_mut_raw <- remove_bad_mut(df_mut_raw)
@@ -162,7 +173,7 @@ run_fRagmentomics <- function(
   on.exit(close(fasta_fafile), add = TRUE)
 
   # Normalize mutations
-  df_mut_norm <- normalize_mut(df_mut_raw, fasta, fasta_fafile, one_based, tmp_folder, verbose)
+  df_mut_norm <- normalize_mut(df_mut_raw, fasta, fasta_fafile, one_based, apply_bcftools_norm, tmp_folder, verbose)
 
   # Run per-mutation analysis ==========================================================================================
   # Initialize parallel cluster
@@ -198,7 +209,6 @@ run_fRagmentomics <- function(
     df_sam_badly_oriented <- read_bam_out$badly_oriented
     df_sam <- read_bam_out$well_oriented
 
-
     # Check if there are badly-oriented reads and create dataframe with NAs if any are found
     if (!is.null(df_sam_badly_oriented)) {
       df_fragments_info_badly_oriented <- data.frame()
@@ -209,8 +219,17 @@ run_fRagmentomics <- function(
         df_fragments_info_badly_oriented <- rbind(
           df_fragments_info_badly_oriented,
           create_empty_fragment_row(
-            chr_norm, pos_norm, ref_norm, alt_norm, input_mutation_info, fragment_name, fragment_qc,
-            sample_id, report_tlen, report_5p_3p_bases_fragment, report_softclip
+            chr = chr_norm,
+            pos = pos_norm,
+            ref = ref_norm,
+            alt = alt_norm,
+            input_mutation_info = input_mutation_info,
+            fragment_name = fragment_name,
+            fragment_qc = fragment_qc,
+            sample_id = sample_id,
+            report_tlen = report_tlen,
+            report_5p_3p_bases_fragment = report_5p_3p_bases_fragment,
+            report_softclip = report_softclip
           )
         )
       }

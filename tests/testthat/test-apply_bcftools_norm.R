@@ -1,3 +1,13 @@
+# This helper will skip all tests in a file if bcftools is missing
+
+skip_if_no_bcftools <- function() {
+  if (Sys.which("bcftools") == "") {
+    testthat::skip("bcftools not available for testing")
+  }
+}
+
+skip_if_no_bcftools()
+
 test_that("apply_bcftools_norm", {
   fasta_38 <- system.file("testdata/fasta/hg38", "hg38_chr17_7676001_7676400.fa", package = "fRagmentomics")
 

@@ -58,3 +58,6 @@ Imports:
     stringr,
     tibble,
     tidyr
+Remotes:
+    bioc::Rsamtools
+SystemRequirements: bcftools (>= 1.21)

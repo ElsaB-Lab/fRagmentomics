@@ -4,7 +4,15 @@
 \alias{normalize_mut}
 \title{Normalize a data frame of variants}
 \usage{
-normalize_mut(df_mut, fasta, fasta_fafile, one_based, tmp_folder, verbose)
+normalize_mut(
+  df_mut,
+  fasta,
+  fasta_fafile,
+  one_based,
+  apply_bcftools_norm,
+  tmp_folder,
+  verbose
+)
 }
 \arguments{
 \item{df_mut}{a dataframe with mutations}
@@ -15,7 +23,10 @@ normalize_mut(df_mut, fasta, fasta_fafile, one_based, tmp_folder, verbose)
 
 \item{one_based}{Boolean. TRUE if fasta is in one based. False if in 0 based.}
 
-\item{tmp_folder}{Crun_fRagmentomicsharacter vector for the temporary folder path.}
+\item{apply_bcftools_norm}{Boolean. If set to TRUE, apply bcftools norm on each input variant to normalize it.
+Require that bcftools command is installed and available in the PATH.}
+
+\item{tmp_folder}{Character vector for the temporary folder path.}
 
 \item{verbose}{Boolean. If set to TRUE, print all the warnings and the prints.}
 }
