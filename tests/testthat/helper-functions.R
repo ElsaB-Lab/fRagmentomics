@@ -28,3 +28,9 @@ calculate_read_length <- function(cigar) {
     ops <- stringr::str_extract_all(cigar, "[[:digit:]]+(?=[MIS=X])")[[1]]
     sum(as.numeric(ops))
 }
+
+skip_if_no_bcftools <- function() {
+  if (Sys.which("bcftools") == "") {
+    testthat::skip("bcftools not available for testing")
+  }
+}

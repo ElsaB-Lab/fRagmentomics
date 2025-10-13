@@ -1,11 +1,5 @@
 # This helper will skip all tests in a file if bcftools is missing
 
-skip_if_no_bcftools <- function() {
-  if (Sys.which("bcftools") == "") {
-    testthat::skip("bcftools not available for testing")
-  }
-}
-
 skip_if_no_bcftools()
 
 test_that("apply_bcftools_norm", {

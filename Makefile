@@ -3,6 +3,7 @@ PKGNAME := $(shell sed -n "s/Package: *\([^ ]*\)/\1/p" DESCRIPTION)
 PKGVERS := $(shell sed -n "s/Version: *\([^ ]*\)/\1/p" DESCRIPTION)
 PKGSRC  := $(shell basename `pwd`)
 R ?= R
+conda ?= conda
 
 build:
 	$(R) CMD build --no-manual .
@@ -18,6 +19,9 @@ check:
 
 biocheck:
 	$(R) -e 'BiocCheck::BiocCheck()'
+
+build-conda:
+	$(conda) build conda-recipe -c conda-forge -c bioconda
 
 manual:
 	$(R) -e 'devtools::document();devtools::build_manual(path=".")'

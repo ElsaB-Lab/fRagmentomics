@@ -46,7 +46,8 @@ jobs:
         uses: r-lib/actions/check-r-package@v2
         with:
           args: 'c("--no-manual", "--as-cran")'
-          error-on: 'warning'
+          error-on: '"warning"'
+          check-dir: '"check"'
 
       - name: Calculate and upload coverage (only if check passed)
         env:
