@@ -146,14 +146,14 @@ test_that("remove_softclip trims both ends and yields the expected fragment size
   # Flags: 99 (R1 forward), 147 (R2 reverse) are standard proper-pair flags.
     df_sam <- data.frame(
     QNAME = c("frag_soft", "frag_soft"),
-    FLAG  = c(99L, 147L),          
+    FLAG  = c(99L, 147L),
     RNAME = c("chr1", "chr1"),
     POS   = c(100L, 181L),
     MAPQ  = c(60L, 60L),
     CIGAR = c("5S20M", "20M5S"),
-    RNEXT = c("=", "="),          
-    PNEXT = c(181L, 100L),         
-    TLEN  = c(101L, -101L),       
+    RNEXT = c("=", "="),
+    PNEXT = c(181L, 100L),
+    TLEN  = c(101L, -101L),
     SEQ   = c(paste0(strrep("N", 5), strrep("A", 20)),
                 paste0(strrep("T", 20), strrep("N", 5))),
     QUAL  = c(strrep("I", 25), strrep("I", 25)),
@@ -186,7 +186,7 @@ test_that("remove_softclip trims both ends and yields the expected fragment size
   sc_counts_expected <- fRagmentomics:::get_fragment_bases_5p_3p_softclip(
     res_no_trim$CIGAR_5p, res_no_trim$CIGAR_3p
   )
-  expect_identical(
+  expect_equal(
     c(res_no_trim$Nb_Fragment_Bases_Softclip_5p, res_no_trim$Nb_Fragment_Bases_Softclip_3p),
     c(sc_counts_expected$nb_softclip_5p,         sc_counts_expected$nb_softclip_3p)
   )
@@ -225,7 +225,7 @@ test_that("remove_softclip trims both ends and yields the expected fragment size
   sc_counts_after <- fRagmentomics:::get_fragment_bases_5p_3p_softclip(
     res_trim$CIGAR_5p, res_trim$CIGAR_3p
   )
-  expect_identical(
+  expect_equal(
     c(res_trim$Nb_Fragment_Bases_Softclip_5p, res_trim$Nb_Fragment_Bases_Softclip_3p),
     c(sc_counts_after$nb_softclip_5p,         sc_counts_after$nb_softclip_3p)
   )

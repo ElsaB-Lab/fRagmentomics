@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
@@ -27,29 +27,26 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y \
-            libcurl4-openssl-dev \
-            libssl-dev \
-            libxml2-dev \
+            libcurl4-openssl-dev libssl-dev libxml2-dev \
+            libz-dev libbz2-dev liblzma-dev \
             bcftools
         shell: bash
 
       - name: Install R package dependencies (including rcmdcheck)
-        run: |
-          install.packages(c("rcmdcheck", "remotes", "BiocManager"), repos = "https://cloud.r-project.org", Ncpus = 2)
-          options(repos = BiocManager::repositories())
-          BiocManager::install(ask = FALSE, update = FALSE)
-          remotes::install_deps(dependencies = TRUE, Ncpus = 2)
-          if (!requireNamespace("rcmdcheck", quietly = TRUE)) {
-            stop("rcmdcheck package is required but was not installed.")
-          }
-        shell: Rscript {0}
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::rcmdcheck
+            any::covr
+          needs: |
+            check
+            coverage
 
       - name: Check package using rcmdcheck (runs tests)
-        run: |
-          options(crayon.enabled = TRUE)
-          # Test failures will be reported in detail in the output of this command.
-          check_results <- rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-build-vignettes", "--as-cran"), error_on = "warning")
-        shell: Rscript {0}
+        uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--no-manual", "--as-cran")'
+          error-on: 'warning'
 
       - name: Calculate and upload coverage (only if check passed)
         env:
