@@ -105,7 +105,7 @@ such as BiocParallel, you may install precompiled binaries before trying to inst
 **2. Install from conda**
 
 ```r
-mamba install -c elsab-lab r-fragmentomics
+mamba install -c elsab-lab -c conda-forge -c bioconda r-fragmentomics
 ```
 
 After these steps are complete, you can load the package into your R session with `library(fRagmentomics)`.

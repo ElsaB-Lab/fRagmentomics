@@ -27,7 +27,7 @@ test_that("returns NULL when writing to file and creates parent directories if n
       sample_id = "test_sample",
       output_path = out_file,
       verbose = TRUE,
-      n_cores = 4L
+      n_cores = 2L
     )
   )
 
@@ -45,7 +45,7 @@ test_that("returns NULL when writing to file and creates parent directories if n
       fasta = files$fasta,
       output_path = out_file,
       verbose = TRUE,
-      n_cores = 4L
+      n_cores = 2L
     )
   )
   expect_true(any(grepl("already exists and will be overwritten", msgs2)))
@@ -73,7 +73,7 @@ test_that("is quiet in verbose = FALSE (no stray messages) and still writes outp
       sample_id = "test_sample",
       output_path = out_file,
       verbose = FALSE, # quiet mode
-      n_cores = 4L
+      n_cores = 2L
     )
   )
 
@@ -91,7 +91,7 @@ test_that("is quiet in verbose = FALSE (no stray messages) and still writes outp
       sample_id = "test_sample",
       output_path = out_file,
       verbose = FALSE,
-      n_cores = 4L
+      n_cores = 2L
     )
   )
   expect_equal(length(msgs2), 0, info = "No messages on overwrite when verbose = FALSE")
@@ -112,7 +112,7 @@ test_that("returns a data frame when output_path is NA / NULL / '' and writes no
     sample_id = "no_output_na",
     output_path = NA,
     verbose = TRUE,
-    n_cores = 4L
+    n_cores = 2L
   )
   expect_s3_class(res_na, "data.frame")
   expect_false(any(grepl("no_output_na", list.files(tempdir(), full.names = TRUE))))
@@ -125,7 +125,7 @@ test_that("returns a data frame when output_path is NA / NULL / '' and writes no
     sample_id = "no_output_null",
     output_path = NULL,
     verbose = TRUE,
-    n_cores = 4L
+    n_cores = 2L
   )
   expect_s3_class(res_null, "data.frame")
   expect_false(any(grepl("no_output_null", list.files(tempdir(), full.names = TRUE))))
@@ -138,7 +138,7 @@ test_that("returns a data frame when output_path is NA / NULL / '' and writes no
     sample_id = "no_output_empty",
     output_path = "",
     verbose = TRUE,
-    n_cores = 4L
+    n_cores = 2L
   )
   expect_s3_class(res_empty, "data.frame")
   expect_false(any(grepl("no_output_empty", list.files(tempdir(), full.names = TRUE))))
@@ -155,7 +155,7 @@ test_that("adds expected columns when reporting flags are enabled and supports s
     report_tlen = TRUE,
     report_softclip = TRUE,
     verbose = TRUE,
-    n_cores = 4L
+    n_cores = 2L
   )
   expect_s3_class(results_extra, "data.frame")
   expect_true(all(c("Nb_Fragment_Bases_Softclip_5p", "Nb_Fragment_Bases_Softclip_3p") %in% colnames(results_extra)))
@@ -166,7 +166,7 @@ test_that("adds expected columns when reporting flags are enabled and supports s
     bam = files$bam,
     fasta = files$fasta,
     verbose = TRUE,
-    n_cores = 4L
+    n_cores = 2L
   )
   expect_s3_class(results_str, "data.frame")
   expect_gt(nrow(results_str), 0)
@@ -184,7 +184,7 @@ test_that("emits QC removal message unless retain_fail_qc = TRUE", {
       bam = files$bam,
       fasta = files$fasta,
       verbose = TRUE,
-      n_cores = 4L
+      n_cores = 2L
     )
   )
   expect_true(any(grepl("Removed .* fragments that fail quality checks", msgs_rm)))
@@ -197,7 +197,7 @@ test_that("emits QC removal message unless retain_fail_qc = TRUE", {
       fasta = files$fasta,
       retain_fail_qc = TRUE,
       verbose = TRUE,
-      n_cores = 4L
+      n_cores = 2L
     )
   )
   expect_false(any(grepl("Removed .* fragments that fail quality checks", msgs_keep)))
@@ -215,7 +215,7 @@ test_that("gracefully handles loci with no covering reads and mixed-valid inputs
         bam = files$bam,
         fasta = files$fasta,
         verbose = TRUE,
-        n_cores = 4L
+        n_cores = 2L
       ),
       regexp = "^The final fRagmentomic dataframe is empty\\.$"
     )
@@ -264,7 +264,7 @@ test_that("VAF is computed from status labels when present", {
     bam = files$bam,
     fasta = files$fasta,
     verbose = TRUE,
-    n_cores = 4L
+    n_cores = 2L
   )
   expect_true("VAF" %in% names(res))
 
@@ -272,4 +272,20 @@ test_that("VAF is computed from status labels when present", {
   vaf <- res$VAF
   expect_true(is.numeric(vaf))
   expect_true(all(is.na(vaf) | (vaf >= 0 & vaf <= 100)))
+})
+
+skip_if_no_bcftools()
+
+test_that("User parameter apply_bcftools_norm is correctly used", {
+  files <- setup_test_files()
+
+  res <- run_fRagmentomics(
+    mut = files$mut,
+    bam = files$bam,
+    fasta = files$fasta,
+    verbose = TRUE,
+    apply_bcftools_norm = TRUE,
+    n_cores = 2L
+  )
+  expect_s3_class(res, "data.frame")
 })

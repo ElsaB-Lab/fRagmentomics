@@ -1,0 +1,76 @@
+package:
+  name: r-fragmentomics
+  version: 0.99.0
+
+source:
+  sha256: fd049000a455532382deb655af5948324f0daba608f15c3bde7d8a5206fa093b
+  url: https://github.com/ElsaB-Lab/fRagmentomics/releases/tag/v0.99.0
+
+
+build:
+  number: 0
+  script: "{{ R }} CMD INSTALL --build ."
+
+requirements:
+  build:
+    - r-base >=4.3
+  host:
+    - r-base >=4.3
+    - bioconductor-biostrings
+    - bioconductor-genomeinfodb
+    - bioconductor-genomicranges
+    - bioconductor-iranges
+    - bioconductor-rsamtools
+    - r-dplyr
+    - r-future
+    - r-future.apply
+    - r-ggh4x
+    - r-ggplot2
+    - r-ggseqlogo
+    - r-magrittr
+    - r-progressr
+    - r-purrr
+    - r-rcolorbrewer
+    - r-readr
+    - r-scales
+    - r-stringr
+    - r-tibble
+    - r-tidyr
+    - bcftools >=1.21 # [unix]
+  run:
+    - r-base >=4.3
+    - bioconductor-biostrings
+    - bioconductor-genomeinfodb
+    - bioconductor-genomicranges
+    - bioconductor-iranges
+    - bioconductor-rsamtools
+    - r-dplyr
+    - r-future
+    - r-future.apply
+    - r-ggh4x
+    - r-ggplot2
+    - r-ggseqlogo
+    - r-magrittr
+    - r-progressr
+    - r-purrr
+    - r-rcolorbrewer
+    - r-readr
+    - r-scales
+    - r-stringr
+    - r-tibble
+    - r-tidyr
+    - bcftools >=1.21 # [unix]
+
+test:
+  commands:
+    - $R -e "library('fRagmentomics'); packageVersion('fRagmentomics')"   # [unix]
+    - "\"%R%\" -e \"library('fRagmentomics'); packageVersion('fRagmentomics')\""  # [win]
+    - bcftools --version  # [unix]
+  requires:
+    - r-base
+
+about:
+  home: "https://github.com/ElsaB-Lab/fRagmentomics"
+  license: "GPL-3.0-or-later"
+  license_family: GPL
+  summary: "fRagmentomics is a standardized and user-friendly R package that integrates fragmentomic feature extraction with fragment-level mutation annotation across all classes of small variants, enabling efficient exploration of fragment-level patterns in cfDNA."
