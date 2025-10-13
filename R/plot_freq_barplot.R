@@ -16,11 +16,11 @@
 #'   (e.g., 'alpha', 'position', or 'width').
 #' @param colors_z A character vector of colors for the groups, or a single
 #'   RColorBrewer palette name (e.g., "Set2"). Named vectors are aligned to 'vals_z'.
-#' @param title Character or 'NA'. Plot title. If 'NULL', 'NA', "NA" or empty, a default title is used.
+#' @param title Character or 'NA'. Plot title. If 'NULL', 'NA', or empty, a default title is used.
 #' @param output_path Character or 'NA'. If provided and non-empty, the plot is saved to this path.
 #' @param ggsave_params A named list of arguments passed to [ggplot2::ggsave()].
 #' @param show_pvalue Logical. If 'TRUE' and there are at least two groups, append a global
-#'   Chi-squared final_plot-value to the caption.
+#'   Chi-squared p-value to the caption.
 #' @param drop_non_acgt Logical. If 'FALSE', characters other than A/C/G/T are tallied into an
 #'   "Other" category.
 #'

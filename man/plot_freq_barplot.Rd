@@ -43,7 +43,7 @@ If 'NULL', all unique groups in 'col_z' are used.}
 \item{colors_z}{A character vector of colors for the groups, or a single
 RColorBrewer palette name (e.g., "Set2"). Named vectors are aligned to 'vals_z'.}
 
-\item{title}{Character or 'NA'. Plot title. If 'NULL', 'NA', "NA", or empty, a default title is used.}
+\item{title}{Character or 'NA'. Plot title. If 'NULL', 'NA', or empty, a default title is used.}
 
 \item{output_path}{Character or 'NA'. If provided and non-empty, the plot is saved to this path.}
 

@@ -30,7 +30,7 @@ biocViews:
     Software,
     IndelDetection
 Suggests:
-    ragg,   
+    ragg,
     covr,
     testthat (>= 3.0.0),
     knitr,
@@ -60,5 +60,7 @@ Imports:
     tibble,
     tidyr
 Remotes:
-    bioc::Rsamtools
+    bioc::Rsamtools,
+    bioc::Rhtslib,
+    bioc::BiocParallel
 SystemRequirements: bcftools (>= 1.21)
