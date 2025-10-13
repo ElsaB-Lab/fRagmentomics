@@ -28,7 +28,13 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 biocViews:
     Software,
-    IndelDetection
+    Genetics,
+    VariantDetection,
+    IndelDetection,
+    Sequencing,
+    DNASeq,
+    Alignment,
+    MultipleSequenceAlignment
 Suggests:
     ragg,
     covr,
@@ -59,8 +65,4 @@ Imports:
     stringr,
     tibble,
     tidyr
-Remotes:
-    bioc::Rsamtools,
-    bioc::Rhtslib,
-    bioc::BiocParallel
 SystemRequirements: bcftools (>= 1.21)

@@ -35,6 +35,7 @@ jobs:
       - name: Install R package dependencies (including rcmdcheck)
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          use-public-rspm: true
           extra-packages: |
             any::rcmdcheck
             any::covr

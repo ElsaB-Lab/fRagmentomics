@@ -78,12 +78,12 @@ di_nuc_sizes <- rnorm(30, mean = 330, sd = 30)
 
 # Combine into a single dataframe
 example_df_size <- data.frame(
-  Fragment_Size = c(mut_sizes, wt_sizes, di_nuc_sizes),
-  Fragment_Status_Simple = c(
-    rep("MUT", 100),
-    rep("WT", 150),
-    sample(c("MUT", "WT"), 30, replace = TRUE)
-  )
+    Fragment_Size = c(mut_sizes, wt_sizes, di_nuc_sizes),
+    Fragment_Status_Simple = c(
+        rep("MUT", 100),
+        rep("WT", 150),
+        sample(c("MUT", "WT"), 30, replace = TRUE)
+    )
 )
 # Ensure all fragment sizes are positive
 example_df_size <- example_df_size[example_df_size$Fragment_Size > 0, ]
@@ -96,37 +96,37 @@ print(p1)
 
 # 2) Histogram only: add transparency so overlapping bars are visible.
 p2 <- plot_size_distribution(
-  df_fragments   = example_df_size,
-  show_histogram = TRUE,
-  show_density   = FALSE,
-  histo_args     = list(alpha = 0.6)
+    df_fragments   = example_df_size,
+    show_histogram = TRUE,
+    show_density   = FALSE,
+    histo_args     = list(alpha = 0.6)
 )
 print(p2)
 
 # 3) Combined: overlay density curves and histograms.
 p3 <- plot_size_distribution(
-  df_fragments   = example_df_size,
-  show_histogram = TRUE,
-  show_density   = TRUE,
-  histo_args     = list(alpha = 0.4)
+    df_fragments   = example_df_size,
+    show_histogram = TRUE,
+    show_density   = TRUE,
+    histo_args     = list(alpha = 0.4)
 )
 print(p3)
 
 # 4) Ungrouped + zoomed x-axis + no nucleosome peaks.
 p4 <- plot_size_distribution(
-  df_fragments   = example_df_size,
-  col_z          = NULL,
-  x_limits       = c(50, 400),
-  show_nuc_peaks = FALSE,
-  title          = "All fragments (zoomed)"
+    df_fragments   = example_df_size,
+    col_z          = NULL,
+    x_limits       = c(50, 400),
+    show_nuc_peaks = FALSE,
+    title          = "All fragments (zoomed)"
 )
 print(p4)
 
 # 5) Custom colors using an RColorBrewer palette.
 p5 <- plot_size_distribution(
-  df_fragments = example_df_size,
-  colors_z     = "Set2",
-  title        = "Fragment size (Set2 palette)"
+    df_fragments = example_df_size,
+    colors_z     = "Set2",
+    title        = "Fragment size (Set2 palette)"
 )
 print(p5)
 

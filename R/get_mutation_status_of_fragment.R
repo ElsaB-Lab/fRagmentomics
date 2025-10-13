@@ -20,187 +20,187 @@
 #'
 #' @keywords internal
 get_mutation_status_of_fragment <- function(mstat_5p, mstat_3p) {
-  # Internal helper to clean status for logical comparisons (removes extra detail)
-  clean_status <- function(s) {
-    if (is.na(s)) {
-      return(NA_character_)
-    }
-    s_cleaned <- sub("(:.*|\\s.*)", "", s)
-    return(s_cleaned)
-  }
-
-  # Function if a string contains "potentially X", extract X (WT/MUT/OTH/AMB); else NA
-  extract_potential_target <- function(s) {
-    if (is.na(s)) {
-      return(NA_character_)
-    }
-    m <- regexpr("potentially\\s+(WT|MUT|OTH|AMB)", s, ignore.case = TRUE)
-    if (m[1] == -1) {
-      return(NA_character_)
-    }
-    tgt <- regmatches(s, m)
-    # Keep only the captured group (the target class)
-    tgt <- sub(".*potentially\\s+(WT|MUT|OTH|AMB).*", "\\1", tgt, ignore.case = TRUE)
-    toupper(tgt)
-  }
-
-  base_mstat_5p <- clean_status(mstat_5p)
-  base_mstat_3p <- clean_status(mstat_3p)
-
-  # Initialize outputs
-  fragment_status_detail <- NA_character_
-  fragment_status_simple <- NA_character_
-
-  # Define flags for cleaner logic
-  is_na1 <- is.na(mstat_5p)
-  is_na2 <- is.na(mstat_3p)
-
-  is_mut1 <- base_mstat_5p == "MUT"
-  is_mut2 <- base_mstat_3p == "MUT"
-  is_wt1 <- base_mstat_5p == "WT"
-  is_wt2 <- base_mstat_3p == "WT"
-  is_amb1 <- base_mstat_5p == "AMB"
-  is_amb2 <- base_mstat_3p == "AMB"
-  is_other_mut1 <- base_mstat_5p == "OTH"
-  is_other_mut2 <- base_mstat_3p == "OTH"
-
-  # Function to combine original statuses for Fragment_Status_Detail
-  # Handles sorting and unique values while preserving original string
-  combine_original_statuses <- function(s1, s2) {
-    original_statuses <- na.omit(c(s1, s2))
-    if (length(original_statuses) == 0) {
-      return(NA_character_)
-    }
-    if (length(original_statuses) == 1) {
-      return(original_statuses[1])
-    }
-    if (original_statuses[1] == original_statuses[2]) {
-      return(original_statuses[1])
+    # Internal helper to clean status for logical comparisons (removes extra detail)
+    clean_status <- function(s) {
+        if (is.na(s)) {
+            return(NA_character_)
+        }
+        s_cleaned <- sub("(:.*|\\s.*)", "", s)
+        return(s_cleaned)
     }
 
-    # Sort based on the cleaned status, then get the original string
-    sorted_pairs <- data.frame(
-      clean = c(clean_status(s1), clean_status(s2)),
-      original = c(s1, s2),
-      stringsAsFactors = FALSE
-    )
-    sorted_pairs <- sorted_pairs[order(sorted_pairs$clean, sorted_pairs$original), ]
-
-    # Filter out NA original strings and collapse unique ones
-    unique_sorted_originals <- unique(na.omit(sorted_pairs$original))
-    return(paste(unique_sorted_originals, collapse = " & "))
-  }
-
-  # --------------------------------------------------------------------------
-  # Early resolution for discordant reads with "potentially X" on one side:
-  # - If read A is "potentially X" and read B is X, trust B -> Simple = X
-  # --------------------------------------------------------------------------
-  if (!is_na1 && !is_na2 && !identical(base_mstat_5p, base_mstat_3p)) {
-    pot1 <- extract_potential_target(mstat_5p) # potential target expressed by 5p
-    pot2 <- extract_potential_target(mstat_3p) # potential target expressed by 3p
-
-    # Case: 3p is certain X, 5p is "potentially X" -> trust 3p (Simple = X)
-    if (!is.na(pot1) && !is.na(base_mstat_3p) && base_mstat_3p == pot1) {
-      fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-      fragment_status_simple <- base_mstat_3p
-      return(list(Detail = fragment_status_detail, Simple = fragment_status_simple))
+    # Function if a string contains "potentially X", extract X (WT/MUT/OTH/AMB); else NA
+    extract_potential_target <- function(s) {
+        if (is.na(s)) {
+            return(NA_character_)
+        }
+        m <- regexpr("potentially\\s+(WT|MUT|OTH|AMB)", s, ignore.case = TRUE)
+        if (m[1] == -1) {
+            return(NA_character_)
+        }
+        tgt <- regmatches(s, m)
+        # Keep only the captured group (the target class)
+        tgt <- sub(".*potentially\\s+(WT|MUT|OTH|AMB).*", "\\1", tgt, ignore.case = TRUE)
+        toupper(tgt)
     }
 
-    # Case: 5p is certain X, 3p is "potentially X" -> trust 5p (Simple = X)
-    if (!is.na(pot2) && !is.na(base_mstat_5p) && base_mstat_5p == pot2) {
-      fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-      fragment_status_simple <- base_mstat_5p
-      return(list(Detail = fragment_status_detail, Simple = fragment_status_simple))
+    base_mstat_5p <- clean_status(mstat_5p)
+    base_mstat_3p <- clean_status(mstat_3p)
+
+    # Initialize outputs
+    fragment_status_detail <- NA_character_
+    fragment_status_simple <- NA_character_
+
+    # Define flags for cleaner logic
+    is_na1 <- is.na(mstat_5p)
+    is_na2 <- is.na(mstat_3p)
+
+    is_mut1 <- base_mstat_5p == "MUT"
+    is_mut2 <- base_mstat_3p == "MUT"
+    is_wt1 <- base_mstat_5p == "WT"
+    is_wt2 <- base_mstat_3p == "WT"
+    is_amb1 <- base_mstat_5p == "AMB"
+    is_amb2 <- base_mstat_3p == "AMB"
+    is_other_mut1 <- base_mstat_5p == "OTH"
+    is_other_mut2 <- base_mstat_3p == "OTH"
+
+    # Function to combine original statuses for Fragment_Status_Detail
+    # Handles sorting and unique values while preserving original string
+    combine_original_statuses <- function(s1, s2) {
+        original_statuses <- na.omit(c(s1, s2))
+        if (length(original_statuses) == 0) {
+            return(NA_character_)
+        }
+        if (length(original_statuses) == 1) {
+            return(original_statuses[1])
+        }
+        if (original_statuses[1] == original_statuses[2]) {
+            return(original_statuses[1])
+        }
+
+        # Sort based on the cleaned status, then get the original string
+        sorted_pairs <- data.frame(
+            clean = c(clean_status(s1), clean_status(s2)),
+            original = c(s1, s2),
+            stringsAsFactors = FALSE
+        )
+        sorted_pairs <- sorted_pairs[order(sorted_pairs$clean, sorted_pairs$original), ]
+
+        # Filter out NA original strings and collapse unique ones
+        unique_sorted_originals <- unique(na.omit(sorted_pairs$original))
+        return(paste(unique_sorted_originals, collapse = " & "))
     }
-  }
 
-  # --------------------------------------------------------------------------
-  # Fragment status decision tree
-  # --------------------------------------------------------------------------
-  # 1. NA / NA
-  if (is_na1 && is_na2) {
-    fragment_status_detail <- "ERR"
-    fragment_status_simple <- "ERR"
-  }
-  # 2. NA / MUT (and symmetrical)
-  else if ((is_na1 && is_mut2) || (is_mut1 && is_na2)) {
-    fragment_status_detail <- ifelse(is_na1, mstat_3p, mstat_5p)
-    fragment_status_simple <- "MUT"
-  }
-  # 3. NA / WT (and symmetrical)
-  else if ((is_na1 && is_wt2) || (is_wt1 && is_na2)) {
-    fragment_status_detail <- ifelse(is_na1, mstat_3p, mstat_5p)
-    fragment_status_simple <- "WT"
-  }
-  # 4. NA / AMB (and symmetrical)
-  else if ((is_na1 && is_amb2) || (is_amb1 && is_na2)) {
-    fragment_status_detail <- ifelse(is_na1, mstat_3p, mstat_5p)
-    fragment_status_simple <- "N/I"
-  }
-  # 5. NA / OTH (and symmetrical)
-  else if ((is_na1 && is_other_mut2) || (is_other_mut1 && is_na2)) {
-    fragment_status_detail <- ifelse(is_na1, mstat_3p, mstat_5p)
-    fragment_status_simple <- "OTH"
-  }
-  # 6. MUT / MUT
-  else if (is_mut1 && is_mut2) {
-    fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "MUT"
-  }
-  # 7. MUT / WT (and symmetrical) - N/I
-  else if ((is_mut1 && is_wt2) || (is_wt1 && is_mut2)) {
-    fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "N/I"
-  }
-  # 8. MUT / AMB (and symmetrical) - Prioritize MUT
-  else if ((is_mut1 && is_amb2) || (is_amb1 && is_mut2)) {
-    fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "MUT"
-  }
-  # 9. MUT / OTH (and symmetrical) - N/I
-  else if ((is_mut1 && is_other_mut2) || (is_other_mut1 && is_mut2)) {
-    fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "N/I"
-  }
-  # 10. WT / WT
-  else if (is_wt1 && is_wt2) {
-    fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "WT"
-  }
-  # 11. WT / AMB (and symmetrical) - Prioritize WT
-  else if ((is_wt1 && is_amb2) || (is_amb1 && is_wt2)) {
-    fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "WT"
-  }
-  # 12. WT / OTH (and symmetrical) - DISCORDANT
-  else if ((is_wt1 && is_other_mut2) || (is_other_mut1 && is_wt2)) {
-    fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "N/I"
-  }
-  # 13. AMB / AMB
-  else if (is_amb1 && is_amb2) {
-    fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "N/I"
-  }
-  # 14. AMB / OTH (and symmetrical) - Prioritize OTH
-  else if ((is_amb1 && is_other_mut2) || (is_other_mut1 && is_amb2)) {
-    fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "OTH"
-  }
-  # 15. OTH / OTH
-  else if (is_other_mut1 && is_other_mut2) {
-    fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "OTH"
-  }
-  # Fallback for any unhandled or unexpected combination (should not happen)
-  else {
-    fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
-    fragment_status_simple <- "UNK"
-  }
+    # --------------------------------------------------------------------------
+    # Early resolution for discordant reads with "potentially X" on one side:
+    # - If read A is "potentially X" and read B is X, trust B -> Simple = X
+    # --------------------------------------------------------------------------
+    if (!is_na1 && !is_na2 && !identical(base_mstat_5p, base_mstat_3p)) {
+        pot1 <- extract_potential_target(mstat_5p) # potential target expressed by 5p
+        pot2 <- extract_potential_target(mstat_3p) # potential target expressed by 3p
 
-  # Return the results as a list
-  return(list(
-    Detail = fragment_status_detail,
-    Simple = fragment_status_simple
-  ))
+        # Case: 3p is certain X, 5p is "potentially X" -> trust 3p (Simple = X)
+        if (!is.na(pot1) && !is.na(base_mstat_3p) && base_mstat_3p == pot1) {
+            fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+            fragment_status_simple <- base_mstat_3p
+            return(list(Detail = fragment_status_detail, Simple = fragment_status_simple))
+        }
+
+        # Case: 5p is certain X, 3p is "potentially X" -> trust 5p (Simple = X)
+        if (!is.na(pot2) && !is.na(base_mstat_5p) && base_mstat_5p == pot2) {
+            fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+            fragment_status_simple <- base_mstat_5p
+            return(list(Detail = fragment_status_detail, Simple = fragment_status_simple))
+        }
+    }
+
+    # --------------------------------------------------------------------------
+    # Fragment status decision tree
+    # --------------------------------------------------------------------------
+    # 1. NA / NA
+    if (is_na1 && is_na2) {
+        fragment_status_detail <- "ERR"
+        fragment_status_simple <- "ERR"
+    }
+    # 2. NA / MUT (and symmetrical)
+    else if ((is_na1 && is_mut2) || (is_mut1 && is_na2)) {
+        fragment_status_detail <- ifelse(is_na1, mstat_3p, mstat_5p)
+        fragment_status_simple <- "MUT"
+    }
+    # 3. NA / WT (and symmetrical)
+    else if ((is_na1 && is_wt2) || (is_wt1 && is_na2)) {
+        fragment_status_detail <- ifelse(is_na1, mstat_3p, mstat_5p)
+        fragment_status_simple <- "WT"
+    }
+    # 4. NA / AMB (and symmetrical)
+    else if ((is_na1 && is_amb2) || (is_amb1 && is_na2)) {
+        fragment_status_detail <- ifelse(is_na1, mstat_3p, mstat_5p)
+        fragment_status_simple <- "N/I"
+    }
+    # 5. NA / OTH (and symmetrical)
+    else if ((is_na1 && is_other_mut2) || (is_other_mut1 && is_na2)) {
+        fragment_status_detail <- ifelse(is_na1, mstat_3p, mstat_5p)
+        fragment_status_simple <- "OTH"
+    }
+    # 6. MUT / MUT
+    else if (is_mut1 && is_mut2) {
+        fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+        fragment_status_simple <- "MUT"
+    }
+    # 7. MUT / WT (and symmetrical) - N/I
+    else if ((is_mut1 && is_wt2) || (is_wt1 && is_mut2)) {
+        fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+        fragment_status_simple <- "N/I"
+    }
+    # 8. MUT / AMB (and symmetrical) - Prioritize MUT
+    else if ((is_mut1 && is_amb2) || (is_amb1 && is_mut2)) {
+        fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+        fragment_status_simple <- "MUT"
+    }
+    # 9. MUT / OTH (and symmetrical) - N/I
+    else if ((is_mut1 && is_other_mut2) || (is_other_mut1 && is_mut2)) {
+        fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+        fragment_status_simple <- "N/I"
+    }
+    # 10. WT / WT
+    else if (is_wt1 && is_wt2) {
+        fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+        fragment_status_simple <- "WT"
+    }
+    # 11. WT / AMB (and symmetrical) - Prioritize WT
+    else if ((is_wt1 && is_amb2) || (is_amb1 && is_wt2)) {
+        fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+        fragment_status_simple <- "WT"
+    }
+    # 12. WT / OTH (and symmetrical) - DISCORDANT
+    else if ((is_wt1 && is_other_mut2) || (is_other_mut1 && is_wt2)) {
+        fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+        fragment_status_simple <- "N/I"
+    }
+    # 13. AMB / AMB
+    else if (is_amb1 && is_amb2) {
+        fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+        fragment_status_simple <- "N/I"
+    }
+    # 14. AMB / OTH (and symmetrical) - Prioritize OTH
+    else if ((is_amb1 && is_other_mut2) || (is_other_mut1 && is_amb2)) {
+        fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+        fragment_status_simple <- "OTH"
+    }
+    # 15. OTH / OTH
+    else if (is_other_mut1 && is_other_mut2) {
+        fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+        fragment_status_simple <- "OTH"
+    }
+    # Fallback for any unhandled or unexpected combination (should not happen)
+    else {
+        fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+        fragment_status_simple <- "UNK"
+    }
+
+    # Return the results as a list
+    return(list(
+        Detail = fragment_status_detail,
+        Simple = fragment_status_simple
+    ))
 }

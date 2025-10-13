@@ -1,16 +1,17 @@
 #' Check that bcftools system dependency is available.
 #'
+#' @return The system path to the bcftools executable
 #' @keywords internal
 check_bcftools_is_installed <- function() {
-  bcftools_path <- Sys.which("bcftools")
-  if (bcftools_path == "") {
-    stop(
-      "bcftools is not in your PATH.\n",
-      "Please install it and ensure it's available in your system's PATH.\n",
-      "See the package vignette for installation instructions."
-    )
-  }
-  return(bcftools_path)
+    bcftools_path <- Sys.which("bcftools")
+    if (bcftools_path == "") {
+        stop(
+            "bcftools is not in your PATH.\n",
+            "Please install it and ensure it's available in your system's PATH.\n",
+            "See the package vignette for installation instructions."
+        )
+    }
+    return(bcftools_path)
 }
 
 
@@ -30,93 +31,93 @@ check_bcftools_is_installed <- function() {
 #'
 #' @keywords internal
 apply_bcftools_norm <- function(chr, pos, ref, alt, fasta, tmp_folder, verbose) {
-  # Pass if REF and ALT are equals
-  if (ref == alt) {
-    normalized_variants <- data.frame(
-      chr,
-      pos,
-      ref,
-      alt,
-      stringsAsFactors = FALSE
-    )
-  } else {
-    # Create a temporary VCF file from the input variant information
-    tmp_vcf <- create_temporary_vcf(chr, pos, ref, alt)
-
-    # Create a temporary file to store the output of bcftools norm
-    tmp_out_vcf <- tempfile(tmpdir = tmp_folder, fileext = ".vcf")
-
-    # Ensure that temporary files are removed after the function executes
-    on.exit(
-      {
-        if (file.exists(tmp_vcf)) file.remove(tmp_vcf)
-        if (file.exists(tmp_out_vcf)) file.remove(tmp_out_vcf)
-      },
-      add = TRUE
-    )
-
-    # Build the bcftools norm command
-    command <- "bcftools"
-    args <- c(
-      "norm",
-      "-m", "+both",
-      "-d", "exact",
-      "--check", "REF,ALT",
-      "-f", fasta,
-      "-o", tmp_out_vcf,
-      tmp_vcf
-    )
-
-    # Print a message
-    if (verbose) {
-      message(sprintf(
-        "Processing bcftools norm normalisation for variant: %s:%s %s>%s",
-        chr, pos, ref, alt
-      ))
-    }
-
-    # Execute the command to normalize the VCF file
-    exit_status <- tryCatch(
-      {
-        # Execute the command
-        system2(command, args = args, stdout = TRUE, stderr = TRUE)
-        0 # Success
-      },
-      error = function(e) {
-        warning(sprintf(
-          "Bcftools norm failed for variant %s:%d:%s:%s - %s",
-          chr,
-          pos,
-          ref,
-          alt,
-          e$message
-        ))
-        return(1) # Fail
-      }
-    )
-
-    if (exit_status != 0) {
-      return(NULL)
+    # Pass if REF and ALT are equals
+    if (ref == alt) {
+        normalized_variants <- data.frame(
+            chr,
+            pos,
+            ref,
+            alt,
+            stringsAsFactors = FALSE
+        )
     } else {
-      # Check if output vcf is null
-      if (!file.exists(tmp_out_vcf) || file.info(tmp_out_vcf)$size == 0) {
-        warning(sprintf(
-          "bcftools norm produced an empty VCF for %s:%d:%s:%s",
-          chr,
-          pos,
-          ref,
-          alt
-        ))
-        return(NULL)
-      }
+        # Create a temporary VCF file from the input variant information
+        tmp_vcf <- create_temporary_vcf(chr, pos, ref, alt)
 
-      # Read normalized VCF into a df
-      normalized_variants <- parser_vcf(tmp_out_vcf)
+        # Create a temporary file to store the output of bcftools norm
+        tmp_out_vcf <- tempfile(tmpdir = tmp_folder, fileext = ".vcf")
+
+        # Ensure that temporary files are removed after the function executes
+        on.exit(
+            {
+                if (file.exists(tmp_vcf)) file.remove(tmp_vcf)
+                if (file.exists(tmp_out_vcf)) file.remove(tmp_out_vcf)
+            },
+            add = TRUE
+        )
+
+        # Build the bcftools norm command
+        command <- "bcftools"
+        args <- c(
+            "norm",
+            "-m", "+both",
+            "-d", "exact",
+            "--check", "REF,ALT",
+            "-f", fasta,
+            "-o", tmp_out_vcf,
+            tmp_vcf
+        )
+
+        # Print a message
+        if (verbose) {
+            message(sprintf(
+                "Processing bcftools norm normalisation for variant: %s:%s %s>%s",
+                chr, pos, ref, alt
+            ))
+        }
+
+        # Execute the command to normalize the VCF file
+        exit_status <- tryCatch(
+            {
+                # Execute the command
+                system2(command, args = args, stdout = TRUE, stderr = TRUE)
+                0 # Success
+            },
+            error = function(e) {
+                warning(sprintf(
+                    "Bcftools norm failed for variant %s:%d:%s:%s - %s",
+                    chr,
+                    pos,
+                    ref,
+                    alt,
+                    e$message
+                ))
+                return(1) # Fail
+            }
+        )
+
+        if (exit_status != 0) {
+            return(NULL)
+        } else {
+            # Check if output vcf is null
+            if (!file.exists(tmp_out_vcf) || file.info(tmp_out_vcf)$size == 0) {
+                warning(sprintf(
+                    "bcftools norm produced an empty VCF for %s:%d:%s:%s",
+                    chr,
+                    pos,
+                    ref,
+                    alt
+                ))
+                return(NULL)
+            }
+
+            # Read normalized VCF into a df
+            normalized_variants <- parser_vcf(tmp_out_vcf)
+        }
     }
-  }
 
-  # Return the dataframe with normalized variant data (or NULL if erreur)
-  normalized_variants
+    # Return the dataframe with normalized variant data (or NULL if erreur)
+    normalized_variants
 }
 
 
@@ -130,21 +131,21 @@ apply_bcftools_norm <- function(chr, pos, ref, alt, fasta, tmp_folder, verbose) 
 #'
 #' @noRd
 create_temporary_vcf <- function(chr, pos, ref, alt) {
-  # Create a temporary file with .vcf extension
-  tmp_vcf <- tempfile(fileext = ".vcf")
+    # Create a temporary file with .vcf extension
+    tmp_vcf <- tempfile(fileext = ".vcf")
 
-  # Define VCF header
-  vcf_header <- paste0(
-    "##fileformat=VCFv4.2\n",
-    "##contig=<ID=", chr, ">\n",
-    "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"
-  )
+    # Define VCF header
+    vcf_header <- paste0(
+        "##fileformat=VCFv4.2\n",
+        "##contig=<ID=", chr, ">\n",
+        "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"
+    )
 
-  # Define VCF content (one variant per line)
-  vcf_content <- paste(chr, pos, ".", ref, alt, ".", ".", ".", sep = "\t")
+    # Define VCF content (one variant per line)
+    vcf_content <- paste(chr, pos, ".", ref, alt, ".", ".", ".", sep = "\t")
 
-  # Write the VCF header and content to the temporary file
-  writeLines(c(vcf_header, vcf_content), tmp_vcf)
+    # Write the VCF header and content to the temporary file
+    writeLines(c(vcf_header, vcf_content), tmp_vcf)
 
-  tmp_vcf
+    tmp_vcf
 }

@@ -12,24 +12,24 @@
 #'
 #' @keywords internal
 compare_read_to_ref_wt_and_mut <- function(read_seq, ref_seq_wt, ref_seq_mut, compare_len_wt, compare_len_mut) {
-  # build the sequences to be compared
-  ref_seq_wt_sub <- substr(ref_seq_wt, 1, compare_len_wt)
-  ref_seq_mut_sub <- substr(ref_seq_mut, 1, compare_len_mut)
-  read_seq_wt_sub <- substr(read_seq, 1, compare_len_wt)
-  read_seq_mut_sub <- substr(read_seq, 1, compare_len_mut)
+    # build the sequences to be compared
+    ref_seq_wt_sub <- substr(ref_seq_wt, 1, compare_len_wt)
+    ref_seq_mut_sub <- substr(ref_seq_mut, 1, compare_len_mut)
+    read_seq_wt_sub <- substr(read_seq, 1, compare_len_wt)
+    read_seq_mut_sub <- substr(read_seq, 1, compare_len_mut)
 
-  # check if read compatible with wild-type ref
-  match_ref_wt <- ref_seq_wt_sub == read_seq_wt_sub
-  # check if read compatible with mutated ref
-  match_ref_mut <- ref_seq_mut_sub == read_seq_mut_sub
+    # check if read compatible with wild-type ref
+    match_ref_wt <- ref_seq_wt_sub == read_seq_wt_sub
+    # check if read compatible with mutated ref
+    match_ref_mut <- ref_seq_mut_sub == read_seq_mut_sub
 
-  if (match_ref_wt && match_ref_mut) {
-    return("AMB")
-  } else if (match_ref_wt) {
-    return("WT")
-  } else if (match_ref_mut) {
-    return("MUT")
-  } else {
-    return("OTH")
-  }
+    if (match_ref_wt && match_ref_mut) {
+        return("AMB")
+    } else if (match_ref_wt) {
+        return("WT")
+    } else if (match_ref_mut) {
+        return("MUT")
+    } else {
+        return("OTH")
+    }
 }

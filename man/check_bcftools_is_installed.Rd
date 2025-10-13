@@ -6,6 +6,9 @@
 \usage{
 check_bcftools_is_installed()
 }
+\value{
+The system path to the bcftools executable
+}
 \description{
 Check that bcftools system dependency is available.
 }

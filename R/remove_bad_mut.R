@@ -9,31 +9,31 @@
 #'
 #' @keywords internal
 remove_bad_mut <- function(df_mut) {
-  # Initialize the cleaned dataframe
-  df_mut_clean <- data.frame()
+    # Initialize the cleaned dataframe
+    df_mut_clean <- data.frame()
 
-  for (i in seq_len(nrow(df_mut))) {
-    chr <- df_mut[i, "CHROM"]
-    pos <- df_mut[i, "POS"]
-    ref <- df_mut[i, "REF"]
-    alt <- df_mut[i, "ALT"]
+    for (i in seq_len(nrow(df_mut))) {
+        chr <- df_mut[i, "CHROM"]
+        pos <- df_mut[i, "POS"]
+        ref <- df_mut[i, "REF"]
+        alt <- df_mut[i, "ALT"]
 
-    # Validate inputs
-    if (!check_chr_input(chr) || !check_pos_input(pos) || !check_ref_alt_input(ref, alt)) {
-      warning(sprintf("Invalid row: %d - CHROM: %s POS: %s REF: %s ALT: %s", i, chr, pos, ref, alt))
-      next
+        # Validate inputs
+        if (!check_chr_input(chr) || !check_pos_input(pos) || !check_ref_alt_input(ref, alt)) {
+            warning(sprintf("Invalid row: %d - CHROM: %s POS: %s REF: %s ALT: %s", i, chr, pos, ref, alt))
+            next
+        }
+
+        # Store valid rows
+        df_mut_clean <- rbind(df_mut_clean, df_mut[i, , drop = FALSE])
     }
 
-    # Store valid rows
-    df_mut_clean <- rbind(df_mut_clean, df_mut[i, , drop = FALSE])
-  }
+    # Check if final dataframe contains at least one row
+    if (nrow(df_mut_clean) == 0) {
+        stop("No valid mutations found after sanity check.")
+    }
 
-  # Check if final dataframe contains at least one row
-  if (nrow(df_mut_clean) == 0) {
-    stop("No valid mutations found after sanity check.")
-  }
-
-  df_mut_clean
+    df_mut_clean
 }
 
 #' Check Chromosome Input
@@ -45,16 +45,16 @@ remove_bad_mut <- function(df_mut) {
 #'
 #' @noRd
 check_chr_input <- function(chr) {
-  if (is.null(chr) || is.na(chr) || chr == "") {
+    if (is.null(chr) || is.na(chr) || chr == "") {
+        return(FALSE)
+    }
+
+    if (grepl("^chr([1-9]|1[0-9]|2[0-2]|X|Y)$", chr) ||
+        grepl("^([1-9]|1[0-9]|2[0-2]|X|Y)$", chr)) {
+        return(TRUE)
+    }
+
     return(FALSE)
-  }
-
-  if (grepl("^chr([1-9]|1[0-9]|2[0-2]|X|Y)$", chr) ||
-    grepl("^([1-9]|1[0-9]|2[0-2]|X|Y)$", chr)) {
-    return(TRUE)
-  }
-
-  return(FALSE)
 }
 
 #' Check Position Input
@@ -66,15 +66,15 @@ check_chr_input <- function(chr) {
 #'
 #' @noRd
 check_pos_input <- function(pos) {
-  if (is.null(pos) || is.na(pos) || pos == "") {
+    if (is.null(pos) || is.na(pos) || pos == "") {
+        return(FALSE)
+    }
+
+    if (is.numeric(pos) && pos == as.integer(pos) && pos > 0) {
+        return(TRUE)
+    }
+
     return(FALSE)
-  }
-
-  if (is.numeric(pos) && pos == as.integer(pos) && pos > 0) {
-    return(TRUE)
-  }
-
-  return(FALSE)
 }
 
 #' Check Reference and Alternative Alleles
@@ -86,21 +86,21 @@ check_pos_input <- function(pos) {
 #'
 #' @noRd
 check_ref_alt_input <- function(ref, alt) {
-  specific_values <- c("", ".", "-", "_", NA, "NA")
+    specific_values <- c("", ".", "-", "_", NA, "NA")
 
-  if ((ref %in% specific_values) && (alt %in% specific_values)) {
+    if ((ref %in% specific_values) && (alt %in% specific_values)) {
+        return(FALSE)
+    }
+
+    if (grepl(",", ref) || grepl(",", alt)) {
+        return(FALSE)
+    }
+
+    valid_pattern <- "^[ATCG]*[._-]?$"
+    if ((ref %in% specific_values || grepl(valid_pattern, ref)) &&
+        (alt %in% specific_values || grepl(valid_pattern, alt))) {
+        return(TRUE)
+    }
+
     return(FALSE)
-  }
-
-  if (grepl(",", ref) || grepl(",", alt)) {
-    return(FALSE)
-  }
-
-  valid_pattern <- "^[ATCG]*[._-]?$"
-  if ((ref %in% specific_values || grepl(valid_pattern, ref)) &&
-    (alt %in% specific_values || grepl(valid_pattern, alt))) {
-    return(TRUE)
-  }
-
-  return(FALSE)
 }

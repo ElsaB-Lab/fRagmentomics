@@ -105,16 +105,16 @@ its size, quality metrics, and mutation status (e.g., "MUT", "WT", "AMB", "N/I")
 # The package includes small example files to demonstrate its functionality.
 # We locate them using system.file().
 mut_file <- system.file(
-  "extdata", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv",
-  package = "fRagmentomics"
+    "extdata", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv",
+    package = "fRagmentomics"
 )
 bam_file <- system.file(
-  "extdata", "cfdna-test-01_chr1_27433000_27435000.bam",
-  package = "fRagmentomics"
+    "extdata", "cfdna-test-01_chr1_27433000_27435000.bam",
+    package = "fRagmentomics"
 )
 fasta_file <- system.file(
-  "extdata", "hg19_chr1_27433000_27435000.fa",
-  package = "fRagmentomics"
+    "extdata", "hg19_chr1_27433000_27435000.fa",
+    package = "fRagmentomics"
 )
 
 # --- 2. Run the Analysis ---
@@ -122,11 +122,11 @@ fasta_file <- system.file(
 # The output file is written to a temporary location to avoid cluttering
 # the working directory. We use n_cores = 1L for examples.
 results <- run_fRagmentomics(
-  mut = mut_file,
-  bam = bam_file,
-  fasta = fasta_file,
-  sample_id = "cfdna-test-01",
-  n_cores = 1L
+    mut = mut_file,
+    bam = bam_file,
+    fasta = fasta_file,
+    sample_id = "cfdna-test-01",
+    n_cores = 1L
 )
 
 # --- 3. View the Results ---
