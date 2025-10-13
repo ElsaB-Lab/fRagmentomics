@@ -1,17 +1,21 @@
 #' Check and validate all input parameters for the analysis pipeline
 #'
-#' @description This function serves as a centralized gatekeeper, validating all user-provided parameters before the main
-#' analysis begins. It calls a series of specialized  helper functions to check each parameter for correctness (e.g., file existence,
-#' data type, valid values) and stops execution with an informative error message if any check fails.
+#' @description This function serves as a centralized gatekeeper, validating all
+#' user-provided parameters before the main analysis begins. It calls a series
+#' of specialized  helper functions to check each parameter for correctness
+#' (e.g., file existence, data type, valid values) and stops execution with an
+#' informative error message if any check fails.
 #'
 #' @inheritParams run_fRagmentomics
 #'
 #' @return None. The function stops execution if error.
 #'
 #' @keywords internal
-check_parameters <- function(mut, bam, fasta, sample_id, neg_offset_mate_search, pos_offset_mate_search, one_based,
-    flag_bam_list, report_tlen, report_softclip, report_5p_3p_bases_fragment,
-    remove_softclip, retain_fail_qc, tmp_folder, output_path, verbose, n_cores) {
+check_parameters <- function(mut, bam, fasta, sample_id, neg_offset_mate_search,
+    pos_offset_mate_search, one_based, flag_bam_list, report_tlen,
+    report_softclip, report_5p_3p_bases_fragment, remove_softclip,
+    retain_fail_qc, tmp_folder, output_path, verbose, n_cores) {
+
     check_mut(mut)
     check_bam(bam, verbose)
     check_fasta(fasta, verbose)
@@ -37,12 +41,14 @@ check_parameters <- function(mut, bam, fasta, sample_id, neg_offset_mate_search,
 #'
 #' @noRd
 check_mut <- function(mut) {
-    # Check that mut is a single value, whether a filepath or a str representation
+    # Check that mut is a single value, whether a filepath or a str
+    # representation
     if (length(mut) != 1) {
-        stop("The parameter 'mut' should be a single value, not multiple elements.")
+        stop("The parameter 'mut' should be a single value.")
     }
 
-    # Check if mut is a valid file format (VCF, TSV, or their compressed versions)
+    # Check if mut is a valid file format (VCF, TSV, or their compressed
+    # versions)
     is_file_format <- grepl("\\.(vcf|tsv)(\\.gz)?$", mut)
 
     # If it's a file, check if it exists
@@ -90,7 +96,8 @@ check_bam <- function(bam, verbose) {
 #' @noRd
 check_fasta <- function(fasta, verbose) {
     if (!grepl("\\.fa(sta)?$", fasta)) {
-        stop("The file does not have a valid FASTA extension (.fa or .fasta): ", fasta)
+        stop("The file does not have a valid FASTA extension (.fa or .fasta): ",
+            fasta)
     }
 
     if (!file.exists(fasta)) {
@@ -172,7 +179,7 @@ check_flag_bam_list <- function(flag_bam_list) {
     # Check if all values in the list are logical (TRUE, FALSE, or NA)
     all_values_logical <- all(vapply(flag_bam_list, is.logical, logical(1)))
     if (!all_values_logical) {
-        stop(" All values in 'flag_bam_list' must be logical (TRUE, FALSE, or NA).")
+        stop(" All values in 'flag_bam_list' must be logical.")
     }
 
     # Check if the list items are named and if the names are valid
@@ -186,10 +193,13 @@ check_flag_bam_list <- function(flag_bam_list) {
 
         invalid_names <- user_flag_names[!user_flag_names %in% valid_flag_names]
         if (length(invalid_names) > 0) {
-            stop(sprintf(
-                "Invalid name(s) found in 'flag_bam_list': %s.\n\nSee ?Rsamtools::scanBamFlag for a list of valid flag names.",
+            stoptext <- sprintf(paste("Invalid name(s) found in",
+                "'flag_bam_list': %s.\n\nSee ?Rsamtools::scanBamFlag for a",
+                "list of valid flag names."
+                ),
                 paste(shQuote(invalid_names), collapse = ", ")
-            ))
+            )
+            stop(stoptext)
         }
     }
 }

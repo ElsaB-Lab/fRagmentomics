@@ -25,8 +25,9 @@ apply_bcftools_norm(chr, pos, ref, alt, fasta, tmp_folder, verbose)
 A dataframe containing normalized variant information with bcftools.
 }
 \description{
-This function normalizes a single variant by leveraging the external 'bcftools norm' command. It writes
-the variant to a temporary VCF file, executes 'bcftools norm' for left-alignment and parsimonious representation,
-and then reads the normalized result back into a data frame.
+This function normalizes a single variant by leveraging the
+external 'bcftools norm' command. It writes the variant to a temporary VCF
+file, executes 'bcftools norm' for left-alignment and parsimonious
+representation, and then reads the normalized result back into a data frame.
 }
 \keyword{internal}

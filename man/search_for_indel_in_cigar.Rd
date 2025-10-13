@@ -15,7 +15,7 @@ search_for_indel_in_cigar(pos, ref, alt, read_stats, type)
 
 \item{read_stats}{A list of read-level statistics.}
 
-\item{type, }{choose between "INS" or "DEL"}
+\item{type, }{choose between 'INS' or 'DEL'}
 }
 \value{
 a list with two booleans. The first boolean indicate if the INDEL searched was found. The second boolean

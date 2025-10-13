@@ -57,9 +57,11 @@ extremity bases in the output.}
 A dataframe with the processed fragment information.
 }
 \description{
-This is a high-level worker function that orchestrates the complete analysis of a single DNA fragment
-(represented by a pair of reads) at a specific variant locus. It performs quality control, identifies reads, extracts
-features, determines mutation status, and returns all results in a structured format.
+This is a high-level worker function that orchestrates the
+complete analysis of a single DNA fragment (represented by a pair of reads)
+at a specific variant locus. It performs quality control, identifies reads,
+extracts features, determines mutation status, and returns all results in a
+structured format.
 }
 \details{
 The function executes the following pipeline for each fragment:
@@ -75,7 +77,7 @@ sequences, qualities, and CIGAR strings.
 mutation status for each individual read at the variant position.
 \item It calculates the precise fragment size using 'get_fragment_size'.
 \item It consolidates the two read statuses into a final fragment status
-(e.g., "MUT", "DISCORDANT") using 'get_mutation_status_of_fragment'.
+(e.g., 'MUT', 'DISCORDANT') using 'get_mutation_status_of_fragment'.
 \item It assembles and returns a single-row data frame containing all
 extracted information.
 }

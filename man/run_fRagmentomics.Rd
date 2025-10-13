@@ -94,7 +94,7 @@ representation using a combination of VCF-style indel padding and the external '
 retrieve all read pairs that cover the genomic locus.
 \item \strong{Parallel Fragment Processing}: The core analysis is performed in parallel using the 'future' framework.
 Each unique DNA fragment is processed by the 'extract_fragment_features' worker function to determine
-its size, quality metrics, and mutation status (e.g., "MUT", "WT", "AMB", "N/I").
+its size, quality metrics, and mutation status (e.g., 'MUT', 'WT', 'AMB', 'N/I').
 \item \strong{VAF Calculation}: After all fragments for a variant are processed, the Variant Allele Frequency (VAF) is calculated.
 \item \strong{Output Generation}: Results from all variants are aggregated into a single data frame. If a value for
 \code{output_path} is provided, this data frame is also written to a tab-separated file.
@@ -105,16 +105,16 @@ its size, quality metrics, and mutation status (e.g., "MUT", "WT", "AMB", "N/I")
 # The package includes small example files to demonstrate its functionality.
 # We locate them using system.file().
 mut_file <- system.file(
-    "extdata", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv",
-    package = "fRagmentomics"
+    'extdata', 'mutations_cfdna-test-01_chr1_27433000_27435000.tsv',
+    package = 'fRagmentomics'
 )
 bam_file <- system.file(
-    "extdata", "cfdna-test-01_chr1_27433000_27435000.bam",
-    package = "fRagmentomics"
+    'extdata', 'cfdna-test-01_chr1_27433000_27435000.bam',
+    package = 'fRagmentomics'
 )
 fasta_file <- system.file(
-    "extdata", "hg19_chr1_27433000_27435000.fa",
-    package = "fRagmentomics"
+    'extdata', 'hg19_chr1_27433000_27435000.fa',
+    package = 'fRagmentomics'
 )
 
 # --- 2. Run the Analysis ---
@@ -125,7 +125,7 @@ results <- run_fRagmentomics(
     mut = mut_file,
     bam = bam_file,
     fasta = fasta_file,
-    sample_id = "cfdna-test-01",
+    sample_id = 'cfdna-test-01',
     n_cores = 1L
 )
 

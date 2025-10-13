@@ -31,11 +31,13 @@ Require that bcftools command is installed and available in the PATH.}
 \item{verbose}{Boolean. If set to TRUE, print all the warnings and the prints.}
 }
 \value{
-a dataframe with normalized mutations representations containing columns CHROM, POS, REF, ALT
+a dataframe with normalized mutations representations containing
+columns CHROM, POS, REF, ALT
 }
 \description{
-This function serves as the main variant normalization pipeline. It iterates through a data frame of variants,
-applying a two-step normalization process to each one, ensuring they are represented in a canonical, left-aligned
-format suitable for downstream analysis.
+This function serves as the main variant normalization pipeline.
+It iterates through a data frame of variants, applying a two-step
+normalization process to each one, ensuring they are represented in a
+canonical, left-aligned format suitable for downstream analysis.
 }
 \keyword{internal}

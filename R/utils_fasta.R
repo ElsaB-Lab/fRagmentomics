@@ -24,32 +24,19 @@ get_seq_from_fasta <- function(chr, start, end, fasta_fafile = NULL, fasta_seq =
         f_end <- fasta_seq$end
         f_seq <- fasta_seq$seq
         if (f_chr != chr) {
-            stop(sprintf(
-                "Requested chromosome '%s' does not match the available chromosome '%s'.",
-                chr,
-                f_chr
-            ))
+            stop(sprintf("Requested chromosome '%s' does not match the available chromosome '%s'.",
+                chr, f_chr))
         }
         if (start < f_start || end > f_end) {
-            stop(sprintf(
-                "Requested sequence range %d:%d does not fit into the available reference sequence range %d:%d.",
-                start,
-                end,
-                f_start,
-                f_end
-            ))
+            stop(sprintf("Requested sequence range %d:%d does not fit into the available reference sequence range %d:%d.",
+                start, end, f_start, f_end))
         }
         ref_seq <- substr(f_seq, start - f_start + 1, end - f_start + 1)
     } else {
-        # Fetch a single nucleotide from the FASTA
-        # using the chromosome, and start = end = position
-        ref_seq <- Biostrings::getSeq(
-            x = fasta_fafile,
-            param = GenomicRanges::GRanges(
-                seqnames = chr,
-                ranges = IRanges::IRanges(start = start, end = end)
-            )
-        )
+        # Fetch a single nucleotide from the FASTA using the chromosome, and
+        # start = end = position
+        ref_seq <- Biostrings::getSeq(x = fasta_fafile, param = GenomicRanges::GRanges(seqnames = chr,
+            ranges = IRanges::IRanges(start = start, end = end)))
     }
 
     # Transform fasta_seq into string
@@ -61,7 +48,7 @@ get_seq_from_fasta <- function(chr, start, end, fasta_fafile = NULL, fasta_seq =
 #' Harmonize chromosome notation to match a FASTA file
 #'
 #' @description This utility function adjusts a chromosome name to match the style used in a reference FASTA file's
-#' index (e.g., converting "1" to "chr1" or vice versa).
+#' index (e.g., converting '1' to 'chr1' or vice versa).
 #'
 #' @inheritParams normalize_to_vcf_rep
 #' @importFrom Rsamtools scanFaIndex
@@ -72,17 +59,17 @@ get_seq_from_fasta <- function(chr, start, end, fasta_fafile = NULL, fasta_seq =
 #' @noRd
 harmonize_chr_to_fasta <- function(chr, fasta_fafile) {
     # Extract chromosome names from the FASTA index
-    fasta_index <- scanFaIndex(fasta_fafile) # Get the indexed FASTA sequence info
-    fasta_chromosomes <- seqnames(fasta_index) # Extract chromosome names
+    fasta_index <- scanFaIndex(fasta_fafile)  # Get the indexed FASTA sequence info
+    fasta_chromosomes <- seqnames(fasta_index)  # Extract chromosome names
 
-    # Determine whether FASTA uses "chr1" or "1"
+    # Determine whether FASTA uses 'chr1' or '1'
     fasta_format <- ifelse(any(grepl("^chr", fasta_chromosomes)), "chr", "no_chr")
 
     # Harmonize chromosome notation
     if (fasta_format == "chr" && !grepl("^chr", chr)) {
-        chr <- paste0("chr", chr) # Add "chr" if missing
+        chr <- paste0("chr", chr)  # Add 'chr' if missing
     } else if (fasta_format == "no_chr" && grepl("^chr", chr)) {
-        chr <- sub("^chr", "", chr) # Remove "chr" if present
+        chr <- sub("^chr", "", chr)  # Remove 'chr' if present
     }
 
     chr

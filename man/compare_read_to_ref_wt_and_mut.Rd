@@ -19,15 +19,18 @@ compare_read_to_ref_wt_and_mut(
 
 \item{ref_seq_mut}{Base sequence of the mutated ref}
 
-\item{compare_len_wt}{Number of bases to be compared in read vs wild-type ref comparison}
+\item{compare_len_wt}{Number of bases to be compared in read vs wild-type ref
+comparison}
 
-\item{compare_len_mut}{Number of bases to be compared in read vs mutated ref comparison}
+\item{compare_len_mut}{Number of bases to be compared in read vs
+mutated ref comparison}
 }
 \value{
 a character describing the mutation status of the read
 }
 \description{
-A core comparison utility that classifies a read sequence by checking its compatibility with the
-expected wild-type (WT) and mutant (MUT) sequences.
+A core comparison utility that classifies a read sequence by
+checking its compatibility with the expected wild-type (WT) and mutant (MUT)
+sequences.
 }
 \keyword{internal}

@@ -21,7 +21,8 @@ the 3' read.
 }
 }
 \description{
-This function extracts the number of soft-clipped bases at the 5' ends of 5' reads and 3' ends of 3' reads.
-If no soft clipping is detected, the count is set to 0.
+This function extracts the number of soft-clipped bases at the
+5' ends of 5' reads and 3' ends of 3' reads.  If no soft clipping is
+detected, the count is set to 0.
 }
 \keyword{internal}

@@ -14,11 +14,13 @@ get_base_basq_from_read_at_pos(pos_cur, pos_pre, read_stats)
 \item{read_stats}{A list of read-level statistics.}
 }
 \value{
-A list with the base and the quality of the read aligning with the position provided. If the read contains a
-deletion, base is set to '-' and the quality to an empty string.
+A list with the base and the quality of the read aligning with the
+position provided. If the read contains a deletion, base is set to '-' and
+the quality to an empty string.
 }
 \description{
-Extracts the read sequence and base qualities corresponding to the region between two read indices,
-which are derived from genomic positions.
+Extracts the read sequence and base qualities corresponding to
+the region between two read indices, which are derived from genomic
+positions.
 }
 \keyword{internal}

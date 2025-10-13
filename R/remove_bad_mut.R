@@ -19,8 +19,10 @@ remove_bad_mut <- function(df_mut) {
         alt <- df_mut[i, "ALT"]
 
         # Validate inputs
-        if (!check_chr_input(chr) || !check_pos_input(pos) || !check_ref_alt_input(ref, alt)) {
-            warning(sprintf("Invalid row: %d - CHROM: %s POS: %s REF: %s ALT: %s", i, chr, pos, ref, alt))
+        if (!check_chr_input(chr) || !check_pos_input(pos) || !check_ref_alt_input(ref,
+            alt)) {
+            warning(sprintf("Invalid row: %d - CHROM: %s POS: %s REF: %s ALT: %s",
+                i, chr, pos, ref, alt))
             next
         }
 
@@ -37,7 +39,7 @@ remove_bad_mut <- function(df_mut) {
 }
 
 #' Check Chromosome Input
-#' It must be either "chrN" or "N" (where N is between 1 and 22).
+#' It must be either 'chrN' or 'N' (where N is between 1 and 22).
 #'
 #' @inheritParams process_fragment
 #'
@@ -49,8 +51,8 @@ check_chr_input <- function(chr) {
         return(FALSE)
     }
 
-    if (grepl("^chr([1-9]|1[0-9]|2[0-2]|X|Y)$", chr) ||
-        grepl("^([1-9]|1[0-9]|2[0-2]|X|Y)$", chr)) {
+    if (grepl("^chr([1-9]|1[0-9]|2[0-2]|X|Y)$", chr) || grepl("^([1-9]|1[0-9]|2[0-2]|X|Y)$",
+        chr)) {
         return(TRUE)
     }
 
@@ -97,8 +99,8 @@ check_ref_alt_input <- function(ref, alt) {
     }
 
     valid_pattern <- "^[ATCG]*[._-]?$"
-    if ((ref %in% specific_values || grepl(valid_pattern, ref)) &&
-        (alt %in% specific_values || grepl(valid_pattern, alt))) {
+    if ((ref %in% specific_values || grepl(valid_pattern, ref)) && (alt %in% specific_values ||
+        grepl(valid_pattern, alt))) {
         return(TRUE)
     }
 

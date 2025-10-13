@@ -28,32 +28,41 @@ get_mutation_status_of_read(
 
 \item{read_stats}{A list of read-level statistics.}
 
-\item{read_index_at_pos}{An integer representing the index of the nucleotide in sequence aligning with the position of interest.}
+\item{read_index_at_pos}{An integer representing the index of the nucleotide
+in sequence aligning with the position of interest.}
 
 \item{fasta_fafile}{An open connection to an object of class FaFile}
 
 \item{fasta_seq}{A list with the fasta sequence between two positions.}
 
-\item{n_match_base_before}{Number of bases to be matched before the alt allele in the sequences comparison}
+\item{n_match_base_before}{Number of bases to be matched before the alt
+allele in the sequences comparison}
 
-\item{n_match_base_after}{Number of bases to be matched after the last alt allele in the sequences comparison}
+\item{n_match_base_after}{Number of bases to be matched after the last alt
+allele in the sequences comparison}
 }
 \value{
-A character string indicating the mutational status of the read. Possible values include:
+A character string indicating the mutational status of the read. Possible
+values include:
 \itemize{
-\item "WT": Wild-Type. The read matches the reference sequence.
-\item "MUT": Mutant. The read matches the alternate allele.
-\item "AMB": Ambiguous. The read is too short or the context is too complex to definitively assign a status.
-\item "OTH": Other. An alteration is found, but it is not the one of interest.
-\item For INDELs, the status may be combined with a descriptive message (e.g., "AMB by cigar-free search...").
+\item 'WT': Wild-Type. The read matches the reference sequence.
+\item 'MUT': Mutant. The read matches the alternate allele.
+\item 'AMB': Ambiguous. The read is too short or the context is too complex
+to definitively assign a status.
+\item 'OTH': Other. An alteration is found, but it is not the one of
+intejest.
+\item The status may be combined with a descriptive message
+(e.g., 'MUT by CIGAR but potentially OTH').
 }
 }
 \description{
-The algorithm to determine if a read supports the mutation of interest is quite intuitive but requires careful
-considerations of insertions and deletions in repeated sequences to resolve ambiguities whenever possible. The core
-idea is to apply the mutation on the reference sequence and compare the mutated reference sequence to the read
-sequence starting from the position of the mutation of interest. The sequence of the read should be compared to the
-sequence of the reference sequence and of the mutated reference sequence for just enough bases to assign mutational
-status without ambiguity.
+The algorithm to determine if a read supports the mutation of interest is
+quite intuitive but requires careful considerations of insertions and
+deletions in repeated sequences to resolve ambiguities whenever possible. The
+core idea is to apply the mutation on the reference sequence and compare the
+mutated reference sequence to the read sequence starting from the position of
+the mutation of interest. The sequence of the read should be compared to the
+sequence of the reference sequence and of the mutated reference sequence for
+just enough bases to assign mutational status without ambiguity.
 }
 \keyword{internal}

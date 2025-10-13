@@ -1,26 +1,29 @@
 #' Get detailed and simplified fragment mutation statuses.
 #'
-#' @description This function determines both the detailed and simplified mutation statuses of a DNA
-#' fragment based on the mutation status of each of the two reads from the fragment.
+#' @description This function determines both the detailed and simplified
+#' mutation statuses of a DNA fragment based on the mutation status of each of
+#' the two reads from the fragment.
 #'
-#' @param mstat_5p The mutation status of read 5p (e.g., "MUT:C>T_high_conf", "WT", "AMB_low_coverage").
-#'                Can be "NA" for no coverage.
-#' @param mstat_3p The mutation status of read 3p (e.g., "MUT:C>T_high_conf", "WT", "AMB_low_coverage").
-#'                Can be "NA" for no coverage.
+#' @param mstat_5p The mutation status of read 5p (e.g., "MUT:C>T_high_conf",
+#'   "WT", "AMB_low_coverage").  Can be "NA" for no coverage.
+#' @param mstat_3p The mutation status of read 3p (e.g., "MUT:C>T_high_conf",
+#'   "WT", "AMB_low_coverage").  Can be "NA" for no coverage.
 #'
 #' @return A list containing two character strings:
 #'         \itemize{
-#'           \item 'Fragment_Status_Detail': A detailed status reflecting the combination,
-#'                 retaining original text where applicable (e.g., "MUT & AMB_low_coverage").
-#'           \item 'Fragment_Status_Simple': A simplified status (e.g., "MUT", "WT", "OTH",
-#'                 "DIS", "AMB", "ERR").
+#'           \item 'Fragment_Status_Detail': A detailed status reflecting the
+#'                  combination, retaining original text where applicable
+#'                  (e.g., "MUT & AMB_low_coverage").
+#'           \item 'Fragment_Status_Simple': A simplified status
+#'                  (e.g., "MUT", "WT", "OTH", "DIS", "AMB", "ERR").
 #'         }
 #'
 #' @importFrom stats na.omit
 #'
 #' @keywords internal
 get_mutation_status_of_fragment <- function(mstat_5p, mstat_3p) {
-    # Internal helper to clean status for logical comparisons (removes extra detail)
+    # Internal helper to clean status for logical comparisons (removes extra
+    # detail)
     clean_status <- function(s) {
         if (is.na(s)) {
             return(NA_character_)
@@ -29,7 +32,8 @@ get_mutation_status_of_fragment <- function(mstat_5p, mstat_3p) {
         return(s_cleaned)
     }
 
-    # Function if a string contains "potentially X", extract X (WT/MUT/OTH/AMB); else NA
+    # Function if a string contains "potentially X", extract X (WT/MUT/OTH/AMB);
+    # else NA
     extract_potential_target <- function(s) {
         if (is.na(s)) {
             return(NA_character_)
@@ -40,7 +44,8 @@ get_mutation_status_of_fragment <- function(mstat_5p, mstat_3p) {
         }
         tgt <- regmatches(s, m)
         # Keep only the captured group (the target class)
-        tgt <- sub(".*potentially\\s+(WT|MUT|OTH|AMB).*", "\\1", tgt, ignore.case = TRUE)
+        tgt <- sub(".*potentially\\s+(WT|MUT|OTH|AMB).*", "\\1", tgt,
+            ignore.case = TRUE)
         toupper(tgt)
     }
 
@@ -84,7 +89,8 @@ get_mutation_status_of_fragment <- function(mstat_5p, mstat_3p) {
             original = c(s1, s2),
             stringsAsFactors = FALSE
         )
-        sorted_pairs <- sorted_pairs[order(sorted_pairs$clean, sorted_pairs$original), ]
+        sorted_pairs <- sorted_pairs[order(sorted_pairs$clean,
+            sorted_pairs$original), ]
 
         # Filter out NA original strings and collapse unique ones
         unique_sorted_originals <- unique(na.omit(sorted_pairs$original))
@@ -96,21 +102,27 @@ get_mutation_status_of_fragment <- function(mstat_5p, mstat_3p) {
     # - If read A is "potentially X" and read B is X, trust B -> Simple = X
     # --------------------------------------------------------------------------
     if (!is_na1 && !is_na2 && !identical(base_mstat_5p, base_mstat_3p)) {
-        pot1 <- extract_potential_target(mstat_5p) # potential target expressed by 5p
-        pot2 <- extract_potential_target(mstat_3p) # potential target expressed by 3p
+        # potential target expressed by 5p
+        pot1 <- extract_potential_target(mstat_5p)
+        # potential target expressed by 3p
+        pot2 <- extract_potential_target(mstat_3p)
 
         # Case: 3p is certain X, 5p is "potentially X" -> trust 3p (Simple = X)
         if (!is.na(pot1) && !is.na(base_mstat_3p) && base_mstat_3p == pot1) {
-            fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+            fragment_status_detail <- combine_original_statuses(
+                mstat_5p, mstat_3p)
             fragment_status_simple <- base_mstat_3p
-            return(list(Detail = fragment_status_detail, Simple = fragment_status_simple))
+            return(list(Detail = fragment_status_detail,
+                        Simple = fragment_status_simple))
         }
 
         # Case: 5p is certain X, 3p is "potentially X" -> trust 5p (Simple = X)
         if (!is.na(pot2) && !is.na(base_mstat_5p) && base_mstat_5p == pot2) {
-            fragment_status_detail <- combine_original_statuses(mstat_5p, mstat_3p)
+            fragment_status_detail <- combine_original_statuses(
+                mstat_5p, mstat_3p)
             fragment_status_simple <- base_mstat_5p
-            return(list(Detail = fragment_status_detail, Simple = fragment_status_simple))
+            return(list(Detail = fragment_status_detail,
+                        Simple = fragment_status_simple))
         }
     }
 

@@ -1,7 +1,8 @@
 #' Extract Soft-Clipped Base Counts from CIGAR Strings
 #'
-#' @description This function extracts the number of soft-clipped bases at the 5' ends of 5' reads and 3' ends of 3' reads.
-#' If no soft clipping is detected, the count is set to 0.
+#' @description This function extracts the number of soft-clipped bases at the
+#' 5' ends of 5' reads and 3' ends of 3' reads.  If no soft clipping is
+#' detected, the count is set to 0.
 #'
 #' @param cigar_5p Character string. The CIGAR string of the 5' read.
 #' @param cigar_3p Character string. The CIGAR string of the 3' read.
@@ -31,8 +32,6 @@ get_fragment_bases_5p_3p_softclip <- function(cigar_5p, cigar_3p) {
         nb_softclip_3p <- 0
     }
 
-    return(list(
-        nb_softclip_5p = nb_softclip_5p,
-        nb_softclip_3p = nb_softclip_3p
-    ))
+    return(list(nb_softclip_5p = nb_softclip_5p,
+                nb_softclip_3p = nb_softclip_3p))
 }

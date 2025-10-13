@@ -30,10 +30,12 @@ get_base_basq_mstat_from_read(
 \item{fasta_seq}{A list with the fasta sequence between two positions.}
 }
 \value{
-A list containing "base", "basq", "mstat".
+A list containing 'base', 'basq', 'mstat'.
 }
 \description{
-This function serves as a primary parser for a single read at a variant locus. It determines if the
-read covers the variant, extracts the observed sequence and its base qualities, and assigns a detailed mutation status.
+This function serves as a primary parser for a single read at a
+variant locus. It determines if the read covers the variant, extracts the
+observed sequence and its base qualities, and assigns a detailed mutation
+status.
 }
 \keyword{internal}

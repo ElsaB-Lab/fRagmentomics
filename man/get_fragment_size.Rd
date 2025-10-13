@@ -15,8 +15,9 @@ get_fragment_size(read_stats_5p, read_stats_3p)
 a integer corresponding to the fragment size
 }
 \description{
-Calculates the size of a DNA fragment from its aligned paired-end reads. The function provides a more precise
-estimate than the SAM/BAM TLEN field by accounting for complex alignment features like soft-clipping and indels not
+Calculates the size of a DNA fragment from its aligned paired-end reads. The
+function provides a more precise estimate than the SAM/BAM TLEN field by
+accounting for complex alignment features like soft-clipping and indels not
 only based one genomic position.
 }
 \keyword{internal}

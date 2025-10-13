@@ -37,21 +37,21 @@ plot_motif_barplot(
 
 \item{representation}{Character string. The type of plot to generate.
 \itemize{
-\item "split_by_base" (default): A proportion plot with hierarchical axes, splitting motifs by each base position into facets.
-\item "differential": A log2 fold change plot comparing two groups.
-\item "split_by_motif": A proportion plot with motifs on the x-axis, with bars for different groups placed side-by-side.
+\item 'split_by_base' (default): A proportion plot with hierarchical axes, splitting motifs by each base position into facets.
+\item 'differential': A log2 fold change plot comparing two groups.
+\item 'split_by_motif': A proportion plot with motifs on the x-axis, with bars for different groups placed side-by-side.
 }}
 
 \item{...}{Additional arguments passed on to 'ggplot2::geom_bar()'.}
 
 \item{colors_z}{Colors for the representation:
 \itemize{
-\item For "split_by_base": 4 colors for A/C/G/T, or a single RColorBrewer palette name.
-\item For "differential": 2 colors for 'Positive'/'Negative' (named vector or palette).
-\item For "split_by_motif": colors per group (palette, unnamed vector, or a vector named by group names).
+\item For 'split_by_base': 4 colors for A/C/G/T, or a single RColorBrewer palette name.
+\item For 'differential': 2 colors for 'Positive'/'Negative' (named vector or palette).
+\item For 'split_by_motif': colors per group (palette, unnamed vector, or a vector named by group names).
 }}
 
-\item{title}{Character or NA. Plot title; if NULL/NA/"NA"/empty, a default title is used.}
+\item{title}{Character or NA. Plot title; if NULL/NA/'NA'/empty, a default title is used.}
 
 \item{output_path}{Character or NA. If provided and non-empty, the plot is saved to this file.}
 
@@ -70,22 +70,22 @@ set.seed(42)
 
 # Helper function to generate random DNA sequences with a bias
 generate_biased_dna <- function(n_seq, len, prob) {
-    bases <- c("A", "C", "G", "T")
-    replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
+    bases <- c('A', 'C', 'G', 'T')
+    replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ''))
 }
 
-# Create 50 "MUT" fragments with a high proportion of motifs starting with 'C'
+# Create 50 'MUT' fragments with a high proportion of motifs starting with 'C'
 df_mut <- data.frame(
     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
-    Fragment_Status_Simple = "MUT"
+    Fragment_Status_Simple = 'MUT'
 )
 
-# Create 50 "WT" fragments with a high proportion of motifs starting with 'G'
+# Create 50 'WT' fragments with a high proportion of motifs starting with 'G'
 df_wt <- data.frame(
     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
-    Fragment_Status_Simple = "WT"
+    Fragment_Status_Simple = 'WT'
 )
 
 # Combine into a single dataframe
@@ -93,69 +93,69 @@ example_df <- rbind(df_mut, df_wt)
 
 ## --- Function Calls for Each Representation ---
 
-# 1. Hierarchical Plot (representation = "split_by_base")
+# 1. Hierarchical Plot (representation = 'split_by_base')
 # This is the default. It creates nested facets for each base position.
 p1 <- plot_motif_barplot(
     df_fragments   = example_df,
-    representation = "split_by_base"
+    representation = 'split_by_base'
 )
 print(p1)
 
 # You can also filter this plot to show only motifs starting with certain bases.
 p1_filtered <- plot_motif_barplot(
     df_fragments   = example_df,
-    representation = "split_by_base",
-    motif_start    = c("C", "G"),
-    title          = "Motifs starting with C/G"
+    representation = 'split_by_base',
+    motif_start    = c('C', 'G'),
+    title          = 'Motifs starting with C/G'
 )
 print(p1_filtered)
 
 # Optional: customize colors for the 2nd base (A/C/G/T) in split_by_base
 p1_colors <- plot_motif_barplot(
     df_fragments   = example_df,
-    representation = "split_by_base",
-    colors_z       = c(A = "#FD96A9", C = "#E88B00", G = "#0D539E", T = "#6CAE75")
+    representation = 'split_by_base',
+    colors_z       = c(A = '#FD96A9', C = '#E88B00', G = '#0D539E', T = '#6CAE75')
 )
 print(p1_colors)
 
-# 2. Differential Plot (representation = "differential")
+# 2. Differential Plot (representation = 'differential')
 # Shows log2 fold-change in motif proportions between two groups (needs exactly two groups).
 p2 <- plot_motif_barplot(
     df_fragments   = example_df,
-    representation = "differential",
-    vals_z         = c("MUT", "WT"),
-    colors_z       = c(Positive = "#66C2A5", Negative = "#E78AC3"),
-    title          = "MUT vs WT (log2FC)"
+    representation = 'differential',
+    vals_z         = c('MUT', 'WT'),
+    colors_z       = c(Positive = '#66C2A5', Negative = '#E78AC3'),
+    title          = 'MUT vs WT (log2FC)'
 )
 print(p2)
 
-# 3. Side-by-side Motif Plot (representation = "split_by_motif")
+# 3. Side-by-side Motif Plot (representation = 'split_by_motif')
 # Motifs on the x-axis; bars for each group shown side-by-side.
 p3 <- plot_motif_barplot(
     df_fragments   = example_df,
-    representation = "split_by_motif",
-    colors_z       = "Set2" # or a vector named by group names
+    representation = 'split_by_motif',
+    colors_z       = 'Set2' # or a vector named by group names
 )
 print(p3)
 
 # 4. Save the default hierarchical plot (commented for CRAN)
-# out_file1 <- file.path(tempdir(), "motif_split_by_base.png")
+# out_file1 <- file.path(tempdir(), 'motif_split_by_base.png')
 # plot_motif_barplot(
 #   df_fragments   = example_df,
-#   representation = "split_by_base",
-#   title          = "Motif proportions (hierarchical)",
+#   representation = 'split_by_base',
+#   title          = 'Motif proportions (hierarchical)',
 #   output_path    = out_file1,
-#   ggsave_params  = list(width = 8, height = 6, units = "in", dpi = 300, bg = "white")
+#   ggsave_params  = list(width = 8, height = 6, units = 'in', dpi = 300, bg = 'white')
 # )
 
 # 5. Save the differential plot with custom dimensions (commented for CRAN)
-# out_file2 <- file.path(tempdir(), "motif_differential.png")
+# out_file2 <- file.path(tempdir(), 'motif_differential.png')
 # plot_motif_barplot(
 #   df_fragments   = example_df,
-#   representation = "differential",
-#   vals_z         = c("MUT", "WT"),
-#   title          = "Differential motif usage",
+#   representation = 'differential',
+#   vals_z         = c('MUT', 'WT'),
+#   title          = 'Differential motif usage',
 #   output_path    = out_file2,
-#   ggsave_params  = list(width = 12, height = 8, units = "in", dpi = 300, bg = "white")
+#   ggsave_params  = list(width = 12, height = 8, units = 'in', dpi = 300, bg = 'white')
 # )
 }

@@ -33,13 +33,17 @@ FASTA file.
 \details{
 The normalization process involves several key steps:
 \enumerate{
-\item \strong{Coordinate Adjustment}: Converts the input 'pos' from 0-based to 1-based if 'one_based' is 'FALSE'.
-\item \strong{Chromosome Naming}: Standardizes the chromosome name (e.g., '1' vs 'chr1') to match the provided FASTA
-reference using 'harmonize_chr_to_fasta'.
-\item \strong{Indel Padding}: For insertions and deletions, it prepends an "anchor" base from the reference genome to both
-'ref' and 'alt' alleles to create a valid VCF-style representation. The 'pos' is adjusted accordingly for
+\item \strong{Coordinate Adjustment}: Converts the input 'pos' from 0-based to
+1-based if 'one_based' is 'FALSE'.
+\item \strong{Chromosome Naming}: Standardizes the chromosome name (e.g., '1' vs
+'chr1') to match the provided FASTA reference using
+'harmonize_chr_to_fasta'.
+\item \strong{Indel Padding}: For insertions and deletions, it prepends an "anchor"
+base from the reference genome to both 'ref' and 'alt' alleles to create
+a valid VCF-style representation. The 'pos' is adjusted accordingly for
 deletions. SNVs and MNVs are not modified.
-\item \strong{Validation}: After normalization, it confirms that the final 'ref' allele matches the sequence in the FASTA file at the new coordinates.
+\item \strong{Validation}: After normalization, it confirms that the final 'ref'
+allele matches the sequence in the FASTA file at the new coordinates.
 }
 }
 \keyword{internal}

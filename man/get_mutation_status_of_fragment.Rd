@@ -7,23 +7,25 @@
 get_mutation_status_of_fragment(mstat_5p, mstat_3p)
 }
 \arguments{
-\item{mstat_5p}{The mutation status of read 5p (e.g., "MUT:C>T_high_conf", "WT", "AMB_low_coverage").
-Can be "NA" for no coverage.}
+\item{mstat_5p}{The mutation status of read 5p (e.g., "MUT:C>T_high_conf",
+"WT", "AMB_low_coverage").  Can be "NA" for no coverage.}
 
-\item{mstat_3p}{The mutation status of read 3p (e.g., "MUT:C>T_high_conf", "WT", "AMB_low_coverage").
-Can be "NA" for no coverage.}
+\item{mstat_3p}{The mutation status of read 3p (e.g., "MUT:C>T_high_conf",
+"WT", "AMB_low_coverage").  Can be "NA" for no coverage.}
 }
 \value{
 A list containing two character strings:
 \itemize{
-\item 'Fragment_Status_Detail': A detailed status reflecting the combination,
-retaining original text where applicable (e.g., "MUT & AMB_low_coverage").
-\item 'Fragment_Status_Simple': A simplified status (e.g., "MUT", "WT", "OTH",
-"DIS", "AMB", "ERR").
+\item 'Fragment_Status_Detail': A detailed status reflecting the
+combination, retaining original text where applicable
+(e.g., "MUT & AMB_low_coverage").
+\item 'Fragment_Status_Simple': A simplified status
+(e.g., "MUT", "WT", "OTH", "DIS", "AMB", "ERR").
 }
 }
 \description{
-This function determines both the detailed and simplified mutation statuses of a DNA
-fragment based on the mutation status of each of the two reads from the fragment.
+This function determines both the detailed and simplified
+mutation statuses of a DNA fragment based on the mutation status of each of
+the two reads from the fragment.
 }
 \keyword{internal}

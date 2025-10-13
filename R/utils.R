@@ -38,7 +38,8 @@ calculate_len_without_end_softclip <- function(cigar, seq) {
     read_len <- nchar(seq)
     softclip_len <- 0
 
-    # Check if the CIGAR string ends with a soft clip and capture the number of bases
+    # Check if the CIGAR string ends with a soft clip and capture the number of
+    # bases
     if (grepl("\\d+S$", cigar)) {
         # Extract the numeric value of the trailing soft clip
         softclip_len <- as.numeric(sub(".*?(\\d+)S$", "\\1", cigar))
@@ -86,8 +87,8 @@ get_pos_indels_from_read <- function(read_stats) {
             # Update the position on the reference
             current_ref_pos <- current_ref_pos + op_len
         } else if (op_type == "I") {
-            # Insertion: advances on the read, but not on the reference
-            # The genomic position is the one just before the insertion
+            # Insertion: advances on the read, but not on the reference The
+            # genomic position is the one just before the insertion
             pos_before_insertion <- current_ref_pos - 1
 
             # Create the custom positions for each inserted base
@@ -98,8 +99,8 @@ get_pos_indels_from_read <- function(read_stats) {
             # Skipped region: advances the position on the reference
             current_ref_pos <- current_ref_pos + op_len
         }
-        # 'S' (soft clip), 'H' (hard clip), and 'P' (padding) operations
-        # do not consume the reference, so we do nothing.
+        # 'S' (soft clip), 'H' (hard clip), and 'P' (padding) operations do not
+        # consume the reference, so we do nothing.
     }
 
     return(list(deletions = list_pos_del, insertions = list_pos_ins))
@@ -118,36 +119,16 @@ get_pos_indels_from_read <- function(read_stats) {
 #' @return a df with length and type of the CIGAR string. One row per operation.
 #'
 #' @noRd
-create_empty_fragment_row <- function(
-    chr, pos, ref, alt, input_mutation_info, fragment_name, fragment_qc,
-    sample_id, report_tlen, report_5p_3p_bases_fragment, report_softclip
-) {
-    final_row_fragment <- list(
-        Chromosome             = chr,
-        Position               = pos,
-        Ref                    = ref,
-        Alt                    = alt,
-        Input_Mutation         = input_mutation_info,
-        Fragment_Id            = fragment_name,
-        Fragment_QC            = fragment_qc,
-        Fragment_Status_Simple = NA_character_,
-        Fragment_Status_Detail = NA_character_,
-        Fragment_Size          = NA_integer_,
-        Read_5p_Status         = NA_character_,
-        Read_3p_Status         = NA_character_,
-        FLAG_5p                = NA_integer_,
-        FLAG_3p                = NA_integer_,
-        MAPQ_5p                = NA_integer_,
-        MAPQ_3p                = NA_integer_,
-        BASE_5p                = NA_character_,
-        BASE_3p                = NA_character_,
-        BASQ_5p                = NA_character_,
-        BASQ_3p                = NA_character_,
-        CIGAR_5p               = NA_character_,
-        CIGAR_3p               = NA_character_,
-        POS_5p                 = NA_integer_,
-        POS_3p                 = NA_integer_
-    )
+create_empty_fragment_row <- function(chr, pos, ref, alt, input_mutation_info, fragment_name,
+    fragment_qc, sample_id, report_tlen, report_5p_3p_bases_fragment, report_softclip) {
+    final_row_fragment <- list(Chromosome = chr, Position = pos, Ref = ref, Alt = alt,
+        Input_Mutation = input_mutation_info, Fragment_Id = fragment_name, Fragment_QC = fragment_qc,
+        Fragment_Status_Simple = NA_character_, Fragment_Status_Detail = NA_character_,
+        Fragment_Size = NA_integer_, Read_5p_Status = NA_character_, Read_3p_Status = NA_character_,
+        FLAG_5p = NA_integer_, FLAG_3p = NA_integer_, MAPQ_5p = NA_integer_, MAPQ_3p = NA_integer_,
+        BASE_5p = NA_character_, BASE_3p = NA_character_, BASQ_5p = NA_character_,
+        BASQ_3p = NA_character_, CIGAR_5p = NA_character_, CIGAR_3p = NA_character_,
+        POS_5p = NA_integer_, POS_3p = NA_integer_)
 
     if (!is.na(sample_id)) {
         final_row_fragment$Sample_Id <- sample_id

@@ -71,8 +71,10 @@ extremity bases in the output.}
 None. The function stops execution if error.
 }
 \description{
-This function serves as a centralized gatekeeper, validating all user-provided parameters before the main
-analysis begins. It calls a series of specialized  helper functions to check each parameter for correctness (e.g., file existence,
-data type, valid values) and stops execution with an informative error message if any check fails.
+This function serves as a centralized gatekeeper, validating all
+user-provided parameters before the main analysis begins. It calls a series
+of specialized  helper functions to check each parameter for correctness
+(e.g., file existence, data type, valid values) and stops execution with an
+informative error message if any check fails.
 }
 \keyword{internal}

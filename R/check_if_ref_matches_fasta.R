@@ -1,7 +1,8 @@
 #' Validate a reference allele against a FASTA file
 #'
-#' @description This function performs a critical sanity check to verify that a given reference allele ('ref') matches
-#' the sequence at the specified genomic coordinates ('chr', 'pos') in a reference FASTA file.
+#' @description This function performs a critical sanity check to verify that a
+#' given reference allele ('ref') matches the sequence at the specified genomic
+#' coordinates ('chr', 'pos') in a reference FASTA file.
 #'
 #' @inheritParams process_fragment
 #' @param fasta A FASTA ref genome (loaded using 'Biostrings' or a file path).
@@ -30,12 +31,9 @@ check_if_ref_matches_fasta <- function(chr, pos, ref, fasta) {
     end_pos <- pos + ref_length - 1
 
     # Retrieve the expected reference sequence from FASTA
-    fasta_seq <- Biostrings::getSeq(
-        x = fasta,
-        param = GRanges(
-            seqnames = chr,
-            ranges = IRanges(start = pos, end = end_pos)
-        )
+    fasta_seq <- Biostrings::getSeq(x = fasta,
+        param = GRanges(seqnames = chr,
+                        ranges = IRanges(start = pos, end = end_pos))
     )
 
     # Transform fasta_seq into string

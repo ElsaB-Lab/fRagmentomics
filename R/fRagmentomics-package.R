@@ -1,10 +1,9 @@
 #' @keywords internal
 "_PACKAGE"
 
-# The following block is used by usethis to automatically manage
-# roxygen namespace tags. Modify with care!
-## usethis namespace: start
-## usethis namespace: end
+# The following block is used by usethis to automatically manage roxygen
+# namespace tags. Modify with care!  usethis namespace: start usethis
+# namespace: end
 NULL
 
 #' fRagmentomics: Per-Fragment Analysis of cfDNA characteristics
@@ -14,7 +13,7 @@ NULL
 #' fragment overlapping one or multiple mutations of interest, starting from a
 #' sequencing file containing aligned reads (BAM file). fRagmentomics supports
 #' multiple mutation input formats (e.g., VCF, TSV, or string
-#' "chr:pos:ref:alt" representation), accommodates one-based and zero-based
+#' 'chr:pos:ref:alt' representation), accommodates one-based and zero-based
 #' genomic conventions, handles mutation representation ambiguities, and accepts
 #' any reference file and species in FASTA format.
 #'

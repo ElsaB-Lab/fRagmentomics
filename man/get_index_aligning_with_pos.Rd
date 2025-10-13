@@ -12,7 +12,8 @@ get_index_aligning_with_pos(pos, read_stats)
 \item{read_stats}{A list of read-level statistics.}
 }
 \value{
-An integer scalar representing the 1-based index in the read sequence.
+An integer scalar representing the 1-based index in the read
+sequence.
 \itemize{
 \item Returns '-1' if the read does not cover the position.
 \item Returns '-2' if the position falls within a deletion or skipped
@@ -20,7 +21,7 @@ region ('D' or 'N' CIGAR operation) in the read.
 }
 }
 \description{
-Parses a read's CIGAR string to find the 1-based index in the read's sequence that corresponds to a
-specific 1-based genomic coordinate.
+Parses a read's CIGAR string to find the 1-based index in the
+read's sequence that corresponds to a specific 1-based genomic coordinate.
 }
 \keyword{internal}
