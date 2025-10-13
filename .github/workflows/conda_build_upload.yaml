@@ -3,7 +3,7 @@ name: Conda build & upload (multi-OS)
 on:
   push:
     tags:
-      - "v*"            # Publish only when a new tag is available
+      - "v*"            # Publish only when a new tag is set
   workflow_dispatch:
     inputs:
       label:
