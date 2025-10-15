@@ -40,7 +40,7 @@ Suggests:
     covr,
     testthat (>= 3.0.0),
     knitr,
-    rmarkdown,
+    rmarkdown (>= 1.14),
     BiocStyle
 VignetteBuilder: knitr
 Config/testthat/edition: 3
@@ -60,9 +60,8 @@ Imports:
     purrr,
     RColorBrewer,
     readr,
-    Rsamtools,
+    Rsamtools (>= 2.4.0),
     scales,
     stringr,
     tibble,
     tidyr
-SystemRequirements: bcftools (>= 1.21)

@@ -18,7 +18,6 @@
 - [Workflow](#workflow)
 - [Output](#output)
   - [All columns](#all-columns)
-- [| 33 - `Nb_Fragment_Bases_Softclip_3p` | Number of soft-clipped bases at the 3' end of the fragment. |](#-33---nb_fragment_bases_softclip_3p--number-of-soft-clipped-bases-at-the-3-end-of-the-fragment-)
   - [¹ Details on `BASE` and `BASQ` Columns](#-details-on-base-and-basq-columns)
   - [² Details on Variant Allele Frequency (`VAF`) Calculation](#-details-on-variant-allele-frequency-vaf-calculation)
 - [Explanation of Mutational Status assignment](#explanation-of-mutational-status-assignment)
@@ -66,16 +65,39 @@ You may install the package from github or from conda.
 
 **1. Install from github**
 
-When installing from github, pre-installing dependencies via conda can greatly speed up the installation time by avoid
-installation from source of all dependencies.
+When installing from GitHub, pre-installing heavy Bioconductor deps via Conda can avoid slow source compilation.
 
 ```bash
-Rscript -e 'install.packages("remotes");remotes::install_github("ElsaB-Lab/fRagmentomics")'
+Rscript -e 'if (!requireNamespace("remotes", quietly=TRUE))
+              install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
+            remotes::install_github("ElsaB-Lab/fRagmentomics", build_vignettes=FALSE, upgrade="never")'
 ```
 
-NOTE: If you encounter compilation issues with the command above, for instance with Rsamtools or one of its dependencies
-such as BiocParallel, you may install precompiled binaries before trying to install again via `mamba install
--c bioconda bioconductor-rsamtools`.
+NOTE: If you hit compilation issues (e.g. with Rsamtools / BiocParallel), try one of the two approaches below.
+
+- **With Conda/Mamba** (preinstall Rsamtools)
+
+```bash
+mamba install -c bioconda bioconductor-rsamtools
+
+Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
+              install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
+            if (!requireNamespace("remotes", quietly=TRUE))
+              install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
+            remotes::install_github("ElsaB-Lab/fRagmentomics", build_vignettes=FALSE, upgrade="never")'
+
+```
+
+- **Without Conda/Mamba** (use BiocManager to get Bioconductor deps)
+
+```bash
+Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
+              install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
+            if (!requireNamespace("remotes", quietly=TRUE))
+              install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
+            BiocManager::install(c("Rsamtools","GenomicAlignments","BiocParallel"), ask=FALSE, update=FALSE);
+            remotes::install_github("ElsaB-Lab/fRagmentomics", build_vignettes=FALSE, upgrade="never")'
+```
 
 **2. Install from conda**
 
@@ -347,6 +369,7 @@ output is a dataframe with one line per fragment and the following headers:
 | 31 - `Fragment_Basqs_3p` | The last `n` base qualities from the 3' end of the fragment. |
 | 32 - `Nb_Fragment_Bases_Softclip_5p` | Number of soft-clipped bases at the 5' end of the fragment. |
 | 33 - `Nb_Fragment_Bases_Softclip_3p` | Number of soft-clipped bases at the 3' end of the fragment. |
+
 ---
 
 ### <a name="footnote1"></a>¹ Details on `BASE` and `BASQ` Columns

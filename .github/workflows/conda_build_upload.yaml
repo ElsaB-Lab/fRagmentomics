@@ -40,7 +40,7 @@ jobs:
         with:
           miniforge-version: latest
           use-mamba: true
-          channels: conda-forge,bioconda
+          channels: conda-forge,bioconda,defaults
           channel-priority: strict
           auto-update-conda: true
 
