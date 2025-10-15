@@ -8,6 +8,7 @@ usethis::use_build_ignore(".github")
 ^CHANGELOG\.md$
 ^fRagmentomics\.yaml$
 ^utils$
+^conda-recipe$
 ^fRagmentomics_.*\.pdf$
 ^vignettes/.*\.html$
 ^vignettes/.*\.pdf$

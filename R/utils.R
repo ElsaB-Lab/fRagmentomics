@@ -92,7 +92,8 @@ get_pos_indels_from_read <- function(read_stats) {
             pos_before_insertion <- current_ref_pos - 1
 
             # Create the custom positions for each inserted base
-            inserted_positions <- as.numeric(paste0(pos_before_insertion, ".", seq_len(op_len)))
+            scale <- 10^(ceiling(log10(op_len + 1)))
+            inserted_positions <- pos_before_insertion + (seq_len(op_len) / scale)
             list_pos_ins <- c(list_pos_ins, inserted_positions)
             # current_ref_pos does not change
         } else if (op_type == "N") {
@@ -119,16 +120,19 @@ get_pos_indels_from_read <- function(read_stats) {
 #' @return a df with length and type of the CIGAR string. One row per operation.
 #'
 #' @noRd
-create_empty_fragment_row <- function(chr, pos, ref, alt, input_mutation_info, fragment_name,
+create_empty_fragment_row <- function(
+    chr, pos, ref, alt, input_mutation_info, fragment_name,
     fragment_qc, sample_id, report_tlen, report_5p_3p_bases_fragment, report_softclip) {
-    final_row_fragment <- list(Chromosome = chr, Position = pos, Ref = ref, Alt = alt,
+    final_row_fragment <- list(
+        Chromosome = chr, Position = pos, Ref = ref, Alt = alt,
         Input_Mutation = input_mutation_info, Fragment_Id = fragment_name, Fragment_QC = fragment_qc,
         Fragment_Status_Simple = NA_character_, Fragment_Status_Detail = NA_character_,
         Fragment_Size = NA_integer_, Read_5p_Status = NA_character_, Read_3p_Status = NA_character_,
         FLAG_5p = NA_integer_, FLAG_3p = NA_integer_, MAPQ_5p = NA_integer_, MAPQ_3p = NA_integer_,
         BASE_5p = NA_character_, BASE_3p = NA_character_, BASQ_5p = NA_character_,
         BASQ_3p = NA_character_, CIGAR_5p = NA_character_, CIGAR_3p = NA_character_,
-        POS_5p = NA_integer_, POS_3p = NA_integer_)
+        POS_5p = NA_integer_, POS_3p = NA_integer_
+    )
 
     if (!is.na(sample_id)) {
         final_row_fragment$Sample_Id <- sample_id
