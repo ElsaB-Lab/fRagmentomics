@@ -85,7 +85,6 @@ Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
             if (!requireNamespace("remotes", quietly=TRUE))
               install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
             remotes::install_github("ElsaB-Lab/fRagmentomics", build_vignettes=FALSE, upgrade="never")'
-
 ```
 
 - **Without Conda/Mamba** (use BiocManager to get Bioconductor deps)
