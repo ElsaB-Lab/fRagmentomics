@@ -56,27 +56,34 @@ jobs:
         run: |
           mamba install -y conda-build anaconda-client boa conda-verify
 
-      - name: Compute output path
+      - name: Compute output paths
         id: out
         shell: bash -l {0}
         run: |
-          PKG_PATH=$(conda build "$RECIPE_DIR" -c conda-forge -c bioconda --output)
-          echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
-          echo "Will build: $PKG_PATH"
+          conda build "$RECIPE_DIR" -c conda-forge -c bioconda -c defaults --output > /tmp/pkg_paths.txt
+          echo "Paths to upload:"
+          cat /tmp/pkg_paths.txt
+          {
+            echo "pkg_paths<<'EOF'"
+            cat /tmp/pkg_paths.txt
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build recipe
         shell: bash -l {0}
         run: |
-          conda build "$RECIPE_DIR" -c conda-forge -c bioconda
+          conda build "$RECIPE_DIR" -c conda-forge -c bioconda -c defaults
           ls -lah $CONDA_PREFIX/conda-bld/*/*r-fragmentomics*.conda || true
 
       - name: Upload to Anaconda (elsab-lab)
         if: env.ANACONDA_API_TOKEN != ''
         shell: bash -l {0}
         run: |
-          PKG="${{ steps.out.outputs.pkg_path }}"
-          echo "Uploading $PKG with label: $LABEL"
-          anaconda -t "$ANACONDA_API_TOKEN" upload -u elsab-lab -l "$LABEL" --skip-existing "$PKG"
+          while IFS= read -r PKG; do
+            [ -z "$PKG" ] && continue
+            echo "Uploading $PKG with label: $LABEL"
+            anaconda -t "$ANACONDA_API_TOKEN" upload -u elsab-lab -l "$LABEL" --skip-existing "$PKG"
+          done <<< "${{ steps.out.outputs.pkg_paths }}"
 
       - name: Test user install from channel
         shell: bash -l {0}
@@ -84,8 +91,9 @@ jobs:
           mamba create -n frag-test -y
           source "$(conda info --base)/etc/profile.d/conda.sh"
           conda activate frag-test
+          # Test base package (sans bcftools requis)
           mamba install -y -c elsab-lab -c conda-forge -c bioconda r-fragmentomics
           R -q -e "library(fRagmentomics); packageVersion('fRagmentomics')"
-          if [[ "$RUNNER_OS" != "Windows" ]]; then
-            if command -v bcftools >/dev/null 2>&1; then bcftools --version; fi
-          fi
+          # Test méta-paquet (avec bcftools)
+          mamba install -y -c elsab-lab -c conda-forge -c bioconda r-fragmentomics-bcftools
+          bcftools --version

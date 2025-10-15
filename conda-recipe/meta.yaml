@@ -53,10 +53,11 @@ outputs:
     noarch: generic
     requirements:
       run:
-        - r-fragmentomics =={{ version }}
+        - {{ pin_subpackage('r-fragmentomics', exact=True) }}
         - bcftools >=1.21
     about:
-      summary: "Meta-package: r-fragmentomics + bcftools (for VCF normalization workflows)."
+      summary: >
+        Meta-package: r-fragmentomics + bcftools (for VCF normalization workflows).
     test:
       commands:
         - bcftools --version
