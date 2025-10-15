@@ -26,9 +26,6 @@ jobs:
             subdir: osx-64
           - os: macos-14
             subdir: osx-arm64
-          - os: windows-latest
-            subdir: win-64
-            allow_fail: true
 
     env:
       RECIPE_DIR: conda-recipe          

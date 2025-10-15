@@ -2,17 +2,22 @@
 title: "fRagmentomics: A Per-Fragment Analysis Workflow"
 author:
   - name: "Killian Maudet"
-    affiliation: "Gustave Roussy"
+    affiliations:
+      - name: "UMR 981, Gustave Roussy, Villejuif, France"
+      - name: "IHU PRISM – National Precision Medicine Center in Oncology, Gustave Roussy, Villejuif, France"
     email: "killian.maudet@gustaveroussy.fr"
   - name: "Yoann Pradat"
-    affiliation: "Gustave Roussy"
-    email: "yoann.pradat@gustaveroussy.fr"
+    affiliations:
+      - name: "UMR 981, Gustave Roussy, Villejuif, France"
+      - name: "IHU PRISM – National Precision Medicine Center in Oncology, Gustave Roussy, Villejuif, France"
   - name: "Juliette Samaniego"
-    affiliation: "Gustave Roussy"
-    email: "juliette.samaniego@gustaveroussy.fr"
+    affiliations:
+      - name: "UMR 981, Gustave Roussy, Villejuif, France"
+      - name: "IHU PRISM – National Precision Medicine Center in Oncology, Gustave Roussy, Villejuif, France"
   - name: "Elsa Bernard"
-    affiliation: "Gustave Roussy"
-    email: "elsa.bernard@gustaveroussy.fr"
+    affiliations:
+      - name: "UMR 981, Gustave Roussy, Villejuif, France"
+      - name: "IHU PRISM – National Precision Medicine Center in Oncology, Gustave Roussy, Villejuif, France"
 date: "`r Sys.Date()`"
 package: fRagmentomics
 output:
@@ -163,10 +168,10 @@ df_frag_advanced <- run_fRagmentomics(
     neg_offset_mate_search = -500,
     pos_offset_mate_search = 500,
     flag_bam_list = list(
-    isProperPair = TRUE,
-    isUnmappedQuery = FALSE,
-    isSecondaryAlignment = FALSE,
-    isDuplicate = FALSE
+        isProperPair = TRUE,
+        isUnmappedQuery = FALSE,
+        isSecondaryAlignment = FALSE,
+        isDuplicate = FALSE
     ),
     report_tlen = TRUE,
     report_softclip = TRUE,

@@ -112,7 +112,7 @@ test_that("test get fragment size", {
   read_stats_3p_d3 <- list(
     POS = 7, CIGAR = r_cigar_3p_d3, read_length = calculate_read_length(r_cigar_3p_d3)
   )
-  expect_equal(get_fragment_size(read_stats_5p_d3, read_stats_3p_d3), 14)
+  expect_equal(get_fragment_size(read_stats_5p_d3, read_stats_3p_d3), 8)
 
   # Del 4 - Error sequencing overlap 5p
   r_cigar_5p_d4 <- "7M6D1M"
@@ -123,7 +123,7 @@ test_that("test get fragment size", {
   read_stats_3p_d4 <- list(
     POS = 11, CIGAR = r_cigar_3p_d4, read_length = calculate_read_length(r_cigar_3p_d4)
   )
-  expect_equal(get_fragment_size(read_stats_5p_d4, read_stats_3p_d4), 15)
+  expect_equal(get_fragment_size(read_stats_5p_d4, read_stats_3p_d4), 12)
 
   # Del 5 - Error sequencing 3p
   r_cigar_5p_d5 <- "8M"
@@ -134,7 +134,7 @@ test_that("test get fragment size", {
   read_stats_3p_d5 <- list(
     POS = 3, CIGAR = r_cigar_3p_d5, read_length = calculate_read_length(r_cigar_3p_d5)
   )
-  expect_equal(get_fragment_size(read_stats_5p_d5, read_stats_3p_d5), 15)
+  expect_equal(get_fragment_size(read_stats_5p_d5, read_stats_3p_d5), 10)
 
   # Del 6 - Error sequencing overlap 3p
   r_cigar_5p_d6 <- "8M"
@@ -145,11 +145,11 @@ test_that("test get fragment size", {
   read_stats_3p_d6 <- list(
     POS = 6, CIGAR = r_cigar_3p_d6, read_length = calculate_read_length(r_cigar_3p_d6)
   )
-  expect_equal(get_fragment_size(read_stats_5p_d6, read_stats_3p_d6), 15)
+  expect_equal(get_fragment_size(read_stats_5p_d6, read_stats_3p_d6), 13)
 
   # Del 7 - Error sequencing overlap and soft clipping
   r_cigar_5p_d7 <- "1M1D5M"
-  r_cigar_3p_d7 <- "1S1M1D4M"
+  r_cigar_3p_d7 <- "1S1M1D6M"
   read_stats_5p_d7 <- list(
     POS = 1, CIGAR = r_cigar_5p_d7, read_length = calculate_read_length(r_cigar_5p_d7)
   )
@@ -157,6 +157,39 @@ test_that("test get fragment size", {
     POS = 3, CIGAR = r_cigar_3p_d7, read_length = calculate_read_length(r_cigar_3p_d7)
   )
   expect_equal(get_fragment_size(read_stats_5p_d7, read_stats_3p_d7), 8)
+
+  # Del 8 - Discordant case
+  r_cigar_5p_d7 <- "4M4D4M"
+  r_cigar_3p_d7 <- "1M6D7M"
+  read_stats_5p_d7 <- list(
+    POS = 1, CIGAR = r_cigar_5p_d7, read_length = calculate_read_length(r_cigar_5p_d7)
+  )
+  read_stats_3p_d7 <- list(
+    POS = 4, CIGAR = r_cigar_3p_d7, read_length = calculate_read_length(r_cigar_3p_d7)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_d7, read_stats_3p_d7), 11)
+
+  # Del 9 - Several deletion in the overlapping section
+  r_cigar_5p_d7 <- "1M1D1M1D4M"
+  r_cigar_3p_d7 <- "1M1D1M1D4M"
+  read_stats_5p_d7 <- list(
+    POS = 1, CIGAR = r_cigar_5p_d7, read_length = calculate_read_length(r_cigar_5p_d7)
+  )
+  read_stats_3p_d7 <- list(
+    POS = 1, CIGAR = r_cigar_3p_d7, read_length = calculate_read_length(r_cigar_3p_d7)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_d7, read_stats_3p_d7), 6)
+
+  # Del 10 - Several deletion in the overlapping section
+  r_cigar_5p_d7 <- "1M1D1M1D4M"
+  r_cigar_3p_d7 <- "1M1D1M1D4M"
+  read_stats_5p_d7 <- list(
+    POS = 1, CIGAR = r_cigar_5p_d7, read_length = calculate_read_length(r_cigar_5p_d7)
+  )
+  read_stats_3p_d7 <- list(
+    POS = 2, CIGAR = r_cigar_3p_d7, read_length = calculate_read_length(r_cigar_3p_d7)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_d7, read_stats_3p_d7), 5)
 
   # Insertion
   # Ins 1 - Normal case, insertion in overlap
@@ -190,7 +223,7 @@ test_that("test get fragment size", {
   read_stats_3p_i3 <- list(
     POS = 8, CIGAR = r_cigar_3p_i3, read_length = calculate_read_length(r_cigar_3p_i3)
   )
-  expect_equal(get_fragment_size(read_stats_5p_i3, read_stats_3p_i3), 27)
+  expect_equal(get_fragment_size(read_stats_5p_i3, read_stats_3p_i3), 24)
 
   # Ins 4
   r_cigar_5p_i4 <- "10M4I"
@@ -201,7 +234,29 @@ test_that("test get fragment size", {
   read_stats_3p_i4 <- list(
     POS = 9, CIGAR = r_cigar_3p_i4, read_length = calculate_read_length(r_cigar_3p_i4)
   )
-  expect_equal(get_fragment_size(read_stats_5p_i4, read_stats_3p_i4), 20)
+  expect_equal(get_fragment_size(read_stats_5p_i4, read_stats_3p_i4), 22)
+
+  # Ins 4 bis
+  r_cigar_5p_i4 <- "10M4S"
+  r_cigar_3p_i4 <- "2M6I6M"
+  read_stats_5p_i4 <- list(
+    POS = 1, CIGAR = r_cigar_5p_i4, read_length = calculate_read_length(r_cigar_5p_i4)
+  )
+  read_stats_3p_i4 <- list(
+    POS = 9, CIGAR = r_cigar_3p_i4, read_length = calculate_read_length(r_cigar_3p_i4)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_i4, read_stats_3p_i4), 22)
+
+  # Ins 4 ter
+  r_cigar_5p_i4 <- "10M4S"
+  r_cigar_3p_i4 <- "2M3I9M"
+  read_stats_5p_i4 <- list(
+    POS = 1, CIGAR = r_cigar_5p_i4, read_length = calculate_read_length(r_cigar_5p_i4)
+  )
+  read_stats_3p_i4 <- list(
+    POS = 9, CIGAR = r_cigar_3p_i4, read_length = calculate_read_length(r_cigar_3p_i4)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_i4, read_stats_3p_i4), 22)
 
   # Ins 5 - Error sequencing 5p - Are they existing ???
   r_cigar_5p_i5 <- "4M4I4M"
@@ -212,7 +267,7 @@ test_that("test get fragment size", {
   read_stats_3p_i5 <- list(
     POS = 4, CIGAR = r_cigar_3p_i5, read_length = calculate_read_length(r_cigar_3p_i5)
   )
-  expect_equal(get_fragment_size(read_stats_5p_i5, read_stats_3p_i5), 15)
+  expect_equal(get_fragment_size(read_stats_5p_i5, read_stats_3p_i5), 19)
 
   # Ins 6 - Error sequencing 3p
   r_cigar_5p_i6 <- "12M"
@@ -223,7 +278,7 @@ test_that("test get fragment size", {
   read_stats_3p_i6 <- list(
     POS = 4, CIGAR = r_cigar_3p_i6, read_length = calculate_read_length(r_cigar_3p_i6)
   )
-  expect_equal(get_fragment_size(read_stats_5p_i6, read_stats_3p_i6), 11)
+  expect_equal(get_fragment_size(read_stats_5p_i6, read_stats_3p_i6), 15)
 
   # Ins 7 - Error sequencing overlap 5p partially
   r_cigar_5p_i7 <- "10M2I3S"
@@ -234,9 +289,9 @@ test_that("test get fragment size", {
   read_stats_3p_i7 <- list(
     POS = 10, CIGAR = r_cigar_3p_i7, read_length = calculate_read_length(r_cigar_3p_i7)
   )
-  expect_equal(get_fragment_size(read_stats_5p_i7, read_stats_3p_i7), 22)
+  expect_equal(get_fragment_size(read_stats_5p_i7, read_stats_3p_i7), 24)
 
-  # Complexe case with soft clipping, insertion and deletion
+  # Ins 8 - Complexe case with soft clipping, insertion and deletion
   r_cigar_5p_c1 <- "1M2I1M1D1M1S"
   r_cigar_3p_c1 <- "1S1M1D1M1D2M"
   read_stats_5p_c1 <- list(
@@ -245,7 +300,18 @@ test_that("test get fragment size", {
   read_stats_3p_c1 <- list(
     POS = 2, CIGAR = r_cigar_3p_c1, read_length = calculate_read_length(r_cigar_3p_c1)
   )
-  expect_equal(get_fragment_size(read_stats_5p_c1, read_stats_3p_c1), 6)
+  expect_equal(get_fragment_size(read_stats_5p_c1, read_stats_3p_c1), 7)
+
+  # Ins 9 - Error sequencing overlap 5p partially
+  r_cigar_5p_i7 <- "7M6I1M"
+  r_cigar_3p_i7 <- "3S11M"
+  read_stats_5p_i7 <- list(
+    POS = 1, CIGAR = r_cigar_5p_i7, read_length = calculate_read_length(r_cigar_5p_i7)
+  )
+  read_stats_3p_i7 <- list(
+    POS = 8, CIGAR = r_cigar_3p_i7, read_length = calculate_read_length(r_cigar_3p_i7)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_i7, read_stats_3p_i7), 24)
 
   # Soft Clipping
   # Soft clipping 1

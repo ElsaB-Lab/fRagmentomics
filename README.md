@@ -3,66 +3,41 @@
 ![Version](https://img.shields.io/badge/version-0.99.0-blue)
 [![codecov](https://codecov.io/gh/ElsaB-Lab/fRagmentomics/graph/badge.svg?token=OMTSCRO7LJ)](https://codecov.io/gh/ElsaB-Lab/fRagmentomics)
 
-* [Overview](#overview)
-* [Installation](#installation)
-    * [Prerequisites](#prerequisites)
-    * [System Dependencies](#system-dependencies)
-    * [R Package Installation](#r-package-installation)
-* [Quick Start](#quick-start)
-* [Visualizations](#visualizations)
-    * [1. Fragment Size Distribution](#1-fragment-size-distribution)
-    * [2. End Motif Sequence Logos](#2-end-motif-sequence-logos)
-    * [3. Overall Nucleotide Frequency](#3-overall-nucleotide-frequency)
-    * [4. Detailed 3-Base Motif Proportions](#4-detailed-3-base-motif-proportions)
-* [Input](#input)
-* [Workflow](#workflow)
-* [Output](#output)
-    * [All columns](#all-columns)
-    * [¹ Details on `BASE` and `BASQ` Columns](#-details-on-base-and-basq-columns)
-    * [² Details on Variant Allele Frequency (`VAF`) Calculation](#-details-on-variant-allele-frequency-vaf-calculation)
-* [Explanation of Mutational Status assignment](#explanation-of-mutational-status-assignment)
-    * [The Challenge: Ambiguity in Short Reads](#the-challenge-ambiguity-in-short-reads)
-    * [The fRagmentomics Solution: Context-Aware Comparison](#the-fragmentomics-solution-context-aware-comparison)
-    * [Definition of Fragment Status](#definition-of-fragment-status)
-* [Explanation of Fragment Size](#explanation-of-fragment-size)
-    * [An Indel-Aware Method](#an-indel-aware-method)
-    * [Handling Soft-Clipped Bases](#handling-soft-clipped-bases)
-* [Contributing and Bug Reports](#contributing-and-bug-reports)
-* [License](#license)
+- [Overview](#overview)
+- [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [System Dependencies](#system-dependencies)
+  - [R Package Installation](#r-package-installation)
+- [Quick Start](#quick-start)
+- [Visualizations](#visualizations)
+  - [1. Fragment Size Distribution](#1-fragment-size-distribution)
+  - [2. End Motif Sequence Logos](#2-end-motif-sequence-logos)
+  - [3. Overall Nucleotide Frequency](#3-overall-nucleotide-frequency)
+  - [4. Detailed 3-Base Motif Proportions](#4-detailed-3-base-motif-proportions)
+- [Input](#input)
+- [Workflow](#workflow)
+- [Output](#output)
+  - [All columns](#all-columns)
+- [| 33 - `Nb_Fragment_Bases_Softclip_3p` | Number of soft-clipped bases at the 3' end of the fragment. |](#-33---nb_fragment_bases_softclip_3p--number-of-soft-clipped-bases-at-the-3-end-of-the-fragment-)
+  - [¹ Details on `BASE` and `BASQ` Columns](#-details-on-base-and-basq-columns)
+  - [² Details on Variant Allele Frequency (`VAF`) Calculation](#-details-on-variant-allele-frequency-vaf-calculation)
+- [Explanation of Mutational Status assignment](#explanation-of-mutational-status-assignment)
+  - [The Challenge: Ambiguity in Short Reads](#the-challenge-ambiguity-in-short-reads)
+  - [The fRagmentomics Solution: Context-Aware Comparison](#the-fragmentomics-solution-context-aware-comparison)
+  - [Definition of Fragment Status](#definition-of-fragment-status)
+- [Explanation of Fragment Size](#explanation-of-fragment-size)
+  - [An Indel-Aware Method](#an-indel-aware-method)
+  - [Handling Soft-Clipped Bases](#handling-soft-clipped-bases)
+- [Contributing and Bug Reports](#contributing-and-bug-reports)
+- [License](#license)
 
 ## Overview
 
-Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. However, the majority of cfDNA originates
-from hematopoietic cells ([Mattox et al. Cancer Discov.
-2023](https://aacrjournals.org/cancerdiscovery/article/13/10/2166/729365/The-Origin-of-Highly-Elevated-Cell-Free-DNA-in)
-and references therein), which complicates the analysis of cfDNA in the context of cancer, particularly, in the absence
-of matched sequencing of healthy cells (e.g white blood cells). Multiple studies in the past have demonstrated that
-circulating tumor DNA (ctDNA) fragments have distinct size distribution profiles and 5’/3’ end sequences ("end motifs")
-compared to healthy cfDNA fragments (see [Snyder et al. Cancer Cell. 2016](https://pubmed.ncbi.nlm.nih.gov/26771485/),
-[Mouliere et al. Sci Trans Med. 2018](https://pubmed.ncbi.nlm.nih.gov/30404863/), [Cristiano et al. Nature.
-2019](https://pubmed.ncbi.nlm.nih.gov/31142840/))
+Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. However, the majority of cfDNA originates from hematopoietic cells ([Mattox et al. Cancer Discov. 2023](https://aacrjournals.org/cancerdiscovery/article/13/10/2166/729365/The-Origin-of-Highly-Elevated-Cell-Free-DNA-in) and references therein), which complicates the analysis of cfDNA in the context of cancer, particularly, in the absence of matched sequencing of healthy cells (e.g white blood cells). Multiple studies in the past have demonstrated that circulating tumor DNA (ctDNA) fragments have distinct size distribution profiles and 5’/3’ end sequences ("end motifs") compared to healthy cfDNA fragments (see [Snyder et al. Cancer Cell. 2016](https://pubmed.ncbi.nlm.nih.gov/26771485/), [Mouliere et al. Sci Trans Med. 2018](https://pubmed.ncbi.nlm.nih.gov/30404863/), [Cristiano et al. Nature. 2019](https://pubmed.ncbi.nlm.nih.gov/31142840/))
 
-With the growing interest in the characteristics of cfDNA fragments,  i.e "fragmentomics", some tools have been
-published to analyse fragmentomic features ([Wang et al. Genome Biol.
-2025](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-025-03607-5)). However, only a few tools are
-currently available, and to our knowledge, none provide an integrated solution for both extracting fragmentomic features
-and determining the mutational status of individual fragments across all classes of small variants, namely
-single-nucleotide variants (SNVs), multinucleotide variants (MNVs), and insertions/deletions (indels).
-This current gap exists largely because indel-aware fragment genotyping is particularly complex. Indels can be
-represented in multiple valid ways across alignments ([Tan et al. Bioinformatics.
-2015](https://academic.oup.com/bioinformatics/article/31/13/2202/196142?login=true)) and short reads often incompletely
-span the indel context, especially within repetitive regions, leading to ambiguous or conflicting evidence ([Narzisi et al.
-Frontiers. 2015](https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2015.00008/full)).
-Yet, indels include key clinical biomarkers such as EGFR exon 19 deletions that identify patients with non-small-cell
-lung cancer responsive to gefitinib ([Lynch et al. N Engl J Med. 2004](https://www.nejm.org/doi/full/10.1056/NEJMoa040938)).
-*fRagmentomics* fills the gap by providing an integrated framework that simultaneously derives fragmentomic descriptors (e.g. length,
-5′/3′ end motifs, inner distance, genomic coordinates) and assigns a mutation status to each fragment based on a user-specified list of small mutations of any type.
-Furthermore, *fragmentomics* addresses the complexity of determining exactly the fragment size which, because of indels, is more involved than a simple difference between the aligned positions of the fragment boundaries ([official SAM/BAM file format
-documentation](https://samtools.github.io/hts-specs/SAMv1.pdf)).
+Only a few tools are  currently available to analyse fragmentomic features ([Wang et al. Genome Biol. 2025](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-025-03607-5)), and to our knowledge, none provide an integrated solution for both extracting fragmentomic features and determining the mutational status of individual fragments across all classes of small variants, namely single-nucleotide variants (SNVs), multinucleotide variants (MNVs), and insertions/deletions (indels). This current gap exists largely because indel-aware fragment genotyping is particularly complex. Indels can be represented in multiple valid ways across alignments ([Tan et al. Bioinformatics.2015](https://academic.oup.com/bioinformatics/article/31/13/2202/196142?login=true)) and short reads often incompletely span the indel context, especially within repetitive regions, leading to ambiguous or conflicting evidence ([Narzisi et al.Frontiers. 2015](https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2015.00008/full)).
 
-In summary, *fRagmentomics* is a standardized and user-friendly R package that integrates fragmentomic feature extraction
-with fragment-level mutation annotation across all classes of small variants. This design allows users to efficiently
-explore fragment-level patterns in cfDNA, improving downstream interpretation of liquid biopsy sequencing data.
+*fRagmentomics* fills the gap by providing an integrated framework that simultaneously derives fragmentomic descriptors (e.g. length, 5′/3′ end motifs, inner distance, genomic coordinates) and assigns a mutation status to each fragment based on a user-specified list of small mutations of any type. Furthermore, *fragmentomics* addresses the complexity of determining exactly the fragment size which, because of indels, is more involved than a simple difference between the aligned positions of the fragment boundaries ([official SAM/BAM file format documentation](https://samtools.github.io/hts-specs/SAMv1.pdf)).
 
 ---
 
@@ -587,7 +562,9 @@ The size is calculated by summing the lengths of the 5' and 3' reads and the inn
 To calculate the fragment size, `fRagmentomics` first determines the inner boundaries of each read's alignment on the reference genome.
 
 > **1. Read 5' Inner Boundary** = (`Read 5' Start POS`) + (`5' Matched Bases`) + (`5' Deletions`) + (`5' Right Soft-clips`) - 1
+
 > **2. Read 3' Inner Boundary** = (`Read 3' Start POS`) - (`3' Left Soft-clips`)
+
 > **3. Inner Distance** = (`Read 3' Inner Boundary`) - (`Read 5' Inner Boundary`) - 1
 
 > **Fragment Size** = (`Read 5' Length`) + (`Inner Distance`) + (`Shared Deletions in Overlap`) - (`Shared Insertions in Overlap`) + (`Read 3' Length`)
