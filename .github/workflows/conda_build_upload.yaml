@@ -63,11 +63,9 @@ jobs:
           conda build "$RECIPE_DIR" -c conda-forge -c bioconda -c defaults --output > /tmp/pkg_paths.txt
           echo "Paths to upload:"
           cat /tmp/pkg_paths.txt
-          {
-            echo "pkg_paths<<'EOF'"
-            cat /tmp/pkg_paths.txt
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          echo "pkg_paths<<__PKG_DELIM__" >> "$GITHUB_OUTPUT"
+          cat /tmp/pkg_paths.txt >> "$GITHUB_OUTPUT"
+          echo "__PKG_DELIM__" >> "$GITHUB_OUTPUT"
 
       - name: Build recipe
         shell: bash -l {0}
