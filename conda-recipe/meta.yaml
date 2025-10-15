@@ -1,9 +1,6 @@
-{% set name = "r-fragmentomics" %}
-{% set version = "0.99.0" %}
-
 package:
-  name: {{ name }}
-  version: {{ version }}
+  name: r-fragmentomics
+  version: 0.99.0
 
 source:
   path: ..
@@ -14,7 +11,7 @@ build:
 outputs:
   - name: r-fragmentomics
     build:
-      script: "{{ R }} CMD INSTALL --build ."
+      script: "R CMD INSTALL --build ."
     requirements:
       host:
         - r-base >=4.3
@@ -45,6 +42,8 @@ outputs:
         - r-future
         - r-future.apply
     test:
+      requires:
+        - r-base
       commands:
         - $R -e "library('fRagmentomics'); packageVersion('fRagmentomics');"
 
@@ -55,9 +54,6 @@ outputs:
       run:
         - {{ pin_subpackage('r-fragmentomics', exact=True) }}
         - bcftools >=1.21
-    about:
-      summary: >
-        Meta-package: r-fragmentomics + bcftools (for VCF normalization workflows).
     test:
       commands:
         - bcftools --version
