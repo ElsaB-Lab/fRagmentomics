@@ -43,22 +43,22 @@
 #'
 #' # Helper function to generate random DNA sequences with a bias
 #' generate_biased_dna <- function(n_seq, len, prob) {
-#'     bases <- c('A', 'C', 'G', 'T')
-#'     replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ''))
+#'     bases <- c("A", "C", "G", "T")
+#'     replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
 #' }
 #'
 #' # Create 50 'MUT' fragments with a high proportion of motifs starting with 'C'
 #' df_mut <- data.frame(
 #'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
 #'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
-#'     Fragment_Status_Simple = 'MUT'
+#'     Fragment_Status_Simple = "MUT"
 #' )
 #'
 #' # Create 50 'WT' fragments with a high proportion of motifs starting with 'G'
 #' df_wt <- data.frame(
 #'     Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
 #'     Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
-#'     Fragment_Status_Simple = 'WT'
+#'     Fragment_Status_Simple = "WT"
 #' )
 #'
 #' # Combine into a single dataframe
@@ -70,24 +70,24 @@
 #' # This is the default. It creates nested facets for each base position.
 #' p1 <- plot_motif_barplot(
 #'     df_fragments   = example_df,
-#'     representation = 'split_by_base'
+#'     representation = "split_by_base"
 #' )
 #' print(p1)
 #'
 #' # You can also filter this plot to show only motifs starting with certain bases.
 #' p1_filtered <- plot_motif_barplot(
 #'     df_fragments   = example_df,
-#'     representation = 'split_by_base',
-#'     motif_start    = c('C', 'G'),
-#'     title          = 'Motifs starting with C/G'
+#'     representation = "split_by_base",
+#'     motif_start    = c("C", "G"),
+#'     title          = "Motifs starting with C/G"
 #' )
 #' print(p1_filtered)
 #'
 #' # Optional: customize colors for the 2nd base (A/C/G/T) in split_by_base
 #' p1_colors <- plot_motif_barplot(
 #'     df_fragments   = example_df,
-#'     representation = 'split_by_base',
-#'     colors_z       = c(A = '#FD96A9', C = '#E88B00', G = '#0D539E', T = '#6CAE75')
+#'     representation = "split_by_base",
+#'     colors_z       = c(A = "#FD96A9", C = "#E88B00", G = "#0D539E", T = "#6CAE75")
 #' )
 #' print(p1_colors)
 #'
@@ -95,10 +95,10 @@
 #' # Shows log2 fold-change in motif proportions between two groups (needs exactly two groups).
 #' p2 <- plot_motif_barplot(
 #'     df_fragments   = example_df,
-#'     representation = 'differential',
-#'     vals_z         = c('MUT', 'WT'),
-#'     colors_z       = c(Positive = '#66C2A5', Negative = '#E78AC3'),
-#'     title          = 'MUT vs WT (log2FC)'
+#'     representation = "differential",
+#'     vals_z         = c("MUT", "WT"),
+#'     colors_z       = c(Positive = "#66C2A5", Negative = "#E78AC3"),
+#'     title          = "MUT vs WT (log2FC)"
 #' )
 #' print(p2)
 #'
@@ -106,8 +106,8 @@
 #' # Motifs on the x-axis; bars for each group shown side-by-side.
 #' p3 <- plot_motif_barplot(
 #'     df_fragments   = example_df,
-#'     representation = 'split_by_motif',
-#'     colors_z       = 'Set2' # or a vector named by group names
+#'     representation = "split_by_motif",
+#'     colors_z       = "Set2" # or a vector named by group names
 #' )
 #' print(p3)
 #'
@@ -131,12 +131,15 @@
 #' #   output_path    = out_file2,
 #' #   ggsave_params  = list(width = 12, height = 8, units = 'in', dpi = 300, bg = 'white')
 #' # )
-plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
+plot_motif_barplot <- function(
+    df_fragments, end_motif_5p = "Fragment_Bases_5p",
     end_motif_3p = "Fragment_Bases_3p", motif_type = "Both", motif_start = NULL,
     col_z = "Fragment_Status_Simple", vals_z = NULL, representation = "split_by_base",
-    ..., colors_z = NULL, title = NULL, output_path = NA_character_, ggsave_params = list(width = 10,
-        height = 6, units = "in", dpi = 300, bg = "white")) {
-    motif_size <- 3  # fixed for this function
+    ..., colors_z = NULL, title = NULL, output_path = NA_character_, ggsave_params = list(
+        width = 10,
+        height = 6, units = "in", dpi = 300, bg = "white"
+    )) {
+    motif_size <- 3 # fixed for this function
 
     # ---- Helpers ----
     .clean_dots <- function(dots) {
@@ -148,8 +151,9 @@ plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
         if ("position" %in% names(dots)) {
             pos <- dots$position
             valid <- (is.character(pos) && length(pos) == 1L) || inherits(pos, "Position")
-            if (!valid)
+            if (!valid) {
                 dots$position <- NULL
+            }
         }
         dots
     }
@@ -157,8 +161,9 @@ plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
         # default (NULL) → use provided defaults
         if (is.null(colors_z)) {
             vals <- default_vals
-            if (is.null(names(vals)))
+            if (is.null(names(vals))) {
                 names(vals) <- keys
+            }
             return(vals[keys])
         }
         # single Brewer palette
@@ -166,8 +171,10 @@ plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
             maxc <- RColorBrewer::brewer.pal.info[colors_z, "maxcolors"]
             n <- length(keys)
             if (is.na(maxc) || maxc < n) {
-                stop(sprintf("Palette '%s' must support at least %d colors.", colors_z,
-                  n))
+                stop(sprintf(
+                    "Palette '%s' must support at least %d colors.", colors_z,
+                    n
+                ))
             }
             vals <- RColorBrewer::brewer.pal(n, colors_z)
             names(vals) <- keys
@@ -176,8 +183,10 @@ plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
         # unnamed vector → in order
         if (is.null(names(colors_z))) {
             if (length(colors_z) < length(keys)) {
-                stop(sprintf("Provided %d colors but need %d for: %s", length(colors_z),
-                  length(keys), paste(keys, collapse = ", ")))
+                stop(sprintf(
+                    "Provided %d colors but need %d for: %s", length(colors_z),
+                    length(keys), paste(keys, collapse = ", ")
+                ))
             }
             vals <- colors_z[seq_along(keys)]
             names(vals) <- keys
@@ -207,8 +216,9 @@ plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
     original_col_z <- col_z
 
     # ---- Grouping logic ----
-    if (is.null(col_z) && !is.null(vals_z))
+    if (is.null(col_z) && !is.null(vals_z)) {
         stop("If 'col_z' is NULL, 'vals_z' must also be NULL.")
+    }
     is_grouped <- !is.null(col_z)
     if (!is_grouped) {
         df_fragments$..group.. <- "All Fragments"
@@ -235,10 +245,12 @@ plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
         df_filtered <- df_filtered %>%
             dplyr::filter(.data[[col_z]] %in% vals_z)
     }
-    if (nrow(df_filtered) == 0)
+    if (nrow(df_filtered) == 0) {
         stop("No data remains after filtering. Check 'col_z' and 'vals_z'.")
-    if (is.null(vals_z))
+    }
+    if (is.null(vals_z)) {
         vals_z <- sort(unique(df_filtered[[col_z]]))
+    }
     df_filtered[[col_z]] <- factor(df_filtered[[col_z]], levels = vals_z)
 
     # ---- Build motif table (ACGT only; length = 3) ----
@@ -261,23 +273,26 @@ plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
         analysis_df <- analysis_df %>%
             dplyr::filter(stringr::str_sub(motif, 1, 1) %in% motif_start)
     }
-    if (nrow(analysis_df) == 0)
+    if (nrow(analysis_df) == 0) {
         stop("No valid 3-base motifs found in the data after filtering.")
+    }
 
     # ---- Proportions per group ----
     proportions_df <- analysis_df %>%
         dplyr::group_by(group) %>%
         dplyr::count(motif, name = "count") %>%
-        dplyr::mutate(proportion = count/sum(count)) %>%
+        dplyr::mutate(proportion = count / sum(count)) %>%
         dplyr::ungroup()
 
     # ---- Prepare plotting data ----
     base_levels <- c("A", "C", "G", "T")
     plot_data <- proportions_df %>%
-        dplyr::mutate(first_base = factor(stringr::str_sub(motif, 1, 1), levels = base_levels),
+        dplyr::mutate(
+            first_base = factor(stringr::str_sub(motif, 1, 1), levels = base_levels),
             second_base = factor(stringr::str_sub(motif, 2, 2), levels = base_levels),
             third_base = factor(stringr::str_sub(motif, 3, 3), levels = base_levels),
-            motif = factor(motif, levels = sort(unique(motif))))
+            motif = factor(motif, levels = sort(unique(motif)))
+        )
 
     # ---- Build plot per representation ----
     dots <- .clean_dots(list(...))
@@ -286,14 +301,15 @@ plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
     plot_xlab <- ""
     if (representation == "differential") {
         # Need exactly 2 groups
-        if (length(vals_z) != 2)
+        if (length(vals_z) != 2) {
             stop("Differential analysis requires exactly two values in 'vals_z'.")
+        }
 
         pseudocount <- 1e-09
         diff_data <- plot_data %>%
             dplyr::select(motif, group, proportion, first_base, second_base, third_base) %>%
             tidyr::pivot_wider(names_from = group, values_from = proportion, values_fill = 0) %>%
-            dplyr::mutate(log2FC = log2((.data[[vals_z[1]]] + pseudocount)/(.data[[vals_z[2]]] +
+            dplyr::mutate(log2FC = log2((.data[[vals_z[1]]] + pseudocount) / (.data[[vals_z[2]]] +
                 pseudocount)), sign = ifelse(log2FC >= 0, "Positive", "Negative"))
 
         # Colors: Positive/Negative
@@ -302,21 +318,32 @@ plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
         fill_vals <- .resolve_palette(diff_keys, colors_z, diff_defaults)
 
         # Layer (no bottom gap, symmetric limits with +10% headroom)
-        bar_args <- c(list(mapping = ggplot2::aes(x = third_base, y = log2FC, fill = sign),
-            stat = "identity", color = "black", linewidth = 0.2), dots)
-        if (!user_set_width)
+        bar_args <- c(list(
+            mapping = ggplot2::aes(x = third_base, y = log2FC, fill = sign),
+            stat = "identity", color = "black", linewidth = 0.2
+        ), dots)
+        if (!user_set_width) {
             bar_args$width <- 1
+        }
 
-        final_plot <- ggplot2::ggplot(diff_data) + do.call(ggplot2::geom_bar, bar_args) +
+        final_plot <- ggplot2::ggplot(diff_data) +
+            do.call(ggplot2::geom_bar, bar_args) +
             ggplot2::geom_hline(yintercept = 0, color = "darkgrey", linewidth = 1) +
-            ggh4x::facet_nested(~first_base + second_base, scales = "free_x") + ggplot2::scale_fill_manual(values = fill_vals,
-            name = "Direction")
+            ggh4x::facet_nested(~ first_base + second_base, scales = "free_x") +
+            ggplot2::scale_fill_manual(
+                values = fill_vals,
+                name = "Direction"
+            )
 
         max_abs <- max(abs(diff_data$log2FC), na.rm = TRUE)
         lim <- c(-1.1 * max_abs, 1.1 * max_abs)
-        final_plot <- final_plot + ggplot2::scale_y_continuous(limits = lim, expand = c(0,
-            0))
+        final_plot <- final_plot + ggplot2::scale_y_continuous(limits = lim, expand = c(
+            0,
+            0
+        ))
         plot_xlab <- "Third Base"
+        # Hide legend for differential
+        final_plot <- final_plot + ggplot2::guides(fill = "none")
     } else {
         # common additions for proportion plots
         total_counts <- analysis_df %>%
@@ -337,18 +364,37 @@ plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
             base_defaults <- c(A = "#FD96A9", C = "#E88B00", G = "#0D539E", T = "#6CAE75")
             fill_vals <- .resolve_palette(base_levels, colors_z, base_defaults)
 
-            bar_args <- c(list(mapping = ggplot2::aes(x = third_base, y = proportion,
-                fill = second_base), stat = "identity", color = "black", linewidth = 0.2),
-                dots)
-            if (!user_set_width)
+            bar_args <- c(
+                list(mapping = ggplot2::aes(
+                    x = third_base, y = proportion,
+                    fill = second_base
+                ), stat = "identity", color = "black", linewidth = 0.2),
+                dots
+            )
+            if (!user_set_width) {
                 bar_args$width <- 1
+            }
 
-            final_plot <- ggplot2::ggplot(plot_data) + do.call(ggplot2::geom_bar,
-                bar_args) + ggh4x::facet_nested(~group_label + first_base + second_base,
-                scales = "free_x") + ggplot2::scale_fill_manual(values = fill_vals,
-                name = "2nd Base") + ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0,
-                0.1)))
+            final_plot <- ggplot2::ggplot(plot_data) +
+                do.call(
+                    ggplot2::geom_bar,
+                    bar_args
+                ) +
+                ggh4x::facet_nested(~ group_label + first_base + second_base,
+                    scales = "free_x"
+                ) +
+                ggplot2::scale_fill_manual(
+                    values = fill_vals,
+                    name = "2nd Base"
+                ) +
+                ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(
+                    0,
+                    0.1
+                )))
             plot_xlab <- "Third Base"
+
+            # Hide legend for split_by_base
+            final_plot <- final_plot + ggplot2::guides(fill = "none")
         } else if (representation == "split_by_motif") {
             # Colors by group_label
             group_keys <- levels(plot_data$group_label)
@@ -364,55 +410,101 @@ plot_motif_barplot <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p",
             }
             fill_vals <- .resolve_palette(group_keys, colors_z, grp_defaults)
 
-            bar_args <- c(list(mapping = ggplot2::aes(x = motif, y = proportion,
-                fill = group_label), stat = "identity", color = "black", linewidth = 0.2),
-                dots)
-            if (!user_set_width)
+            bar_args <- c(
+                list(mapping = ggplot2::aes(
+                    x = motif, y = proportion,
+                    fill = group_label
+                ), stat = "identity", color = "black", linewidth = 0.2),
+                dots
+            )
+            if (!user_set_width) {
                 bar_args$width <- 0.9
-            if (!"position" %in% names(dots))
+            }
+            if (!"position" %in% names(dots)) {
                 bar_args$position <- ggplot2::position_dodge(preserve = "single")
+            }
 
-            final_plot <- ggplot2::ggplot(plot_data) + do.call(ggplot2::geom_bar,
-                bar_args) + ggplot2::facet_wrap(~first_base, scales = "free_x", nrow = 1) +
-                ggplot2::scale_fill_manual(values = fill_vals, name = if (is.null(original_col_z))
-                  NULL else original_col_z) + ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0,
-                0.1)))
+            final_plot <- ggplot2::ggplot(plot_data) +
+                do.call(
+                    ggplot2::geom_bar,
+                    bar_args
+                ) +
+                ggplot2::facet_wrap(~first_base, scales = "free_x", nrow = 1) +
+                ggplot2::scale_fill_manual(values = fill_vals, name = if (is.null(original_col_z)) {
+                    NULL
+                } else {
+                    original_col_z
+                }) +
+                ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(
+                    0,
+                    0.1
+                )))
             plot_xlab <- "Motif"
         }
     }
 
     # ---- Titles & theme ----
-    auto_title <- switch(representation, differential = "Differential Motif Usage",
-        split_by_base = "Motif Proportions at Fragment Ends", split_by_motif = "Motif Proportions by Group")
-    plot_subtitle <- switch(representation, differential = paste("Comparison:", vals_z[1],
-        "vs", vals_z[2]), split_by_base = "Hierarchical view by base position", split_by_motif = "Grouped by motif")
+    auto_title <- switch(representation,
+        differential = "Differential Motif Usage",
+        split_by_base = "Motif Proportions at Fragment Ends",
+        split_by_motif = "Motif Proportions by Group"
+    )
+    plot_subtitle <- switch(representation,
+        differential = paste(
+            "Comparison:", vals_z[1],
+            "vs", vals_z[2]
+        ),
+        split_by_base = "Hierarchical view by base position",
+        split_by_motif = "Grouped by motif"
+    )
     plot_ylab <- if (representation == "differential") {
         paste0("Log2 Fold Change (", vals_z[1], "/", vals_z[2], ")")
     } else {
         "Proportion"
     }
 
+    # Remove legend if differential or split_by_base
+    legend_pos <- if (representation %in% c("differential", "split_by_base")) "none" else "right"
+
     final_plot <- final_plot + ggplot2::labs(title = if (is.null(title) || is.na(title) ||
-        !nzchar(title) || identical(title, "NA"))
-        auto_title else title, subtitle = plot_subtitle, y = plot_ylab, x = plot_xlab) + ggplot2::theme_bw(base_size = 11) +
-        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = if (representation ==
-            "split_by_motif")
-            90 else 0, vjust = 0.5, hjust = if (representation == "split_by_motif")
-            1 else 0.5), strip.background = ggplot2::element_rect(fill = "white", color = "black",
-            linewidth = 0.5), strip.text = ggplot2::element_text(face = "bold"),
-            panel.spacing = grid::unit(0.2, "lines"), legend.position = "right",
-            panel.grid.major.x = ggplot2::element_blank(), panel.grid.major.y = ggplot2::element_line(linetype = "dashed",
-                color = "grey85"), panel.grid.minor = ggplot2::element_blank())
+        !nzchar(title) || identical(title, "NA")) {
+        auto_title
+    } else {
+        title
+    }, subtitle = plot_subtitle, y = plot_ylab, x = plot_xlab) + ggplot2::theme_bw(base_size = 11) +
+        ggplot2::theme(
+            axis.text.x = ggplot2::element_text(angle = if (representation ==
+                "split_by_motif") {
+                90
+            } else {
+                0
+            }, vjust = 0.5, hjust = if (representation == "split_by_motif") {
+                1
+            } else {
+                0.5
+            }), strip.background = ggplot2::element_rect(
+                fill = "white", color = "black",
+                linewidth = 0.5
+            ), strip.text = ggplot2::element_text(face = "bold"),
+            panel.spacing = grid::unit(0.2, "lines"), legend.position = legend_pos,
+            panel.grid.major.x = ggplot2::element_blank(), panel.grid.major.y = ggplot2::element_line(
+                linetype = "dashed",
+                color = "grey85"
+            ), panel.grid.minor = ggplot2::element_blank()
+        )
 
     # ---- Save if requested ----
     if (!is.null(output_path) && is.character(output_path) && length(output_path) ==
         1L && !is.na(output_path) && nzchar(output_path)) {
         out_dir <- dirname(output_path)
-        if (!dir.exists(out_dir))
+        if (!dir.exists(out_dir)) {
             dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
-        ggplot2::ggsave(filename = output_path, plot = final_plot, width = ggsave_params$width,
+        }
+        ggplot2::ggsave(
+            filename = output_path, plot = final_plot, width = ggsave_params$width,
             height = ggsave_params$height, units = ggsave_params$units, dpi = ggsave_params$dpi,
-            bg = ggsave_params$bg)
+            bg = ggsave_params$bg
+        )
         return(invisible(NULL))
     }
 

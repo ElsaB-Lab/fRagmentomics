@@ -292,26 +292,37 @@ test_that("test get fragment size", {
   expect_equal(get_fragment_size(read_stats_5p_i7, read_stats_3p_i7), 24)
 
   # Ins 8 - Complexe case with soft clipping, insertion and deletion
-  r_cigar_5p_c1 <- "1M2I1M1D1M1S"
-  r_cigar_3p_c1 <- "1S1M1D1M1D2M"
-  read_stats_5p_c1 <- list(
-    POS = 1, CIGAR = r_cigar_5p_c1, read_length = calculate_read_length(r_cigar_5p_c1)
+  r_cigar_5p_c8 <- "1M2I1M1D1M1S"
+  r_cigar_3p_c8 <- "1S1M1D1M1D2M"
+  read_stats_5p_c8 <- list(
+    POS = 1, CIGAR = r_cigar_5p_c8, read_length = calculate_read_length(r_cigar_5p_c8)
   )
-  read_stats_3p_c1 <- list(
-    POS = 2, CIGAR = r_cigar_3p_c1, read_length = calculate_read_length(r_cigar_3p_c1)
+  read_stats_3p_c8 <- list(
+    POS = 2, CIGAR = r_cigar_3p_c8, read_length = calculate_read_length(r_cigar_3p_c8)
   )
-  expect_equal(get_fragment_size(read_stats_5p_c1, read_stats_3p_c1), 7)
+  expect_equal(get_fragment_size(read_stats_5p_c8, read_stats_3p_c8), 7)
 
   # Ins 9 - Error sequencing overlap 5p partially
-  r_cigar_5p_i7 <- "7M6I1M"
-  r_cigar_3p_i7 <- "3S11M"
-  read_stats_5p_i7 <- list(
-    POS = 1, CIGAR = r_cigar_5p_i7, read_length = calculate_read_length(r_cigar_5p_i7)
+  r_cigar_5p_i9 <- "7M6I1M"
+  r_cigar_3p_i9 <- "3S11M"
+  read_stats_5p_i9 <- list(
+    POS = 1, CIGAR = r_cigar_5p_i9, read_length = calculate_read_length(r_cigar_5p_i9)
   )
-  read_stats_3p_i7 <- list(
-    POS = 8, CIGAR = r_cigar_3p_i7, read_length = calculate_read_length(r_cigar_3p_i7)
+  read_stats_3p_i9 <- list(
+    POS = 8, CIGAR = r_cigar_3p_i9, read_length = calculate_read_length(r_cigar_3p_i9)
   )
-  expect_equal(get_fragment_size(read_stats_5p_i7, read_stats_3p_i7), 24)
+  expect_equal(get_fragment_size(read_stats_5p_i9, read_stats_3p_i9), 24)
+
+  # Ins 10 - Real case
+  r_cigar_5p_i10 <- "138M6S"
+  r_cigar_3p_i10 <- "37M35I72M"
+  read_stats_5p_i10 <- list(
+    POS = 868, CIGAR = r_cigar_5p_i10, read_length = calculate_read_length(r_cigar_5p_i10)
+  )
+  read_stats_3p_i10 <- list(
+    POS = 936, CIGAR = r_cigar_3p_i10, read_length = calculate_read_length(r_cigar_3p_i10)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_i10, read_stats_3p_i10), 212)
 
   # Soft Clipping
   # Soft clipping 1
