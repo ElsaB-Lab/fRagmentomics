@@ -5,6 +5,7 @@ package:
 source:
   path: ..
 
+
 build:
   number: 0
   script: "{{ R }} CMD INSTALL --build ."
@@ -34,6 +35,7 @@ requirements:
     - r-stringr
     - r-tibble
     - r-tidyr
+    - bcftools >=1.21 # [unix]
   run:
     - r-base >=4.3
     - bioconductor-biostrings
@@ -56,10 +58,12 @@ requirements:
     - r-stringr
     - r-tibble
     - r-tidyr
+    - bcftools >=1.21 # [unix]
 
 test:
   commands:
     - $R -e "library('fRagmentomics'); packageVersion('fRagmentomics')"   # [unix]
+    - bcftools --version  # [unix]
   requires:
     - r-base
 

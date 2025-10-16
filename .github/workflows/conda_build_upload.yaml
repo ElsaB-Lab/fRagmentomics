@@ -86,3 +86,6 @@ jobs:
           conda activate frag-test
           mamba install -y -c elsab-lab -c conda-forge -c bioconda r-fragmentomics
           R -q -e "library(fRagmentomics); packageVersion('fRagmentomics')"
+          if [[ "$RUNNER_OS" != "Windows" ]]; then
+            if command -v bcftools >/dev/null 2>&1; then bcftools --version; fi
+          fi
