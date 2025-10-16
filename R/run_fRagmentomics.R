@@ -175,7 +175,7 @@ run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_of
                 fragment_qc <- "Fragment with badly oriented reads"
 
                 df_fragments_info_badly_oriented <- rbind(df_fragments_info_badly_oriented,
-                  create_empty_fragment_row(chr = chr_norm, pos = pos_norm, ref = ref_norm,
+                    create_empty_fragment_row(chr = chr_norm, pos = pos_norm, ref = ref_norm,
                     alt = alt_norm, input_mutation_info = input_mutation_info, fragment_name = fragment_name,
                     fragment_qc = fragment_qc, sample_id = sample_id, report_tlen = report_tlen,
                     report_5p_3p_bases_fragment = report_5p_3p_bases_fragment, report_softclip = report_softclip))
@@ -232,10 +232,10 @@ run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_of
                 # Tell progressor a step is done
                 p()
                 extract_fragment_features(df_sam = df_sam, fragment_name = fragment_name,
-                  sample_id = sample_id, chr = chr_norm, pos = pos_norm, ref = ref_norm,
-                  alt = alt_norm, report_tlen = report_tlen, report_softclip = report_softclip,
-                  report_5p_3p_bases_fragment = report_5p_3p_bases_fragment, remove_softclip = remove_softclip,
-                  fasta_seq = fasta_seq, input_mutation_info = input_mutation_info)
+                    sample_id = sample_id, chr = chr_norm, pos = pos_norm, ref = ref_norm,
+                    alt = alt_norm, report_tlen = report_tlen, report_softclip = report_softclip,
+                    report_5p_3p_bases_fragment = report_5p_3p_bases_fragment, remove_softclip = remove_softclip,
+                    fasta_seq = fasta_seq, input_mutation_info = input_mutation_info)
             })
         })
 
@@ -282,16 +282,14 @@ run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_of
         # overwritten
         if (file.exists(output_path)) {
             if (verbose) {
-                message(sprintf("File '%s' already exists and will be overwritten.",
-                  output_path))
+                message(sprintf("File '%s' already exists and will be overwritten.", output_path))
             }
         } else {
             # Check if the file parent folder already exists
             output_parent <- dirname(output_path)
             if (!dir.exists(output_parent)) {
                 if (verbose) {
-                  message(sprintf("Folder '%s' does not exist and will be created.",
-                    output_parent))
+                    message(sprintf("Folder '%s' does not exist and will be created.", output_parent))
                 }
                 dir.create(output_parent, showWarnings = FALSE, recursive = TRUE)
             }
