@@ -1,24 +1,29 @@
 #' Plot sequence motif composition
 #'
 #' @description
-#' Creates a sequence logo plot showing the proportion of each nucleotide at each
-#' position, with flexible grouping/faceting.
+#' Creates a sequence logo plot showing the proportion of each nucleotide at
+#' each position, with flexible grouping/faceting.
 #'
 #' @param df_fragments Data frame containing fragment sequence data.
 #' @param end_motif_5p Character. Column name for 5' end sequences.
 #' @param end_motif_3p Character. Column name for 3' end sequences.
 #' @param motif_type Character. One of 'Start', 'End', or 'Both'.
 #' @param motif_size Integer (>=1). Length of the motif to analyze.
-#' @param col_z Character or NULL. Grouping/faceting column. If NULL, all fragments are pooled.
-#' @param vals_z Character vector or NULL. Subset of groups from 'col_z' to include.
+#' @param col_z Character or NULL. Grouping/faceting column. If NULL, all
+#' fragments are pooled.
+#' @param vals_z Character vector or NULL. Subset of
+#' groups from 'col_z' to include.
 #'   If NULL, all unique groups are used.
-#' @param colors_z NULL (use ggseqlogo defaults), a single RColorBrewer palette name
-#'   (e.g., 'Dark2'), or a named vector for 'A/C/G/T', e.g.
+#' @param colors_z NULL (use ggseqlogo defaults), a single RColorBrewer palette
+#'   name (e.g., 'Dark2'), or a named vector for 'A/C/G/T', e.g.
 #'   'c(A='#1B9E77', C='#D95F02', G='#7570B3', T='#E7298A')'.
-#' @param title Character or NA. Plot title; if NULL/NA/'NA'/empty, a default title is used.
-#' @param output_path Character or NA. If provided and non-empty, the plot is saved to this file.
+#' @param title Character or NA. Plot title; if NULL/NA/'NA'/empty, a default
+#'   title is used.
+#' @param output_path Character or NA. If provided and non-empty, the plot is
+#'   saved to this file.
 #' @param ggsave_params Named list passed to [ggplot2::ggsave()].
-#' @param ... Extra arguments forwarded to [ggseqlogo::ggseqlogo()] (e.g., 'stack_width', 'font', or 'col_scheme').
+#' @param ... Extra arguments forwarded to [ggseqlogo::ggseqlogo()] (e.g.,
+#' 'stack_width', 'font', or 'col_scheme').
 #'
 #' @return A 'ggplot' object (invisibly NULL if saved).
 #'
@@ -28,8 +33,10 @@
 #' @importFrom stringr str_detect str_sub str_split
 #' @importFrom tidyr crossing
 #' @importFrom tibble tibble
-#' @importFrom ggplot2 ggplot theme_void labs aes geom_text theme element_text element_rect element_blank margin geom_vline
-#' @importFrom ggseqlogo ggseqlogo make_col_scheme
+#' @importFrom ggplot2 ggplot theme_void labs aes geom_text theme element_text
+#' element_rect element_blank margin geom_vline
+#' @importFrom ggseqlogo ggseqlogo
+#' make_col_scheme
 #' @importFrom RColorBrewer brewer.pal brewer.pal.info
 #' @export
 #'
@@ -72,7 +79,7 @@
 #'     df_fragments = example_df,
 #'     motif_type   = 'Start',
 #'     motif_size   = 5,
-#'     title        = '5' motif (k=5)'
+#'     title        = "5' motif (k=5)"
 #' )
 #' print(p2)
 #'
@@ -109,7 +116,7 @@
 #'     motif_size   = 4,
 #'     stack_width  = 0.9,
 #'     font         = 'helvetica_regular',
-#'     title        = '3' motif (k=4, custom stack width)'
+#'     title        = "3' motif (k=4, custom stack width)"
 #' )
 #' print(p6)
 #'
@@ -193,12 +200,13 @@ plot_qqseqlogo_meme <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p"
             if (length(s)) {
                 n_short <- sum(nchar(s) < motif_size)
                 if (n_short > 0) {
-                  warning(sprintf("For group '%s', removed %d 5' sequences shorter than motif_size (%d).",
-                    group_name, n_short, motif_size), call. = FALSE)
+                    warntext <- sprintf(paste("For group '%s', removed %d 5'",
+                        "sequences shorter than motif_size (%d)."),
+                        group_name, n_short, motif_size)
+                    warning(warntext, call. = FALSE)
                 }
                 s <- s[nchar(s) >= motif_size]
-                if (length(s))
-                  start_motifs <- substr(s, 1, motif_size)
+                if (length(s)) start_motifs <- substr(s, 1, motif_size)
                 # filtration non-ACGT
                 start_motifs <- start_motifs[!stringr::str_detect(start_motifs, "[^ACGT]")]
             }
@@ -209,12 +217,13 @@ plot_qqseqlogo_meme <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p"
             if (length(s)) {
                 n_short <- sum(nchar(s) < motif_size)
                 if (n_short > 0) {
-                  warning(sprintf("For group '%s', removed %d 3' sequences shorter than motif_size (%d).",
-                    group_name, n_short, motif_size), call. = FALSE)
+                    warntext <- sprintf(paste("For group '%s', removed %d 3'",
+                        "sequences shorter than motif_size (%d)."),
+                        group_name, n_short, motif_size)
+                    warning(warntext, call. = FALSE)
                 }
                 s <- s[nchar(s) >= motif_size]
-                if (length(s))
-                  end_motifs <- stringr::str_sub(s, -motif_size, -1L)
+                if (length(s)) end_motifs <- stringr::str_sub(s, -motif_size, -1L)
                 # filtration non-ACGT
                 end_motifs <- end_motifs[!stringr::str_detect(end_motifs, "[^ACGT]")]
             }
@@ -263,16 +272,18 @@ plot_qqseqlogo_meme <- function(df_fragments, end_motif_5p = "Fragment_Bases_5p"
             nm <- toupper(names(colors_z))
             names(colors_z) <- nm
             if (!all(req %in% nm)) {
-                stop(sprintf("Custom colors are incomplete: missing %s.", paste(setdiff(req,
-                  nm), collapse = ", ")))
+                stoptxt <- sprintf("Custom colors are incomplete: missing %s.",
+                    paste(setdiff(req, nm), collapse = ", "))
+                stop(stoptxt)
             }
             color_scheme <- ggseqlogo::make_col_scheme(chars = req, cols = unname(colors_z[req]))
 
             # Unnamed vector of 4 colors → mapped in order A, C, G, T
         } else if (is.character(colors_z) && is.null(names(colors_z))) {
             if (length(colors_z) != 4L) {
-                stop(sprintf("An unnamed vector must contain exactly 4 colors (received: %d).",
-                  length(colors_z)))
+                stoptxt <- sprintf(paste("An unnamed vector must contain",
+                    "exactly 4 colors (received: %d)."), length(colors_z))
+                stop(stoptxt)
             }
             pal <- stats::setNames(colors_z, c("A", "C", "G", "T"))
             color_scheme <- ggseqlogo::make_col_scheme(chars = names(pal), cols = unname(pal))
