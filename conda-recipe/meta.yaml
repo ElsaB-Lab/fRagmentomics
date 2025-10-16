@@ -7,59 +7,61 @@ source:
 
 build:
   number: 0
+  script: "{{ R }} CMD INSTALL --build ."
 
-outputs:
-  - name: r-fragmentomics
-    build:
-      script: "$R CMD INSTALL --build ."
-    requirements:
-      host:
-        - r-base >=4.4,<4.5
-      run:
-        - r-base >=4.4,<4.5
-        - bioconductor-rsamtools >=2.4
-        - bioconductor-genomicalignments
-        - bioconductor-biocparallel
-        - bioconductor-biostrings
-        - bioconductor-genomeinfodb
-        - bioconductor-genomicranges
-        - bioconductor-iranges
-        - bioconductor-s4vectors
-        - r-bh
-        - r-ggplot2
-        - r-dplyr
-        - r-tidyr
-        - r-readr
-        - r-stringr
-        - r-purrr
-        - r-tibble
-        - r-magrittr
-        - r-scales
-        - r-rcolorbrewer
-        - r-ggseqlogo
-        - r-ggh4x
-        - r-progressr
-        - r-future
-        - r-future.apply
-    test:
-      requires:
-        - r-base >=4.4,<4.5
-      commands:
-        - $R -e "library('fRagmentomics'); packageVersion('fRagmentomics');"
+requirements:
+  build:
+    - r-base >=4.3
+  host:
+    - r-base >=4.3
+    - bioconductor-biostrings
+    - bioconductor-genomeinfodb
+    - bioconductor-genomicranges
+    - bioconductor-iranges
+    - bioconductor-rsamtools
+    - r-dplyr
+    - r-future
+    - r-future.apply
+    - r-ggh4x
+    - r-ggplot2
+    - r-ggseqlogo
+    - r-magrittr
+    - r-progressr
+    - r-purrr
+    - r-rcolorbrewer
+    - r-readr
+    - r-scales
+    - r-stringr
+    - r-tibble
+    - r-tidyr
+  run:
+    - r-base >=4.3
+    - bioconductor-biostrings
+    - bioconductor-genomeinfodb
+    - bioconductor-genomicranges
+    - bioconductor-iranges
+    - bioconductor-rsamtools
+    - r-dplyr
+    - r-future
+    - r-future.apply
+    - r-ggh4x
+    - r-ggplot2
+    - r-ggseqlogo
+    - r-magrittr
+    - r-progressr
+    - r-purrr
+    - r-rcolorbrewer
+    - r-readr
+    - r-scales
+    - r-stringr
+    - r-tibble
+    - r-tidyr
 
-  # --- Package with bcftools
-  - name: r-fragmentomics-bcftools
-    noarch: generic
-    requirements:
-      run:
-        - {{ pin_subpackage('r-fragmentomics', exact=True) }}
-        - bcftools >=1.21
-    test:
-      requires:
-        - r-base >=4.4,<4.5
-      commands:
-        - bcftools --version
-        - $R -e "library('fRagmentomics'); packageVersion('fRagmentomics');"
+test:
+  commands:
+    - $R -e "library('fRagmentomics'); packageVersion('fRagmentomics')"   # [unix]
+  requires:
+    - r-base
 
 about:
   home: "https://github.com/ElsaB-Lab/fRagmentomics"
