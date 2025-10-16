@@ -14,9 +14,9 @@ outputs:
       script: "R CMD INSTALL --build ."
     requirements:
       host:
-        - r-base >=4.3
+        - r-base >=4.4,<4.5
       run:
-        - r-base >=4.3
+        - r-base >=4.4,<4.5
         - bioconductor-rsamtools >=2.4
         - bioconductor-genomicalignments
         - bioconductor-biocparallel
@@ -43,7 +43,7 @@ outputs:
         - r-future.apply
     test:
       requires:
-        - r-base
+        - r-base >=4.4,<4.5
       commands:
         - $R -e "library('fRagmentomics'); packageVersion('fRagmentomics');"
 
@@ -55,6 +55,8 @@ outputs:
         - {{ pin_subpackage('r-fragmentomics', exact=True) }}
         - bcftools >=1.21
     test:
+      requires:
+        - r-base >=4.4,<4.5
       commands:
         - bcftools --version
         - $R -e "library('fRagmentomics'); packageVersion('fRagmentomics');"
