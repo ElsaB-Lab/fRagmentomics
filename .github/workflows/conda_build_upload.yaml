@@ -68,7 +68,6 @@ jobs:
         shell: bash -l {0}
         run: |
           conda build "$RECIPE_DIR" -c conda-forge -c bioconda
-          ls -lah $CONDA_PREFIX/conda-bld/*/*r-fragmentomics*.conda || true
 
       - name: Upload to Anaconda (elsab-lab)
         if: env.ANACONDA_API_TOKEN != ''
@@ -86,6 +85,3 @@ jobs:
           conda activate frag-test
           mamba install -y -c elsab-lab -c conda-forge -c bioconda r-fragmentomics
           R -q -e "library(fRagmentomics); packageVersion('fRagmentomics')"
-          if [[ "$RUNNER_OS" != "Windows" ]]; then
-            if command -v bcftools >/dev/null 2>&1; then bcftools --version; fi
-          fi
