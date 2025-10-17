@@ -63,7 +63,14 @@ mamba install -c bioconda bcftools=1.21
 
 You may install the package from github or from conda.
 
-**1. Install from github**
+**1. Install from conda**
+
+```r
+# To use bcftools normalisation (RECOMMENDED for indels)
+mamba env create -n fRagmentomics-env -c elsab-lab -c conda-forge -c bioconda r-fragmentomics bcftools=1.21
+```
+
+**2. Install from github**
 
 When installing from GitHub, pre-installing heavy Bioconductor deps via Conda can avoid slow source compilation.
 
@@ -78,8 +85,8 @@ NOTE: If you hit compilation issues (e.g. with Rsamtools / BiocParallel), try on
 - **With Conda/Mamba** (preinstall Rsamtools)
 
 ```bash
-mamba install -c bioconda bioconductor-rsamtools
-
+mamba env create -n fRagmentomics-env -c conda-forge -c bioconda bioconductor-rsamtools bcftools=1.21 # To use bcftools normalisation (RECOMMENDED for indels)
+mamba activate fRagmentomics-env
 Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
               install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
             if (!requireNamespace("remotes", quietly=TRUE))
@@ -96,12 +103,6 @@ Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
               install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
             BiocManager::install(c("Rsamtools","GenomicAlignments","BiocParallel"), ask=FALSE, update=FALSE);
             remotes::install_github("ElsaB-Lab/fRagmentomics", build_vignettes=FALSE, upgrade="never")'
-```
-
-**2. Install from conda**
-
-```r
-mamba install -c elsab-lab -c conda-forge -c bioconda r-fragmentomics
 ```
 
 After these steps are complete, you can load the package into your R session with `library(fRagmentomics)`.
@@ -150,6 +151,9 @@ head(df_fragments)
 ```
 
 The resulting `df_fragments` data frame contains the per-fragment analysis, ready for exploration and visualization with the package's plotting functions. You can also save this data frame to a tab-separated (`.tsv`) file by providing a path to the `output_file` argument.
+
+NOTE: Set `apply_bcftools_norm = TRUE` to resolve the ambiguity in indel representation and position via `bcftools norm` (left-alignment).
+This requires `bcftools` to be installed and available on your `PATH` (see **Installation**). If you disable it (`FALSE`), indel coordinates will **not** be left-aligned or normalized, which can affect downstream comparisons and metrics.
 
 ---
 
