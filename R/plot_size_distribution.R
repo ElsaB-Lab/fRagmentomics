@@ -148,8 +148,7 @@ plot_size_distribution <- function(df_fragments, size_col = "Fragment_Size", col
             maxc <- RColorBrewer::brewer.pal.info[colors_z, "maxcolors"]
             n <- length(keys)
             if (is.na(maxc) || maxc < n)
-                stop(sprintf("Palette '%s' must support at least %d colors.", colors_z,
-                  n))
+                stop(sprintf("Palette '%s' must support at least %d colors.", colors_z, n))
             vals <- RColorBrewer::brewer.pal(n, colors_z)
             names(vals) <- keys
             return(vals)
@@ -158,8 +157,7 @@ plot_size_distribution <- function(df_fragments, size_col = "Fragment_Size", col
         # unnamed vector → take in order
         if (is.null(names(colors_z))) {
             if (length(colors_z) < length(keys)) {
-                stop(sprintf("Provided %d colors but need %d for: %s", length(colors_z),
-                  length(keys), paste(keys, collapse = ", ")))
+                stop(sprintf("Provided %d colors but need %d for: %s", length(colors_z), length(keys), paste(keys, collapse = ", ")))
             }
             vals <- colors_z[seq_along(keys)]
             names(vals) <- keys

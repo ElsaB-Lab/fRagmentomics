@@ -77,7 +77,7 @@
 #'     motif_type   = 'Start',
 #'     motif_size   = 1,
 #'     colors_z     = c('MUT' = '#d95f02', 'WT' = '#1b9e77'),
-#'     title        = '5' First Base Composition'
+#'     title        = "5' First Base Composition"
 #' )
 #' print(p2)
 #'
@@ -96,7 +96,7 @@
 #' example_df$Fragment_Bases_5p[1:3] <- c('NNNNNNNNNN', 'ACGTNACGTN', 'TTTNAAAAAA')
 #' p5 <- plot_freq_barplot(example_df,
 #'     motif_size = 2, drop_non_acgt = FALSE,
-#'     title = 'Including 'Other' (non-ACGT)'
+#'     title = "Including 'Other' (non-ACGT)"
 #' )
 #' print(p5)
 #'
