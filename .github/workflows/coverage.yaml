@@ -9,7 +9,6 @@ on:
 jobs:
   covr:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -19,8 +18,7 @@ jobs:
           r-version: '4.3.3'
 
       - name: Check R version
-        run: |
-          Rscript --version
+        run: Rscript --version
         shell: bash
 
       - name: Install system dependencies (including bcftools)
@@ -50,14 +48,13 @@ jobs:
           error-on: '"warning"'
           check-dir: '"check"'
 
-      - name: Calculate and upload coverage (only if check passed)
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Calculate and upload coverage (tokenless)
         run: |
           if (!requireNamespace("covr", quietly = TRUE)) {
             stop("covr package not found. It should have been installed from Suggests.")
           }
           cov <- covr::package_coverage(type = "tests")
           print(cov)
-          covr::codecov(coverage = cov, token = Sys.getenv("CODECOV_TOKEN"))
+          # Pas de token -> upload public tokenless
+          covr::codecov(coverage = cov, token = NULL)
         shell: Rscript {0}
