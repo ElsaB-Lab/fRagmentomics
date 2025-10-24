@@ -11,6 +11,7 @@ resources
 external
 commands.sh
 .snakemake
+*.pdf
 
 # Logs
 *.log
