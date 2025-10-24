@@ -152,7 +152,7 @@ test_that("adds expected columns when reporting flags are enabled and supports s
     mut = files$mut,
     bam = files$bam,
     fasta = files$fasta,
-    report_tlen = TRUE,
+    report_bam_info = TRUE,
     report_softclip = TRUE,
     verbose = TRUE,
     n_cores = 2L

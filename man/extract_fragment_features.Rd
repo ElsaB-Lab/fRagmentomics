@@ -12,7 +12,7 @@ extract_fragment_features(
   pos,
   ref,
   alt,
-  report_tlen,
+  report_bam_info,
   report_softclip,
   report_5p_3p_bases_fragment,
   remove_softclip,
@@ -36,8 +36,7 @@ extract_fragment_features(
 
 \item{alt}{Character vector representing alternative base(s).}
 
-\item{report_tlen}{Boolean. Whether to include the TLEN (template length)
-information in the output.}
+\item{report_bam_info}{Boolean. Whether to include the bam information.}
 
 \item{report_softclip}{Boolean. Whether to include the number of soft-clipped
 bases at the fragment extremities in the output.}

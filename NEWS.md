@@ -1,5 +1,19 @@
 # fRagmentomics NEWS
 
+## fRagmentomics 0.99.1 (2025-10-22)
+
+### NEW FEATURES
+
+* Added `flag_bam_list` instead of `TLEN` (`default: FALSE`). Parameter to include all BAM fields in the output.
+* Added `Position_3p` to the output. `Position_3p` represents the last aligned position of the 3′ read of the fragment.
+* Replaced rbind in the main function with `data.table::rbindlist` to make it more consistent and faster.
+
+### OTHER CHANGES
+
+* Change `future.apply::future_lapply` parameter to remove a warning.
+
+---
+
 ## fRagmentomics 0.99.0 (2025-10-09)
 
 ### NEW FEATURES

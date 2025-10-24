@@ -434,4 +434,48 @@ test_that("test get fragment size", {
     POS = 19, CIGAR = r_cigar_3p_s10, read_length = calculate_read_length(r_cigar_3p_s10)
   )
   expect_equal(get_fragment_size(read_stats_5p_s10, read_stats_3p_s10), 25)
+
+  # Soft clipping 11
+  r_cigar_5p_s11 <- "4M5S"
+  r_cigar_3p_s11 <- "4S5M"
+  read_stats_5p_s11 <- list(
+    POS = 1, CIGAR = r_cigar_5p_s11, read_length = calculate_read_length(r_cigar_5p_s11)
+  )
+  read_stats_3p_s11 <- list(
+    POS = 5, CIGAR = r_cigar_3p_s11, read_length = calculate_read_length(r_cigar_3p_s11)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_s11, read_stats_3p_s11), 9)
+
+  # Soft clipping 12
+  r_cigar_5p_s12 <- "4M2S"
+  r_cigar_3p_s12 <- "5S4M"
+  read_stats_5p_s12 <- list(
+    POS = 1, CIGAR = r_cigar_5p_s12, read_length = calculate_read_length(r_cigar_5p_s12)
+  )
+  read_stats_3p_s12 <- list(
+    POS = 7, CIGAR = r_cigar_3p_s12, read_length = calculate_read_length(r_cigar_3p_s12)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_s12, read_stats_3p_s12), 10)
+
+  # Soft clipping 13
+  r_cigar_5p_s14 <- "4M5S"
+  r_cigar_3p_s14 <- "2M1D7M"
+  read_stats_5p_s14 <- list(
+    POS = 1, CIGAR = r_cigar_5p_s14, read_length = calculate_read_length(r_cigar_5p_s14)
+  )
+  read_stats_3p_s14 <- list(
+    POS = 5, CIGAR = r_cigar_3p_s14, read_length = calculate_read_length(r_cigar_3p_s14)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_s14, read_stats_3p_s14), 13)
+
+  # Soft clipping 14
+  r_cigar_5p_s12 <- "4M6S"
+  r_cigar_3p_s12 <- "2S2M1I5M"
+  read_stats_5p_s12 <- list(
+    POS = 1, CIGAR = r_cigar_5p_s12, read_length = calculate_read_length(r_cigar_5p_s12)
+  )
+  read_stats_3p_s12 <- list(
+    POS = 7, CIGAR = r_cigar_3p_s12, read_length = calculate_read_length(r_cigar_3p_s12)
+  )
+  expect_equal(get_fragment_size(read_stats_5p_s12, read_stats_3p_s12), 14)
 })

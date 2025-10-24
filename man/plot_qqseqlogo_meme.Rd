@@ -30,29 +30,34 @@ plot_qqseqlogo_meme(
 
 \item{motif_size}{Integer (>=1). Length of the motif to analyze.}
 
-\item{col_z}{Character or NULL. Grouping/faceting column. If NULL, all fragments are pooled.}
+\item{col_z}{Character or NULL. Grouping/faceting column. If NULL, all
+fragments are pooled.}
 
-\item{vals_z}{Character vector or NULL. Subset of groups from 'col_z' to include.
+\item{vals_z}{Character vector or NULL. Subset of
+groups from 'col_z' to include.
 If NULL, all unique groups are used.}
 
-\item{colors_z}{NULL (use ggseqlogo defaults), a single RColorBrewer palette name
-(e.g., 'Dark2'), or a named vector for 'A/C/G/T', e.g.
+\item{colors_z}{NULL (use ggseqlogo defaults), a single RColorBrewer palette
+name (e.g., 'Dark2'), or a named vector for 'A/C/G/T', e.g.
 'c(A='#1B9E77', C='#D95F02', G='#7570B3', T='#E7298A')'.}
 
-\item{title}{Character or NA. Plot title; if NULL/NA/'NA'/empty, a default title is used.}
+\item{title}{Character or NA. Plot title; if NULL/NA/'NA'/empty, a default
+title is used.}
 
-\item{output_path}{Character or NA. If provided and non-empty, the plot is saved to this file.}
+\item{output_path}{Character or NA. If provided and non-empty, the plot is
+saved to this file.}
 
 \item{ggsave_params}{Named list passed to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}.}
 
-\item{...}{Extra arguments forwarded to \code{\link[ggseqlogo:ggseqlogo]{ggseqlogo::ggseqlogo()}} (e.g., 'stack_width', 'font', or 'col_scheme').}
+\item{...}{Extra arguments forwarded to \code{\link[ggseqlogo:ggseqlogo]{ggseqlogo::ggseqlogo()}} (e.g.,
+'stack_width', 'font', or 'col_scheme').}
 }
 \value{
 A 'ggplot' object (invisibly NULL if saved).
 }
 \description{
-Creates a sequence logo plot showing the proportion of each nucleotide at each
-position, with flexible grouping/faceting.
+Creates a sequence logo plot showing the proportion of each nucleotide at
+each position, with flexible grouping/faceting.
 }
 \examples{
 ## --- Create a dataset for demonstration ---

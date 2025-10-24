@@ -76,7 +76,7 @@ test_that("check_parameters", {
       isNotPassingQualityControls = NA,
       isDuplicate = FALSE
     ),
-    report_tlen = FALSE,
+    report_bam_info = FALSE,
     report_softclip = FALSE,
     report_5p_3p_bases_fragment = 5L,
     remove_softclip = FALSE,
@@ -101,7 +101,7 @@ test_that("check_parameters", {
         pos_offset_mate_search = valid_params$pos_offset_mate_search,
         one_based = valid_params$one_based,
         flag_bam_list = valid_params$flag_bam_list,
-        report_tlen = valid_params$report_tlen,
+        report_bam_info = valid_params$report_bam_info,
         report_softclip = valid_params$report_softclip,
         report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
         remove_softclip = valid_params$remove_softclip,
@@ -127,7 +127,7 @@ test_that("check_parameters", {
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
       flag_bam_list = valid_params$flag_bam_list,
-      report_tlen = valid_params$report_tlen,
+      report_bam_info = valid_params$report_bam_info,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       remove_softclip = valid_params$remove_softclip,
@@ -154,7 +154,7 @@ test_that("check_parameters", {
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
       flag_bam_list = valid_params$flag_bam_list,
-      report_tlen = valid_params$report_tlen,
+      report_bam_info = valid_params$report_bam_info,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       remove_softclip = valid_params$remove_softclip,
@@ -181,7 +181,7 @@ test_that("check_parameters", {
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
       flag_bam_list = valid_params$flag_bam_list,
-      report_tlen = valid_params$report_tlen,
+      report_bam_info = valid_params$report_bam_info,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       remove_softclip = valid_params$remove_softclip,
@@ -211,7 +211,7 @@ test_that("check_parameters", {
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
       flag_bam_list = valid_params$flag_bam_list,
-      report_tlen = valid_params$report_tlen,
+      report_bam_info = valid_params$report_bam_info,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       remove_softclip = valid_params$remove_softclip,
@@ -240,7 +240,7 @@ test_that("check_parameters", {
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
       flag_bam_list = valid_params$flag_bam_list,
-      report_tlen = valid_params$report_tlen,
+      report_bam_info = valid_params$report_bam_info,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       remove_softclip = valid_params$remove_softclip,
@@ -269,7 +269,7 @@ test_that("check_parameters", {
       pos_offset_mate_search = valid_params$pos_offset_mate_search,
       one_based = valid_params$one_based,
       flag_bam_list = valid_params$flag_bam_list,
-      report_tlen = valid_params$report_tlen,
+      report_bam_info = valid_params$report_bam_info,
       report_softclip = valid_params$report_softclip,
       report_5p_3p_bases_fragment = valid_params$report_5p_3p_bases_fragment,
       remove_softclip = valid_params$remove_softclip,
@@ -347,7 +347,7 @@ test_that("check_parameters individual parameter validations", {
 
   # Logical flags
   expect_error(check_one_based("TRUE"), "must be a single logical")
-  expect_error(check_report_tlen(1L), "must be a single logical")
+  expect_error(check_report_bam_info(1L), "must be a single logical")
   expect_error(check_report_softclip(NULL), "must be a single logical")
   expect_error(check_retain_fail_qc(NULL), "must be a single logical")
   expect_error(check_verbose(NULL), "must be a single logical")

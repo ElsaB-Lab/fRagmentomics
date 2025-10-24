@@ -55,8 +55,8 @@ We recommend using a conda environment with bcftools installed but you can also 
 rely on tools already installed in your system.
 
 ```sh
-# conda install -c bioconda mamba
-mamba install -c bioconda bcftools=1.21
+# conda install -c conda-forge mamba
+mamba install -c conda-forge -c bioconda bcftools=1.21
 ```
 
 ### R Package Installation
@@ -150,7 +150,7 @@ df_fragments <- run_fRagmentomics(
 head(df_fragments)
 ```
 
-The resulting `df_fragments` data frame contains the per-fragment analysis, ready for exploration and visualization with the package's plotting functions. You can also save this data frame to a tab-separated (`.tsv`) file by providing a path to the `output_file` argument.
+<!-- The resulting `df_fragments` data frame contains the per-fragment analysis, ready for exploration and visualization with the package's plotting functions. You can also save this data frame to a tab-separated (`.tsv`) file by providing a path to the `output_path` argument. -->
 
 NOTE: Set `apply_bcftools_norm = TRUE` to resolve the ambiguity in indel representation and position via `bcftools norm` (left-alignment).
 This requires `bcftools` to be installed and available on your `PATH` (see **Installation**). If you disable it (`FALSE`), indel coordinates will **not** be left-aligned or normalized, which can affect downstream comparisons and metrics.

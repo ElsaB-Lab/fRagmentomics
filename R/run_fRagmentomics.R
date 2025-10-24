@@ -36,8 +36,7 @@
 #' @param one_based Boolean. TRUE if fasta is in one based. False if in 0 based.
 #' @param flag_bam_list A named list of logicals for filtering reads based on their SAM flag
 #'   NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.
-#' @param report_tlen Boolean. Whether to include the TLEN (template length)
-#'  information in the output.
+#' @param report_bam_info Boolean. Whether to include the bam information.
 #' @param report_softclip Boolean. Whether to include the number of soft-clipped
 #'  bases at the fragment extremities in the output.
 #' @param report_5p_3p_bases_fragment Integer. Whether to include N fragment
@@ -54,8 +53,9 @@
 #' @return A dataframe containing extracted fragment-level information.
 #'
 #' @importFrom Rsamtools FaFile
+#' @importFrom data.table rbindlist
 #' @importFrom utils write.table
-#' @importFrom future plan multisession
+#' @importFrom future plan multisession sequential availableCores
 #' @importFrom future.apply future_lapply
 #' @importFrom progressr with_progress progressor
 #'
@@ -65,16 +65,16 @@
 #' # The package includes small example files to demonstrate its functionality.
 #' # We locate them using system.file().
 #' mut_file <- system.file(
-#'     'extdata', 'mutations_cfdna-test-01_chr1_27433000_27435000.tsv',
-#'     package = 'fRagmentomics'
+#'     "extdata", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv",
+#'     package = "fRagmentomics"
 #' )
 #' bam_file <- system.file(
-#'     'extdata', 'cfdna-test-01_chr1_27433000_27435000.bam',
-#'     package = 'fRagmentomics'
+#'     "extdata", "cfdna-test-01_chr1_27433000_27435000.bam",
+#'     package = "fRagmentomics"
 #' )
 #' fasta_file <- system.file(
-#'     'extdata', 'hg19_chr1_27433000_27435000.fa',
-#'     package = 'fRagmentomics'
+#'     "extdata", "hg19_chr1_27433000_27435000.fa",
+#'     package = "fRagmentomics"
 #' )
 #'
 #' # --- 2. Run the Analysis ---
@@ -85,7 +85,7 @@
 #'     mut = mut_file,
 #'     bam = bam_file,
 #'     fasta = fasta_file,
-#'     sample_id = 'cfdna-test-01',
+#'     sample_id = "cfdna-test-01",
 #'     n_cores = 1L
 #' )
 #'
@@ -93,16 +93,20 @@
 #' # Print the first few rows of the output data frame to see the results.
 #' print(head(results))
 #'
-run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_offset_mate_search = -1000,
-    pos_offset_mate_search = 1000, one_based = TRUE, flag_bam_list = list(isPaired = TRUE,
+run_fRagmentomics <- function(
+    mut, bam, fasta, sample_id = NA_character_, neg_offset_mate_search = -1000,
+    pos_offset_mate_search = 1000, one_based = TRUE, flag_bam_list = list(
+        isPaired = TRUE,
         isProperPair = NA, isUnmappedQuery = FALSE, hasUnmappedMate = NA, isMinusStrand = NA,
         isMateMinusStrand = NA, isFirstMateRead = NA, isSecondMateRead = NA, isSecondaryAlignment = FALSE,
-        isSupplementaryAlignment = FALSE, isNotPassingQualityControls = NA, isDuplicate = FALSE),
-    report_tlen = FALSE, report_softclip = FALSE, report_5p_3p_bases_fragment = 5,
+        isSupplementaryAlignment = FALSE, isNotPassingQualityControls = NA, isDuplicate = FALSE
+    ),
+    report_bam_info = FALSE, report_softclip = FALSE, report_5p_3p_bases_fragment = 5,
     remove_softclip = FALSE, retain_fail_qc = FALSE, apply_bcftools_norm = FALSE,
     tmp_folder = tempdir(), output_path = NA_character_, verbose = FALSE, n_cores = 8) {
+    # ===========================================
     # Load inputs, check parameters and normalize
-    # ========================================================================
+    # ===========================================
 
     # Ensure expected parameters are treated as integers (and not double)
     neg_offset_mate_search <- as.integer(neg_offset_mate_search)
@@ -111,9 +115,11 @@ run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_of
     n_cores <- as.integer(n_cores)
 
     # Check if all params pass QC
-    check_parameters(mut, bam, fasta, sample_id, neg_offset_mate_search, pos_offset_mate_search,
-        one_based, flag_bam_list, report_tlen, report_softclip, report_5p_3p_bases_fragment,
-        remove_softclip, retain_fail_qc, tmp_folder, output_path, verbose, n_cores)
+    check_parameters(
+        mut, bam, fasta, sample_id, neg_offset_mate_search, pos_offset_mate_search,
+        one_based, flag_bam_list, report_bam_info, report_softclip, report_5p_3p_bases_fragment,
+        remove_softclip, retain_fail_qc, tmp_folder, output_path, verbose, n_cores
+    )
 
     # Check system dependencey
     if (apply_bcftools_norm) {
@@ -134,18 +140,24 @@ run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_of
     on.exit(close(fasta_fafile), add = TRUE)
 
     # Normalize mutations
-    df_mut_norm <- normalize_mut(df_mut_raw, fasta, fasta_fafile, one_based, apply_bcftools_norm,
-        tmp_folder, verbose)
+    df_mut_norm <- normalize_mut(
+        df_mut_raw, fasta, fasta_fafile, one_based, apply_bcftools_norm,
+        tmp_folder, verbose
+    )
 
+    # =========================
     # Run per-mutation analysis
-    # ==========================================================================================
-    # Initialize parallel cluster
-    if (n_cores == 1L) {
-        future::plan("sequential")
+    # =========================
+
+    # Initialize parallel plan
+    final_n_cores <- min(n_cores, future::availableCores())
+
+    if (final_n_cores > 1L) {
+        old_plan <- future::plan(future::multisession, workers = final_n_cores)
     } else {
-        future::plan(future::multisession, workers = n_cores)
+        old_plan <- future::plan(future::sequential)
     }
-    on.exit(future::plan("sequential"), add = TRUE)
+    on.exit(future::plan(old_plan), add = TRUE)
 
     # Create final df
     df_fragments_info_final <- data.frame()
@@ -158,10 +170,13 @@ run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_of
         alt_norm <- df_mut_norm[i, "alt"]
         input_mutation_info <- df_mut_norm[i, "input_mutation_info"]
 
-        # Read and extract bam around the mutation position Return a truncated
-        # sam
-        read_bam_out <- read_bam(bam, chr_norm, pos_norm, neg_offset_mate_search,
-            pos_offset_mate_search, flag_bam_list)
+
+        # ----- BAM extraction -----
+        # Read and extract bam around the mutation position Return a truncated sam
+        read_bam_out <- read_bam(
+            bam, chr_norm, pos_norm, neg_offset_mate_search,
+            pos_offset_mate_search, flag_bam_list
+        )
 
         df_sam_badly_oriented <- read_bam_out$badly_oriented
         df_sam <- read_bam_out$well_oriented
@@ -169,29 +184,50 @@ run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_of
         # Check if there are badly-oriented reads and create dataframe with NAs
         # if any are found
         if (!is.null(df_sam_badly_oriented)) {
-            df_fragments_info_badly_oriented <- data.frame()
+            fragment_names_badly_oriented <- unique(as.character(df_sam_badly_oriented$QNAME))
 
-            for (fragment_name in unique(df_sam_badly_oriented$QNAME)) {
-                fragment_qc <- "Fragment with badly oriented reads"
+            if (length(fragment_names_badly_oriented) > 0L) {
+                list_fragments_info_badly_oriented <- lapply(
+                    fragment_names_badly_oriented,
+                    function(fragment_name) {
+                        list(
+                            Sample_Id = if (is.na(sample_id)) NA_character_ else as.character(sample_id),
+                            Chromosome = chr_norm, Position = pos_norm, Ref = ref_norm,
+                            Alt = alt_norm, Input_Mutation = input_mutation_info,
+                            Fragment_Id = fragment_name, Fragment_QC = "Fragment with badly oriented reads",
+                            Fragment_Status_Simple = NA_character_, Fragment_Status_Detail = NA_character_,
+                            Fragment_Size = NA_integer_, Read_5p_Status = NA_character_,
+                            Read_3p_Status = NA_character_, BASE_5p = NA_character_, BASE_3p = NA_character_,
+                            BASQ_5p = NA_character_, BASQ_3p = NA_character_,
+                            Position_5p = NA_integer_, Position_3p = NA_integer_,
+                            VAF = NA_real_
+                        )
+                    }
+                )
 
-                df_fragments_info_badly_oriented <- rbind(df_fragments_info_badly_oriented,
-                    create_empty_fragment_row(chr = chr_norm, pos = pos_norm, ref = ref_norm,
-                    alt = alt_norm, input_mutation_info = input_mutation_info, fragment_name = fragment_name,
-                    fragment_qc = fragment_qc, sample_id = sample_id, report_tlen = report_tlen,
-                    report_5p_3p_bases_fragment = report_5p_3p_bases_fragment, report_softclip = report_softclip))
+                df_fragments_info_badly_oriented <- data.table::rbindlist(
+                    list_fragments_info_badly_oriented,
+                    use.names = TRUE, fill = TRUE
+                )
+
+                # Add to the final df
+                df_fragments_info_final <- data.table::rbindlist(
+                    list(df_fragments_info_final, df_fragments_info_badly_oriented),
+                    use.names = TRUE, fill = TRUE
+                )
             }
-
-            # Add to the final df
-            df_fragments_info_final <- rbind(df_fragments_info_final, df_fragments_info_badly_oriented)
         }
 
         # Check that there are well-oriented reads to be processed
         if (is.null(df_sam)) {
-            warning(sprintf("No read covers the position of interest for the mutation %s:%d:%s>%s. Skipping.",
-                chr_norm, pos_norm, ref_norm, alt_norm), immediate. = TRUE, call. = FALSE)
+            warning(sprintf(
+                "No read covers the position of interest for the mutation %s:%d:%s>%s. Skipping.",
+                chr_norm, pos_norm, ref_norm, alt_norm
+            ), immediate. = TRUE, call. = FALSE)
             next
         }
 
+        # ----- FASTA sequence extraction -----
         # Make one large request to FASTA to avoid doing time-consuming
         # requests to FASTA for each fragment Calculations below serve to
         # ensure we extract just enough reference sequence for all the
@@ -214,33 +250,44 @@ run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_of
 
         # get sequence from fasta
         fetch_seq <- get_seq_from_fasta(chr_norm, min_fetch_pos, max_fetch_pos, fasta_fafile)
-        fasta_seq <- list(chr = chr_norm, start = min_fetch_pos, end = max_fetch_pos,
-            seq = fetch_seq)
+        fasta_seq <- list(
+            chr = chr_norm, start = min_fetch_pos, end = max_fetch_pos,
+            seq = fetch_seq
+        )
 
-        # Process fragmentomics on truncated bam and the mutation Extract
+        # ----- Feature extraction -----
+        # Process fragmentomics on truncated bam and the mutation extract
         # unique fragment names
-        fragments_names <- unique(df_sam[, 1, drop = TRUE])
-        n_fragments <- length(fragments_names)
+        fragments_names <- unique(df_sam$QNAME)
 
         progressr::with_progress({
             # Creation of a progressor to show the progression
-            p <- progressr::progressor(steps = n_fragments)
+            p <- progressr::progressor(along = fragments_names)
 
             # future_lapply is the equivalent of lapply in parallele (manage
             # the necessary export)
-            results_list <- future.apply::future_lapply(fragments_names, function(fragment_name) {
-                # Tell progressor a step is done
-                p()
-                extract_fragment_features(df_sam = df_sam, fragment_name = fragment_name,
-                    sample_id = sample_id, chr = chr_norm, pos = pos_norm, ref = ref_norm,
-                    alt = alt_norm, report_tlen = report_tlen, report_softclip = report_softclip,
-                    report_5p_3p_bases_fragment = report_5p_3p_bases_fragment, remove_softclip = remove_softclip,
-                    fasta_seq = fasta_seq, input_mutation_info = input_mutation_info)
-            })
+            results_list <- future.apply::future_lapply(
+                fragments_names,
+                function(fragment_name) {
+                    on.exit(p(), add = TRUE) # 1 tick par fragment, même en cas d'erreur
+                    extract_fragment_features(
+                        df_sam = df_sam, fragment_name = fragment_name,
+                        sample_id = sample_id, chr = chr_norm, pos = pos_norm, ref = ref_norm,
+                        alt = alt_norm, report_bam_info = report_bam_info, report_softclip = report_softclip,
+                        report_5p_3p_bases_fragment = report_5p_3p_bases_fragment, remove_softclip = remove_softclip,
+                        fasta_seq = fasta_seq, input_mutation_info = input_mutation_info
+                    )
+                },
+                future.chunk.size = 1L
+            )
         })
 
         # future_lapply return a list. Combine in one dataframe.
-        df_fragments_info <- do.call(rbind, results_list)
+        df_fragments_info <- data.table::rbindlist(
+            results_list,
+            use.names = TRUE,
+            fill = TRUE
+        )
 
         # Calculate VAF of the fragment
         status_simple <- df_fragments_info$Fragment_Status_Simple
@@ -250,12 +297,18 @@ run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_of
         } else {
             denom <- sum(status_simple %in% c("MUT", "WT", "OTH"), na.rm = TRUE)
             num <- sum(status_simple == "MUT", na.rm = TRUE)
-            df_fragments_info$VAF <- if (denom == 0)
-                0 else 100 * num/denom
+            df_fragments_info$VAF <- if (denom == 0) {
+                0
+            } else {
+                100 * num / denom
+            }
         }
 
         # Fusion into the final df
-        df_fragments_info_final <- rbind(df_fragments_info_final, df_fragments_info)
+        df_fragments_info_final <- data.table::rbindlist(
+            list(df_fragments_info_final, df_fragments_info),
+            use.names = TRUE, fill = TRUE
+        )
     }
 
     # Check if the final df is not empty
@@ -269,14 +322,18 @@ run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_of
         nfrag_fail_qc <- sum(mask_fail_qc)
         df_fragments_info_final <- df_fragments_info_final[!mask_fail_qc, , drop = FALSE]
         if (verbose) {
-            message(sprintf("Removed '%d' fragments that fail quality checks from output. Set `retain_fail_qc` to TRUE to retain them.",
-                nfrag_fail_qc))
+            message(sprintf(
+                "Removed '%d' fragments that fail quality checks from output. Set `retain_fail_qc` to TRUE to retain them.",
+                nfrag_fail_qc
+            ))
         }
     }
 
-    # ------------------------------- Write output file if output directory
-    # specified ------------------------------- Only proceed with file writing
-    # if an output_path is specified
+    # ===============================================
+    # Write output file if output directory specified
+    # ===============================================
+
+    # Only proceed with file writing if an output_path is specified
     if (!is.null(output_path) && !is.na(output_path) && output_path != "") {
         # Check if the file already exists and warn the user if it will be
         # overwritten
@@ -299,8 +356,10 @@ run_fRagmentomics <- function(mut, bam, fasta, sample_id = NA_character_, neg_of
         if (verbose) {
             message(sprintf("Writing results to: %s.", output_path))
         }
-        write.table(df_fragments_info_final, file = output_path, sep = "\t", quote = FALSE,
-            row.names = FALSE)
+        write.table(df_fragments_info_final,
+            file = output_path, sep = "\t", quote = FALSE,
+            row.names = FALSE
+        )
 
         return(NULL)
     }

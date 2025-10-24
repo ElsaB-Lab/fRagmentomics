@@ -39,29 +39,39 @@
 #' @importFrom Rsamtools bamFlagAsBitMatrix
 #'
 #' @keywords internal
-extract_fragment_features <- function(df_sam, fragment_name, sample_id, chr,
-    pos, ref, alt, report_tlen, report_softclip, report_5p_3p_bases_fragment,
+extract_fragment_features <- function(
+    df_sam, fragment_name, sample_id, chr,
+    pos, ref, alt, report_bam_info, report_softclip, report_5p_3p_bases_fragment,
     remove_softclip, fasta_fafile = NULL, fasta_seq = NULL,
     input_mutation_info) {
-
+    # ----- Read QCs -----
     # Select reads originating from the fragment of interest
-    mask_frag <- df_sam[, 1, drop = TRUE] == fragment_name
-    df_fragment_reads <- df_sam[mask_frag,,drop = FALSE]
+    mask_frag <- df_sam$QNAME == fragment_name
+    df_fragment_reads <- df_sam[mask_frag, , drop = FALSE]
 
-    # ------------------------------- Sanity check fragments
-    # -------------------------------
+    # Sanity check fragments
     fragment_qc <- process_fragment_reads_qc(df_fragment_reads, chr)
 
     # If the fragment fails QC, return a dataframe with NAs
     if (fragment_qc != "") {
-        result_df <- create_empty_fragment_row(chr, pos, ref, alt,
-            input_mutation_info, fragment_name, fragment_qc, sample_id,
-            report_tlen, report_5p_3p_bases_fragment, report_softclip)
-        return(result_df)
+        result_list <- list(
+            Sample_Id = if (is.na(sample_id)) NA_character_ else as.character(sample_id),
+            Chromosome = chr, Position = pos, Ref = ref, Alt = alt,
+            Input_Mutation = input_mutation_info, Fragment_Id = fragment_name,
+            Fragment_QC = fragment_qc, Fragment_Status_Simple = NA_character_,
+            Fragment_Status_Detail = NA_character_, Fragment_Size = NA_integer_,
+            Read_5p_Status = NA_character_, Read_3p_Status = NA_character_,
+            BASE_5p = NA_character_, BASE_3p = NA_character_,
+            BASQ_5p = NA_character_, BASQ_3p = NA_character_,
+            Position_5p = NA_integer_, Position_3p = NA_integer_,
+            VAF = NA_real_
+        )
+        return(result_list)
     }
 
-    # ------------------------------- Define 3' and 5' reads
-    # ------------------------------- Get a numeric matrix of FLAG attributes
+    # ----- Read preprocessing -----
+    # Define 3' and 5' reads
+    # Get a numeric matrix of FLAG attributes
     # for both reads in the fragment.
     flag_matrix <- bamFlagAsBitMatrix(df_fragment_reads$FLAG)
 
@@ -72,8 +82,10 @@ extract_fragment_features <- function(df_sam, fragment_name, sample_id, chr,
     }
     # It must contain one forward and one reverse read.
     if (sum(flag_matrix[, "isMinusStrand"]) != 1) {
-        stoptext <-  sprintf(paste("Fragment '%s' does not have one forward",
-                                    "and one reverse read."), fragment_name)
+        stoptext <- sprintf(paste(
+            "Fragment '%s' does not have one forward",
+            "and one reverse read."
+        ), fragment_name)
         stop(stoptext)
     }
 
@@ -88,10 +100,14 @@ extract_fragment_features <- function(df_sam, fragment_name, sample_id, chr,
     read_stats_5p <- get_read_stats(df_fragment_reads[idx_5p, ])
     read_stats_3p <- get_read_stats(df_fragment_reads[idx_3p, ])
 
-
-    # ------------------------------- If remove_softclip = TRUE, remove
-    # softclip for analysis -------------------------------
+    # If remove_softclip = TRUE, remove
+    # softclip for analysis
     if (remove_softclip) {
+        # Keep in memory the input information
+        input_read_stats_5p <- read_stats_5p
+        input_read_stats_3p <- read_stats_3p
+
+        # Remove softclip
         read_5p_info_without_softclip <- remove_softclip(read_stats_5p)
         read_3p_info_without_softclip <- remove_softclip(read_stats_3p)
 
@@ -99,11 +115,20 @@ extract_fragment_features <- function(df_sam, fragment_name, sample_id, chr,
         if (read_5p_info_without_softclip$SEQ == "" ||
             read_5p_info_without_softclip$CIGAR == "") {
             # The read is invalid after trimming, so fail the whole fragment.
-            result_df <- create_empty_fragment_row(chr, pos, ref, alt,
-                input_mutation_info, fragment_name,
-                fragment_qc = "Read empty after softclip trim", sample_id,
-                report_tlen, report_5p_3p_bases_fragment, report_softclip)
-            return(result_df)
+            fragment_qc <- "Invalid read after softclip trimming"
+            result_list <- list(
+                Sample_Id = if (is.na(sample_id)) NA_character_ else as.character(sample_id),
+                Chromosome = chr, Position = pos, Ref = ref, Alt = alt,
+                Input_Mutation = input_mutation_info, Fragment_Id = fragment_name,
+                Fragment_QC = fragment_qc, Fragment_Status_Simple = NA_character_,
+                Fragment_Status_Detail = NA_character_, Fragment_Size = NA_integer_,
+                Read_5p_Status = NA_character_, Read_3p_Status = NA_character_,
+                BASE_5p = NA_character_, BASE_3p = NA_character_,
+                BASQ_5p = NA_character_, BASQ_3p = NA_character_,
+                Position_5p = NA_integer_, Position_3p = NA_integer_,
+                VAF = NA_real_
+            )
+            return(result_list)
         }
 
         read_stats_5p$SEQ <- read_5p_info_without_softclip$SEQ
@@ -115,11 +140,20 @@ extract_fragment_features <- function(df_sam, fragment_name, sample_id, chr,
         if (read_3p_info_without_softclip$SEQ == "" ||
             read_3p_info_without_softclip$CIGAR == "") {
             # The read is invalid after trimming, so fail the whole fragment.
-            result_df <- create_empty_fragment_row(chr, pos, ref, alt,
-                input_mutation_info, fragment_name,
-                fragment_qc = "Read empty after softclip trim", sample_id,
-                report_tlen, report_5p_3p_bases_fragment, report_softclip)
-            return(result_df)
+            fragment_qc <- "Invalid read after softclip trimming"
+            result_list <- list(
+                Sample_Id = if (is.na(sample_id)) NA_character_ else as.character(sample_id),
+                Chromosome = chr, Position = pos, Ref = ref, Alt = alt,
+                Input_Mutation = input_mutation_info, Fragment_Id = fragment_name,
+                Fragment_QC = fragment_qc, Fragment_Status_Simple = NA_character_,
+                Fragment_Status_Detail = NA_character_, Fragment_Size = NA_integer_,
+                Read_5p_Status = NA_character_, Read_3p_Status = NA_character_,
+                BASE_5p = NA_character_, BASE_3p = NA_character_,
+                BASQ_5p = NA_character_, BASQ_3p = NA_character_,
+                Position_5p = NA_integer_, Position_3p = NA_integer_,
+                VAF = NA_real_
+            )
+            return(result_list)
         }
 
         read_stats_3p$SEQ <- read_3p_info_without_softclip$SEQ
@@ -128,27 +162,37 @@ extract_fragment_features <- function(df_sam, fragment_name, sample_id, chr,
         read_stats_3p$read_length <- read_3p_info_without_softclip$read_length
     }
 
-    # ------------------------------- Get read sequence, read base qualities,
-    # and read mutation status -------------------------------
-    read_info_5p <- get_base_basq_mstat_from_read(chr, pos, ref, alt,
-        read_stats_5p, fasta_fafile, fasta_seq)
-    read_info_3p <- get_base_basq_mstat_from_read(chr, pos, ref, alt,
-        read_stats_3p, fasta_fafile, fasta_seq)
+    # ----- Fragmentomic features extraction -----
+    # Get read sequence, read base qualities,
+    # and read mutation status
+    read_info_5p <- get_base_basq_mstat_from_read(
+        chr, pos, ref, alt,
+        read_stats_5p, fasta_fafile, fasta_seq
+    )
+    read_info_3p <- get_base_basq_mstat_from_read(
+        chr, pos, ref, alt,
+        read_stats_3p, fasta_fafile, fasta_seq
+    )
 
-    # ------------------------------- Compute fragment size
-    # -------------------------------
+    # Compute fragment size
     fragment_size <- get_fragment_size(read_stats_5p, read_stats_3p)
 
-    # ------------------------------- Define fragment status
-    # -------------------------------
+    # Define fragment status
     fstats <- get_mutation_status_of_fragment(
         mstat_5p = read_info_5p$mstat,
         mstat_3p = read_info_3p$mstat
     )
 
-    # ------------------------------- Build an adaptative dataframe
-    # -------------------------------
-    final_row_fragment <- list(Chromosome = chr, Position = pos, Ref = ref,
+    # Compute Position_3p -> last aligned position of the fragment
+    Position_3p <- end_on_reference(read_stats_3p$POS, read_stats_3p$CIGAR)
+
+    # Build an adaptative dataframe
+    output_read_stats_5p <- if (remove_softclip) input_read_stats_5p else read_stats_5p
+    output_read_stats_3p <- if (remove_softclip) input_read_stats_3p else read_stats_3p
+
+    final_row_fragment <- list(
+        Sample_Id = if (is.na(sample_id)) NA_character_ else as.character(sample_id),
+        Chromosome = chr, Position = pos, Ref = ref,
         Alt = alt, Input_Mutation = input_mutation_info,
         Fragment_Id = fragment_name, Fragment_QC = "OK",
         Fragment_Status_Simple = as.character(fstats$Simple),
@@ -156,40 +200,33 @@ extract_fragment_features <- function(df_sam, fragment_name, sample_id, chr,
         Fragment_Size = as.integer(fragment_size),
         Read_5p_Status = as.character(read_info_5p$mstat),
         Read_3p_Status = as.character(read_info_3p$mstat),
-        FLAG_5p = as.integer(read_stats_5p$FLAG),
-        FLAG_3p = as.integer(read_stats_3p$FLAG),
-        MAPQ_5p = as.integer(read_stats_5p$MAPQ),
-        MAPQ_3p = as.integer(read_stats_3p$MAPQ),
         BASE_5p = as.character(read_info_5p$base),
         BASE_3p = as.character(read_info_3p$base),
         BASQ_5p = as.character(read_info_5p$basq),
         BASQ_3p = as.character(read_info_3p$basq),
-        CIGAR_5p = as.character(read_stats_5p$CIGAR),
-        CIGAR_3p = as.character(read_stats_3p$CIGAR),
-        POS_5p = as.integer(read_stats_5p$POS),
-        POS_3p = as.integer(read_stats_3p$POS)
+        Position_5p = as.integer(output_read_stats_5p$POS),
+        Position_3p = as.integer(Position_3p)
     )
 
-    # ------------------------------- Put sample if not NA
-    # -------------------------------
-    if (!is.na(sample_id)) {
-        final_row_fragment <- c(list(Sample_Id = as.character(sample_id)),
-                                final_row_fragment)
-    }
+    if (report_bam_info) {
+        final_row_fragment$POS_5p <- as.integer(output_read_stats_5p$POS)
+        final_row_fragment$POS_3p <- as.integer(output_read_stats_3p$POS)
+        final_row_fragment$FLAG_5p <- as.integer(output_read_stats_5p$FLAG)
+        final_row_fragment$FLAG_3p <- as.integer(output_read_stats_3p$FLAG)
+        final_row_fragment$MAPQ_5p <- as.integer(output_read_stats_5p$MAPQ)
+        final_row_fragment$MAPQ_3p <- as.integer(output_read_stats_3p$MAPQ)
+        final_row_fragment$CIGAR_5p <- as.character(output_read_stats_5p$CIGAR)
+        final_row_fragment$CIGAR_3p <- as.character(output_read_stats_3p$CIGAR)
 
-    # ------------------------------- Put sample if not NA
-    # -------------------------------
-    if (report_tlen) {
         if (is.null(read_stats_5p$TLEN) || is.na(read_stats_5p$TLEN)) {
             warning("TLEN is NULL or missing, cannot be reported.")
-            final_row_fragment$TLEN <- "Warning: TLEN is NULL"
+            final_row_fragment$TLEN <- NA_integer_
         } else {
-            as.integer(final_row_fragment$TLEN <- abs(read_stats_5p$TLEN))
+            final_row_fragment$TLEN <- as.integer(abs(read_stats_5p$TLEN))
         }
     }
 
-    # ------------------------------- Define n base 5' and 3'
-    # ------------------------------- if report_5p_3p_bases_fragment != 0, Call
+    # Define n base 5' and 3' if report_5p_3p_bases_fragment != 0, Call
     # the function get_fragment_bases_5p_3p
     if (report_5p_3p_bases_fragment != 0) {
         fragment_bases_5p_3p <- get_fragment_bases_5p_3p(
@@ -210,8 +247,8 @@ extract_fragment_features <- function(df_sam, fragment_name, sample_id, chr,
             as.character(fragment_bases_5p_3p$fragment_basqs_3p)
     }
 
-    # ------------------------------- Define number of soft clipped bases in 5'
-    # and 3' ------------------------------- If report_softclip is TRUE, Call
+    # Define number of soft clipped bases in 5'
+    # If report_softclip is TRUE, Call
     # the function get_fragment_bases_5p_3p_softclip
     if (report_softclip) {
         fragment_bases_softclip_5p_3p <- get_fragment_bases_5p_3p_softclip(
@@ -229,8 +266,7 @@ extract_fragment_features <- function(df_sam, fragment_name, sample_id, chr,
     final_row_fragment$VAF <- NA_real_
 
     # Creation of the dataframe with the wanted columns
-    result_df <- as.data.frame(final_row_fragment)
-    result_df
+    return(final_row_fragment)
 }
 
 #' Retrieves key attributes from a single sequencing read.
@@ -252,4 +288,22 @@ get_read_stats <- function(df_read) {
         QUAL = df_read$QUAL,
         read_length = nchar(df_read$SEQ)
     )
+}
+
+#' Calculate the last aligned position of the read
+#'
+#' @param pos Starting position of the read
+#' @param cigar CIGAR of the read
+#'
+#' @return Integer. Last aligned position of the read.
+#'
+#' @noRd
+end_on_reference <- function(pos, cigar) {
+    if (is.na(pos) || is.na(cigar) || cigar == "*") {
+        return(NA_integer_)
+    }
+    ops <- parse_cigar(cigar)
+    ref_len <- sum(ops$length[ops$type %in% c("M", "=", "X", "D", "N")], na.rm = TRUE)
+    last_aligned_position <- pos + ref_len - 1L
+    return(last_aligned_position)
 }

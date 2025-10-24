@@ -11,11 +11,11 @@
 #' @return None. The function stops execution if error.
 #'
 #' @keywords internal
-check_parameters <- function(mut, bam, fasta, sample_id, neg_offset_mate_search,
-    pos_offset_mate_search, one_based, flag_bam_list, report_tlen,
+check_parameters <- function(
+    mut, bam, fasta, sample_id, neg_offset_mate_search,
+    pos_offset_mate_search, one_based, flag_bam_list, report_bam_info,
     report_softclip, report_5p_3p_bases_fragment, remove_softclip,
     retain_fail_qc, tmp_folder, output_path, verbose, n_cores) {
-
     check_mut(mut)
     check_bam(bam, verbose)
     check_fasta(fasta, verbose)
@@ -24,7 +24,7 @@ check_parameters <- function(mut, bam, fasta, sample_id, neg_offset_mate_search,
     check_pos_offset_mate_search(pos_offset_mate_search)
     check_one_based(one_based)
     check_flag_bam_list(flag_bam_list)
-    check_report_tlen(report_tlen)
+    check_report_bam_info(report_bam_info)
     check_report_softclip(report_softclip)
     check_report_bases_fragm_5p_3p(report_5p_3p_bases_fragment)
     check_remove_softclip(remove_softclip)
@@ -96,8 +96,10 @@ check_bam <- function(bam, verbose) {
 #' @noRd
 check_fasta <- function(fasta, verbose) {
     if (!grepl("\\.fa(sta)?$", fasta)) {
-        stop("The file does not have a valid FASTA extension (.fa or .fasta): ",
-            fasta)
+        stop(
+            "The file does not have a valid FASTA extension (.fa or .fasta): ",
+            fasta
+        )
     }
 
     if (!file.exists(fasta)) {
@@ -193,9 +195,11 @@ check_flag_bam_list <- function(flag_bam_list) {
 
         invalid_names <- user_flag_names[!user_flag_names %in% valid_flag_names]
         if (length(invalid_names) > 0) {
-            stoptext <- sprintf(paste("Invalid name(s) found in",
-                "'flag_bam_list': %s.\n\nSee ?Rsamtools::scanBamFlag for a",
-                "list of valid flag names."
+            stoptext <- sprintf(
+                paste(
+                    "Invalid name(s) found in",
+                    "'flag_bam_list': %s.\n\nSee ?Rsamtools::scanBamFlag for a",
+                    "list of valid flag names."
                 ),
                 paste(shQuote(invalid_names), collapse = ", ")
             )
@@ -218,14 +222,14 @@ check_report_bases_fragm_5p_3p <- function(report_5p_3p_bases_fragment) {
     }
 }
 
-#' Check if the report_tlen parameter is valid
+#' Check if the report_bam_info parameter is valid
 #'
 #' @inheritParams check_parameters
 #'
 #' @noRd
-check_report_tlen <- function(report_tlen) {
-    if (!is.logical(report_tlen) || length(report_tlen) != 1) {
-        stop("report_tlen must be a single logical value.")
+check_report_bam_info <- function(report_bam_info) {
+    if (!is.logical(report_bam_info) || length(report_bam_info) != 1) {
+        stop("report_bam_info must be a single logical value.")
     }
 }
 

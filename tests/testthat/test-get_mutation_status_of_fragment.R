@@ -87,6 +87,11 @@ test_that("get_mutation_status_of_fragment returns correct detail and simple sta
   expect_equal(result$Detail, "OTH")
   expect_equal(result$Simple, "OTH")
 
+  # NA and OTH
+  result <- get_mutation_status_of_fragment(NA, "OTH but potentially MUT")
+  expect_equal(result$Detail, "OTH but potentially MUT")
+  expect_equal(result$Simple, "OTH")
+
   # --- Discordant Cases ---
   # MUT and WT
   result <- get_mutation_status_of_fragment("MUT", "WT")

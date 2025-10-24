@@ -80,7 +80,7 @@ When installing from GitHub, pre-installing heavy Bioconductor deps via Conda ca
 
 ```bash
 Rscript -e 'if (!requireNamespace("remotes", quietly=TRUE))
-              install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
+                install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
             remotes::install_github("ElsaB-Lab/fRagmentomics", build_vignettes=FALSE, upgrade="never")'
 ```
 
@@ -92,9 +92,9 @@ NOTE: If you hit compilation issues (e.g. with Rsamtools / BiocParallel), try on
 mamba env create -n fRagmentomics-env -c conda-forge -c bioconda bioconductor-rsamtools bcftools=1.21 # To use bcftools normalisation (RECOMMENDED for indels)
 mamba activate fRagmentomics-env
 Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
-              install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
+                install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
             if (!requireNamespace("remotes", quietly=TRUE))
-              install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
+                install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
             remotes::install_github("ElsaB-Lab/fRagmentomics", build_vignettes=FALSE, upgrade="never")'
 ```
 
@@ -102,16 +102,14 @@ Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
 
 ```bash
 Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
-              install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
+                install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
             if (!requireNamespace("remotes", quietly=TRUE))
-              install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
+                install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
             BiocManager::install(c("Rsamtools","GenomicAlignments","BiocParallel"), ask=FALSE, update=FALSE);
             remotes::install_github("ElsaB-Lab/fRagmentomics", build_vignettes=FALSE, upgrade="never")'
 ```
 
 After these steps are complete, you can load the package into your R session with `library(fRagmentomics)`.
-
----
 
 # A Complete Analysis Workflow
 
@@ -212,7 +210,7 @@ The `run_fRagmentomics()` function can be customized for more specific use cases
 Specifically, we will:
 * **Narrow the search window** to 1000 bp around the variant using `neg_offset_mate_search` and `pos_offset_mate_search`.
 * **Apply stricter BAM filters** by requiring reads to be in a "proper pair" using `flag_bam_list`.
-* **Request additional output columns** for template length (`report_tlen`), soft-clip counts (`report_softclip`), and the 3-base motifs at the fragment ends (`report_5p_3p_bases_fragment`).
+* **Request additional output columns** for bam information (`report_bam_info`), soft-clip counts (`report_softclip`), and the 3-base motifs at the fragment ends (`report_5p_3p_bases_fragment`).
 * **keep fragments that do not pass quality control using the parameter retain_fail_qc**: e.g., reads with incorrect orientation, mapped to different chromosomes, unmapped mates.
 
 ```{r run_analysis_advanced, message=TRUE, warning=TRUE}
@@ -230,7 +228,7 @@ df_frag_advanced <- run_fRagmentomics(
         isSecondaryAlignment = FALSE,
         isDuplicate = FALSE
     ),
-    report_tlen = TRUE,
+    report_bam_info = TRUE,
     report_softclip = TRUE,
     retain_fail_qc = TRUE,
     report_5p_3p_bases_fragment = 3,

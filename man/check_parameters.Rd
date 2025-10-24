@@ -13,7 +13,7 @@ check_parameters(
   pos_offset_mate_search,
   one_based,
   flag_bam_list,
-  report_tlen,
+  report_bam_info,
   report_softclip,
   report_5p_3p_bases_fragment,
   remove_softclip,
@@ -46,8 +46,7 @@ overlaps the queried position.}
 \item{flag_bam_list}{A named list of logicals for filtering reads based on their SAM flag
 NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.}
 
-\item{report_tlen}{Boolean. Whether to include the TLEN (template length)
-information in the output.}
+\item{report_bam_info}{Boolean. Whether to include the bam information.}
 
 \item{report_softclip}{Boolean. Whether to include the number of soft-clipped
 bases at the fragment extremities in the output.}

@@ -16,7 +16,7 @@ run_fRagmentomics(
     hasUnmappedMate = NA, isMinusStrand = NA, isMateMinusStrand = NA, isFirstMateRead =
     NA, isSecondMateRead = NA, isSecondaryAlignment = FALSE, isSupplementaryAlignment =
     FALSE, isNotPassingQualityControls = NA, isDuplicate = FALSE),
-  report_tlen = FALSE,
+  report_bam_info = FALSE,
   report_softclip = FALSE,
   report_5p_3p_bases_fragment = 5,
   remove_softclip = FALSE,
@@ -50,8 +50,7 @@ overlaps the queried position.}
 \item{flag_bam_list}{A named list of logicals for filtering reads based on their SAM flag
 NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.}
 
-\item{report_tlen}{Boolean. Whether to include the TLEN (template length)
-information in the output.}
+\item{report_bam_info}{Boolean. Whether to include the bam information.}
 
 \item{report_softclip}{Boolean. Whether to include the number of soft-clipped
 bases at the fragment extremities in the output.}
@@ -105,16 +104,16 @@ its size, quality metrics, and mutation status (e.g., 'MUT', 'WT', 'AMB', 'N/I')
 # The package includes small example files to demonstrate its functionality.
 # We locate them using system.file().
 mut_file <- system.file(
-    'extdata', 'mutations_cfdna-test-01_chr1_27433000_27435000.tsv',
-    package = 'fRagmentomics'
+    "extdata", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv",
+    package = "fRagmentomics"
 )
 bam_file <- system.file(
-    'extdata', 'cfdna-test-01_chr1_27433000_27435000.bam',
-    package = 'fRagmentomics'
+    "extdata", "cfdna-test-01_chr1_27433000_27435000.bam",
+    package = "fRagmentomics"
 )
 fasta_file <- system.file(
-    'extdata', 'hg19_chr1_27433000_27435000.fa',
-    package = 'fRagmentomics'
+    "extdata", "hg19_chr1_27433000_27435000.fa",
+    package = "fRagmentomics"
 )
 
 # --- 2. Run the Analysis ---
@@ -125,7 +124,7 @@ results <- run_fRagmentomics(
     mut = mut_file,
     bam = bam_file,
     fasta = fasta_file,
-    sample_id = 'cfdna-test-01',
+    sample_id = "cfdna-test-01",
     n_cores = 1L
 )
 
