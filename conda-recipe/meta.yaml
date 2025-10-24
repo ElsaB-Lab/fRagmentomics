@@ -19,6 +19,7 @@ requirements:
     - bioconductor-genomicranges
     - bioconductor-iranges
     - bioconductor-rsamtools
+    - r-data.table
     - r-dplyr
     - r-future
     - r-future.apply
@@ -41,6 +42,7 @@ requirements:
     - bioconductor-genomicranges
     - bioconductor-iranges
     - bioconductor-rsamtools
+    - r-data.table
     - r-dplyr
     - r-future
     - r-future.apply
