@@ -121,7 +121,7 @@ run_fRagmentomics <- function(
         remove_softclip, retain_fail_qc, tmp_folder, output_path, verbose, n_cores
     )
 
-    # Check system dependencey
+    # Check system dependency
     if (apply_bcftools_norm) {
         bcftools_path <- check_bcftools_is_installed()
         if (verbose) {
@@ -136,7 +136,6 @@ run_fRagmentomics <- function(
     # Load fasta as FaFile
     fasta_fafile <- Rsamtools::FaFile(fasta)
     open(fasta_fafile)
-    # Close fasta_fafile at the end of the function
     on.exit(close(fasta_fafile), add = TRUE)
 
     # Normalize mutations
@@ -241,7 +240,6 @@ run_fRagmentomics <- function(
         max_read_seq_len <- max(nchar(df_sam$SEQ))
         min_read_pos <- min(df_sam[df_sam$RNAME == chr_norm, "POS"])
         max_read_pos <- max(df_sam[df_sam$RNAME == chr_norm, "POS"])
-        max_fetch_len_ref <- max_read_seq_len + motif_len
 
         # -1 for the max value of n_match_base_before used later in the code
         min_fetch_pos <- min_read_pos - 1
@@ -258,33 +256,76 @@ run_fRagmentomics <- function(
         # ----- Feature extraction -----
         # Process fragmentomics on truncated bam and the mutation extract
         # unique fragment names
-        fragments_names <- unique(df_sam$QNAME)
+        fragment_names <- unique(df_sam$QNAME)
+
+        # Split fragments into 50 chunks
+        number_chunks <- 50L
+        chunk_size <- max(1L, ceiling(length(fragment_names) / number_chunks))
+
+        # Split fragment names into chunks of chunk_size
+        chunk_indices <- ceiling(seq_along(fragment_names) / chunk_size)
+        list_fragment_chunks <- split(fragment_names, chunk_indices)
+
+        # Pre-split df_sam by fragment chunks to avoid exporting the full 
+        # df_sam to each future
+        list_df_sam_chunks <- lapply(
+            list_fragment_chunks,
+            function(fragment_chunk) {
+                df_sam[df_sam$QNAME %in% fragment_chunk, , drop = FALSE]
+            }
+        )
 
         progressr::with_progress({
             # Creation of a progressor to show the progression
-            p <- progressr::progressor(along = fragments_names)
+            p <- progressr::progressor(steps = length(list_fragment_chunks))
 
-            # future_lapply is the equivalent of lapply in parallele (manage
+            # future_lapply is the equivalent of lapply in parallel (manage
             # the necessary export)
-            results_list <- future.apply::future_lapply(
-                fragments_names,
-                function(fragment_name) {
-                    on.exit(p(), add = TRUE) # 1 tick par fragment, même en cas d'erreur
-                    extract_fragment_features(
-                        df_sam = df_sam, fragment_name = fragment_name,
-                        sample_id = sample_id, chr = chr_norm, pos = pos_norm, ref = ref_norm,
-                        alt = alt_norm, report_bam_info = report_bam_info, report_softclip = report_softclip,
-                        report_5p_3p_bases_fragment = report_5p_3p_bases_fragment, remove_softclip = remove_softclip,
-                        fasta_seq = fasta_seq, input_mutation_info = input_mutation_info
+            # Each element of chunk_list is one "future" process
+            list_results_all_chunks <- future.apply::future_lapply(
+                seq_along(list_fragment_chunks),
+                FUN = function(idx) {
+                    fragment_chunk <- list_fragment_chunks[[idx]]
+                    df_sam_chunk <- list_df_sam_chunks[[idx]]
+
+                    # Process all fragments within the current chunk
+                    list_results_chunk <- lapply(
+                        fragment_chunk,
+                        function(fragment_name) {
+                            extract_fragment_features(
+                                df_sam = df_sam_chunk,
+                                fragment_name = fragment_name,
+                                sample_id = sample_id,
+                                chr = chr_norm,
+                                pos = pos_norm,
+                                ref = ref_norm,
+                                alt = alt_norm,
+                                report_bam_info = report_bam_info,
+                                report_softclip = report_softclip,
+                                report_5p_3p_bases_fragment = report_5p_3p_bases_fragment,
+                                remove_softclip = remove_softclip,
+                                fasta_seq = fasta_seq,
+                                input_mutation_info = input_mutation_info
+                            )
+                        }
                     )
-                },
-                future.chunk.size = 1L
+
+                    # Update progress after the current chunk has been fully processed
+                    p()  # +1 step
+
+                    # Return the list of per-fragment results for this chunk
+                    list_results_chunk  
+                }
             )
+            # Flatten the nested structure:
+            # list_results_all_chunks is a list of chunks,
+            # each chunk is itself a list of per-fragment results.
+            list_results_all_fragments <- unlist(list_results_all_chunks, recursive = FALSE)
         })
 
-        # future_lapply return a list. Combine in one dataframe.
+        # Bind all per-fragment results into a single data.frame
         df_fragments_info <- data.table::rbindlist(
-            results_list,
+            list_results_all_fragments,
             use.names = TRUE,
             fill = TRUE
         )
@@ -316,7 +357,7 @@ run_fRagmentomics <- function(
         stop("The final fRagmentomic dataframe is empty.")
     }
 
-    # Remove reads failing QC unless the user explicity wants to retain them
+    # Remove reads failing QC unless the user explicitly wants to retain them
     if (!retain_fail_qc) {
         mask_fail_qc <- df_fragments_info_final[["Fragment_QC"]] != "OK"
         nfrag_fail_qc <- sum(mask_fail_qc)
