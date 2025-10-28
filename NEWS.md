@@ -1,5 +1,11 @@
 # fRagmentomics NEWS
 
+## fRagmentomics 0.99.2 (2025-10-28)
+
+### OTHER CHANGES
+
+* Improved `future.apply::future_lapply`  parallelization by setting properly the `chunk` parameter and reduced exported objects per worker.
+
 ## fRagmentomics 0.99.1 (2025-10-22)
 
 ### NEW FEATURES
