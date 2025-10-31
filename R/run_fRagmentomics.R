@@ -168,13 +168,13 @@ run_fRagmentomics <- function(
 
         if (verbose) {
             message(sprintf(
-            "[%d/%d] Processing %s:%s %s>%s (input: %s)",
-            i, nrow(df_mut_norm),
-            as.character(chr_norm),
-            format(pos_norm, scientific = FALSE, trim = TRUE),
-            as.character(ref_norm),
-            as.character(alt_norm),
-            as.character(input_mutation_info)
+                "[%d/%d] Processing %s:%s %s>%s (input: %s)",
+                i, nrow(df_mut_norm),
+                as.character(chr_norm),
+                format(pos_norm, scientific = FALSE, trim = TRUE),
+                as.character(ref_norm),
+                as.character(alt_norm),
+                as.character(input_mutation_info)
             ))
         }
 
@@ -266,14 +266,6 @@ run_fRagmentomics <- function(
         # unique fragment names
         fragment_names <- unique(df_sam$QNAME)
 
-        # No progressor if no fragments
-        if (length(fragment_names) == 0L) {
-            if (verbose) message(
-                sprintf("No well-oriented fragments for %s:%d:%s>%s.", chr_norm, pos_norm, ref_norm, alt_norm)
-            )
-            next
-        }
-
         # Split fragments into 50 chunks
         number_chunks <- 50L
         chunk_size <- max(1L, ceiling(length(fragment_names) / number_chunks))
@@ -282,7 +274,7 @@ run_fRagmentomics <- function(
         chunk_indices <- ceiling(seq_along(fragment_names) / chunk_size)
         list_fragment_chunks <- split(fragment_names, chunk_indices)
 
-        # Pre-split df_sam by fragment chunks to avoid exporting the full 
+        # Pre-split df_sam by fragment chunks to avoid exporting the full
         # df_sam to each future
         list_df_sam_chunks <- lapply(
             list_fragment_chunks,
@@ -323,7 +315,7 @@ run_fRagmentomics <- function(
                 )
 
                 # Return the list of per-fragment results for this chunk
-                list_results_chunk  
+                list_results_chunk
             }
         )
         # Flatten the nested structure:

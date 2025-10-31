@@ -27,7 +27,6 @@ requirements:
     - r-ggplot2
     - r-ggseqlogo
     - r-magrittr
-    - r-progressr
     - r-purrr
     - r-rcolorbrewer
     - r-readr
@@ -50,7 +49,6 @@ requirements:
     - r-ggplot2
     - r-ggseqlogo
     - r-magrittr
-    - r-progressr
     - r-purrr
     - r-rcolorbrewer
     - r-readr
