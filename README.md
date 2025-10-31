@@ -356,22 +356,25 @@ output is a dataframe with one line per fragment and the following headers:
 | 17 - `VAF` | Variant Allele Frequency, expressed as a percentage.[²](#footnote2) |
 | **_Fragmentomic & Alignment Features_** | |
 | 18 - `Fragment_Size` | The size of the DNA fragment. |
-| 19 - `POS_5p` | 1-based leftmost mapping position of the 5' read. |
-| 20 - `POS_3p` | 1-based leftmost mapping position of the 3' read. |
-| 21 - `Fragment_Bases_5p` | The first `n` bases from the 5' end of the fragment. |
-| 22 - `Fragment_Bases_3p` | The last `n` bases from the 3' end of the fragment. |
+| 19 - `Position_5p` | 1-based leftmost mapping position of the 5' read. |
+| 20 - `Position_3p` | 1-based rightmost mapping position of the 3' read. |
+| 21 - `Fragment_Bases_5p` (if `report_5p_3p_bases_fragment` > 0) | The first `n` bases from the 5' end of the fragment. |
+| 22 - `Fragment_Bases_3p` (if `report_5p_3p_bases_fragment` > 0) | The last `n` bases from the 3' end of the fragment. |
+| **_Bam Information_** (if `report_bam_info` = TRUE)| |
+| 23 - `POS_5p` | 1-based leftmost mapping position of the 5' read. |
+| 24 - `POS_3p` | 1-based leftmost mapping position of the 3' read. |
+| 25 - `FLAG_5p` | SAM flag for the 5' read. |
+| 26 - `FLAG_3p` | SAM flag for the 3' read. |
+| 27 - `MAPQ_5p` | Mapping quality for the 5' read. |
+| 28 - `MAPQ_3p` | Mapping quality for the 3' read. |
+| 29 - `CIGAR_5p` | CIGAR string for the 5' read. |
+| 30 - `CIGAR_3p` | CIGAR string for the 3' read. |
+| 31 - `TLEN` | Template length of the fragment, from the BAM file. |
 | **_Other Information_** | |
-| 23 - `FLAG_5p` | SAM flag for the 5' read. |
-| 24 - `FLAG_3p` | SAM flag for the 3' read. |
-| 25 - `MAPQ_5p` | Mapping quality for the 5' read. |
-| 26 - `MAPQ_3p` | Mapping quality for the 3' read. |
-| 27 - `CIGAR_5p` | CIGAR string for the 5' read. |
-| 28 - `CIGAR_3p` | CIGAR string for the 3' read. |
-| 29 - `TLEN` | Template length of the fragment, from the BAM file. |
-| 30 - `Fragment_Basqs_5p` | The first `n` base qualities from the 5' end of the fragment. |
-| 31 - `Fragment_Basqs_3p` | The last `n` base qualities from the 3' end of the fragment. |
-| 32 - `Nb_Fragment_Bases_Softclip_5p` | Number of soft-clipped bases at the 5' end of the fragment. |
-| 33 - `Nb_Fragment_Bases_Softclip_3p` | Number of soft-clipped bases at the 3' end of the fragment. |
+| 32 - `Fragment_Basqs_5p` (if `report_5p_3p_bases_fragment` > 0) | The first `n` base qualities from the 5' end of the fragment. |
+| 33 - `Fragment_Basqs_3p` (if `report_5p_3p_bases_fragment` > 0) | The last `n` base qualities from the 3' end of the fragment. |
+| 34 - `Nb_Fragment_Bases_Softclip_5p` (if `report_softclip` = TRUE) | Number of soft-clipped bases at the 5' end of the fragment. |
+| 35 - `Nb_Fragment_Bases_Softclip_3p` (if `report_softclip` = TRUE) | Number of soft-clipped bases at the 3' end of the fragment. |
 
 ---
 

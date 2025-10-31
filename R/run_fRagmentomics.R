@@ -57,7 +57,6 @@
 #' @importFrom utils write.table
 #' @importFrom future plan multisession sequential availableCores
 #' @importFrom future.apply future_lapply
-#' @importFrom progressr with_progress progressor
 #'
 #' @export
 #' @examples
@@ -103,7 +102,7 @@ run_fRagmentomics <- function(
     ),
     report_bam_info = FALSE, report_softclip = FALSE, report_5p_3p_bases_fragment = 5,
     remove_softclip = FALSE, retain_fail_qc = FALSE, apply_bcftools_norm = FALSE,
-    tmp_folder = tempdir(), output_path = NA_character_, verbose = FALSE, n_cores = 8) {
+    tmp_folder = tempdir(), output_path = NA_character_, verbose = FALSE, n_cores = 1) {
     # ===========================================
     # Load inputs, check parameters and normalize
     # ===========================================
@@ -147,7 +146,6 @@ run_fRagmentomics <- function(
     # =========================
     # Run per-mutation analysis
     # =========================
-
     # Initialize parallel plan
     final_n_cores <- min(n_cores, future::availableCores())
 
@@ -160,7 +158,6 @@ run_fRagmentomics <- function(
 
     # Create final df
     df_fragments_info_final <- data.frame()
-
     # Loop on each row of the mut_info
     for (i in seq_len(nrow(df_mut_norm))) {
         chr_norm <- df_mut_norm[i, "chr"]
@@ -169,6 +166,17 @@ run_fRagmentomics <- function(
         alt_norm <- df_mut_norm[i, "alt"]
         input_mutation_info <- df_mut_norm[i, "input_mutation_info"]
 
+        if (verbose) {
+            message(sprintf(
+            "[%d/%d] Processing %s:%s %s>%s (input: %s)",
+            i, nrow(df_mut_norm),
+            as.character(chr_norm),
+            format(pos_norm, scientific = FALSE, trim = TRUE),
+            as.character(ref_norm),
+            as.character(alt_norm),
+            as.character(input_mutation_info)
+            ))
+        }
 
         # ----- BAM extraction -----
         # Read and extract bam around the mutation position Return a truncated sam
@@ -258,6 +266,14 @@ run_fRagmentomics <- function(
         # unique fragment names
         fragment_names <- unique(df_sam$QNAME)
 
+        # No progressor if no fragments
+        if (length(fragment_names) == 0L) {
+            if (verbose) message(
+                sprintf("No well-oriented fragments for %s:%d:%s>%s.", chr_norm, pos_norm, ref_norm, alt_norm)
+            )
+            next
+        }
+
         # Split fragments into 50 chunks
         number_chunks <- 50L
         chunk_size <- max(1L, ceiling(length(fragment_names) / number_chunks))
@@ -275,53 +291,45 @@ run_fRagmentomics <- function(
             }
         )
 
-        progressr::with_progress({
-            # Creation of a progressor to show the progression
-            p <- progressr::progressor(steps = length(list_fragment_chunks))
+        # future_lapply is the equivalent of lapply in parallel (manage
+        # the necessary export)
+        # Each element of chunk_list is one "future" process
+        list_results_all_chunks <- future.apply::future_lapply(
+            seq_along(list_fragment_chunks),
+            FUN = function(idx) {
+                fragment_chunk <- list_fragment_chunks[[idx]]
+                df_sam_chunk <- list_df_sam_chunks[[idx]]
 
-            # future_lapply is the equivalent of lapply in parallel (manage
-            # the necessary export)
-            # Each element of chunk_list is one "future" process
-            list_results_all_chunks <- future.apply::future_lapply(
-                seq_along(list_fragment_chunks),
-                FUN = function(idx) {
-                    fragment_chunk <- list_fragment_chunks[[idx]]
-                    df_sam_chunk <- list_df_sam_chunks[[idx]]
+                # Process all fragments within the current chunk
+                list_results_chunk <- lapply(
+                    fragment_chunk,
+                    function(fragment_name) {
+                        extract_fragment_features(
+                            df_sam = df_sam_chunk,
+                            fragment_name = fragment_name,
+                            sample_id = sample_id,
+                            chr = chr_norm,
+                            pos = pos_norm,
+                            ref = ref_norm,
+                            alt = alt_norm,
+                            report_bam_info = report_bam_info,
+                            report_softclip = report_softclip,
+                            report_5p_3p_bases_fragment = report_5p_3p_bases_fragment,
+                            remove_softclip = remove_softclip,
+                            fasta_seq = fasta_seq,
+                            input_mutation_info = input_mutation_info
+                        )
+                    }
+                )
 
-                    # Process all fragments within the current chunk
-                    list_results_chunk <- lapply(
-                        fragment_chunk,
-                        function(fragment_name) {
-                            extract_fragment_features(
-                                df_sam = df_sam_chunk,
-                                fragment_name = fragment_name,
-                                sample_id = sample_id,
-                                chr = chr_norm,
-                                pos = pos_norm,
-                                ref = ref_norm,
-                                alt = alt_norm,
-                                report_bam_info = report_bam_info,
-                                report_softclip = report_softclip,
-                                report_5p_3p_bases_fragment = report_5p_3p_bases_fragment,
-                                remove_softclip = remove_softclip,
-                                fasta_seq = fasta_seq,
-                                input_mutation_info = input_mutation_info
-                            )
-                        }
-                    )
-
-                    # Update progress after the current chunk has been fully processed
-                    p()  # +1 step
-
-                    # Return the list of per-fragment results for this chunk
-                    list_results_chunk  
-                }
-            )
-            # Flatten the nested structure:
-            # list_results_all_chunks is a list of chunks,
-            # each chunk is itself a list of per-fragment results.
-            list_results_all_fragments <- unlist(list_results_all_chunks, recursive = FALSE)
-        })
+                # Return the list of per-fragment results for this chunk
+                list_results_chunk  
+            }
+        )
+        # Flatten the nested structure:
+        # list_results_all_chunks is a list of chunks,
+        # each chunk is itself a list of per-fragment results.
+        list_results_all_fragments <- unlist(list_results_all_chunks, recursive = FALSE)
 
         # Bind all per-fragment results into a single data.frame
         df_fragments_info <- data.table::rbindlist(
