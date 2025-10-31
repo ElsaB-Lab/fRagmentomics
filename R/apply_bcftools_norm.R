@@ -60,7 +60,7 @@ apply_bcftools_norm <- function(chr, pos, ref, alt, fasta, tmp_folder,
         if (verbose) {
             messtext <- sprintf(
                 paste0("Executing bcftools norm normalisation for variant",
-                    "for %s:%d:%s:%s"), chr, pos, ref, alt
+                    " for %s:%d:%s:%s"), chr, pos, ref, alt
                 )
             message(messtext)
         }

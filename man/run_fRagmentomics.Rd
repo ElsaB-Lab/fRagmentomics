@@ -25,7 +25,7 @@ run_fRagmentomics(
   tmp_folder = tempdir(),
   output_path = NA_character_,
   verbose = FALSE,
-  n_cores = 8
+  n_cores = 1
 )
 }
 \arguments{
