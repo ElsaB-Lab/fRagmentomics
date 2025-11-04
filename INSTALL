@@ -1,0 +1,106 @@
+fRagmentomics installation instructions
+======================================
+
+Prerequisites
+-------------
+- R >= 4.4.3 (fRagmentomics is built and tested under R 4.4.3)
+
+System dependency: bcftools (optional)
+--------------------------------------
+This package can optionally use the external CLI tool bcftools (tested with v1.21)
+to perform variant normalization (left-alignment; recommended especially for indels)
+when the package argument apply_bcftools_norm = TRUE is used.
+
+If apply_bcftools_norm = TRUE and bcftools is not on your PATH, the function will
+error with an informative message (no auto-install). Otherwise, the package runs
+without bcftools. For reproducibility, we recommend installing bcftools and making
+it available on PATH.
+
+We recommend using a Conda/Mamba environment for an isolated, reproducible setup,
+but native OS package managers are also fine.
+
+Quick install (Conda/Mamba)
+---------------------------
+# If you don't have mamba yet:
+#   conda install -c conda-forge mamba
+mamba install -c conda-forge -c bioconda bcftools=1.21
+
+───────────────────────────────────────────────
+Windows
+───────────────────────────────────────────────
+bcftools does not have an official native Windows build. Please use Windows 
+Subsystem for Linux (WSL).
+
+WSL (recommended)
+1. Open PowerShell as Administrator and install WSL with Ubuntu:
+   wsl --install -d Ubuntu
+   # Reboot if prompted.
+
+2. Open Ubuntu (WSL) and install bcftools inside WSL:
+   # Option A: apt (version provided by Ubuntu)
+   sudo apt-get update && sudo apt-get install -y bcftools
+
+   # Option B: conda/mamba (to pin a specific version, e.g. 1.21)
+   # First install Mambaforge/Miniforge in WSL, then:
+   mamba create -n fRagmentomics-env -c conda-forge -c bioconda bcftools=1.21
+   mamba activate fRagmentomics-env
+
+3. Run R / Rscript inside WSL so that bcftools is on PATH.
+
+───────────────────────────────────────────────
+macOS (Apple Silicon or Intel)
+───────────────────────────────────────────────
+Option A: Homebrew
+1. Install Homebrew (https://brew.sh/).
+2. In Terminal:
+     brew update && brew install bcftools
+3. Verify:
+     which bcftools
+4. (Optional) Set an explicit path in R:
+     In R:
+       Sys.setenv(BCFTOOLS_PATH = "/usr/local/bin/bcftools")    # Intel (common)
+       # or
+       Sys.setenv(BCFTOOLS_PATH = "/opt/homebrew/bin/bcftools") # Apple Silicon
+
+Option B: Conda/Mamba
+1. Install Mambaforge/Miniforge.
+2. In Terminal:
+     mamba create -n fRagmentomics-env -c conda-forge -c bioconda bcftools=1.21
+     mamba activate fRagmentomics-env
+3. (Optional) In R:
+     Sys.setenv(BCFTOOLS_PATH = "/path/to/conda/envs/fRagmentomics-env/bin/bcftools")
+
+───────────────────────────────────────────────
+Linux
+───────────────────────────────────────────────
+Option A: System packages
+- Ubuntu/Debian:
+     sudo apt-get update && sudo apt-get install -y bcftools
+- Fedora:
+     sudo dnf install -y bcftools
+- RHEL/CentOS (with EPEL):
+     sudo yum install -y epel-release && sudo yum install -y bcftools
+
+Option B: Conda/Mamba (recommended for reproducibility)
+1. Install Mambaforge/Miniforge.
+2. In shell:
+     mamba create -n fRagmentomics-env -c conda-forge -c bioconda bcftools=1.21
+     mamba activate fRagmentomics-env
+3. (Optional) In R:
+     Sys.setenv(BCFTOOLS_PATH = "/path/to/conda/envs/fRagmentomics-env/bin/bcftools")
+
+───────────────────────────────────────────────
+Testing your bcftools installation
+───────────────────────────────────────────────
+- From the shell:
+     bcftools --version
+
+- From R:
+```r
+bcftools_path <- Sys.getenv("BCFTOOLS_PATH", unset = Sys.which("bcftools"))
+if (!nzchar(bcftools_path) || !file.exists(bcftools_path)) {
+  stop("bcftools not found. Please install bcftools and/or set BCFTOOLS_PATH.")
+} else {
+  message("bcftools found at: ", bcftools_path)
+}
+``` 
