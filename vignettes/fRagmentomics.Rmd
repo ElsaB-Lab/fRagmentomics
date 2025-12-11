@@ -149,6 +149,12 @@ fasta_file <- system.file(
 print(mut_file)
 print(bam_file)
 print(fasta_file)
+
+# Detect whether bcftools is available on the system PATH
+has_bcftools <- nzchar(Sys.which("bcftools"))
+if (!has_bcftools) {
+    message("bcftools not found on PATH; normalization examples will run without it.")
+}
 ```
 
 To handle 0-based mutation coordinates, set the `one_based = FALSE` parameter. This will ensure the positions are correctly converted. Furthermore, `fRagmentomics` automatically standardizes indel representations to resolve ambiguities, as the same variant can often be described in multiple ways (e.g., left-aligned vs. right-aligned).
@@ -185,15 +191,21 @@ your system (see the *Installation* section of the README). If `bcftools`
 is unavailable, you may set `apply_bcftools_norm = FALSE`, but indel
 positions will not be left-aligned or normalized, which may lead to
 discrepancies across callers and reduce comparability.
+In this vignette, we detect bcftools availability via `has_bcftools` and
+toggle normalization accordingly so the examples run on systems without it.
 
 ```{r run_analysis_basic, message=TRUE, warning=TRUE}
+if (!has_bcftools) {
+    message("bcftools not detected; running without external normalization.")
+}
+
 # Run the full analysis pipeline with default settings
 df_frag_basic <- run_fRagmentomics(
     mut = mut_file,
     bam = bam_file,
     fasta = fasta_file,
     sample_id = "cfdna-test-01",
-    apply_bcftools_norm = TRUE,
+    apply_bcftools_norm = has_bcftools,
     verbose = FALSE,
     n_cores = 2
 )
@@ -214,6 +226,10 @@ Specifically, we will:
 * **keep fragments that do not pass quality control using the parameter retain_fail_qc**: e.g., reads with incorrect orientation, mapped to different chromosomes, unmapped mates.
 
 ```{r run_analysis_advanced, message=TRUE, warning=TRUE}
+if (!has_bcftools) {
+    message("bcftools not detected; running advanced workflow without external normalization.")
+}
+
 # Run the analysis with custom parameters
 df_frag_advanced <- run_fRagmentomics(
     mut = mut_file,
@@ -232,7 +248,7 @@ df_frag_advanced <- run_fRagmentomics(
     report_softclip = TRUE,
     retain_fail_qc = TRUE,
     report_5p_3p_bases_fragment = 3,
-    apply_bcftools_norm = TRUE,
+    apply_bcftools_norm = has_bcftools,
     verbose = FALSE,
     n_cores = 2
 )
