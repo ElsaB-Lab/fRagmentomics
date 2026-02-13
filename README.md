@@ -120,15 +120,15 @@ library(fRagmentomics)
 
 # Locate the example files bundled with the package
 mut_file <- system.file(
-  "extdata", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv",
+  "testdata/mutations", "mutations_cfdna-test-01_chr17_7576000_7579000.tsv",
   package = "fRagmentomics"
 )
 bam_file <- system.file(
-  "extdata", "cfdna-test-01_chr1_27433000_27435000.bam",
+  "testdata/bam", "cfdna-test-01_chr17_7576000_7579000.bam",
   package = "fRagmentomics"
 )
 fasta_file <- system.file(
-  "extdata", "hg19_chr1_27433000_27435000.fa",
+  "testdata/fasta/hg19", "hg19_chr17_7576000_7579000.fa",
   package = "fRagmentomics"
 )
 ```
@@ -143,7 +143,7 @@ df_fragments <- run_fRagmentomics(
     fasta = fasta_file,
     sample_id = "cfdna-test-01",
     apply_bcftools_norm = TRUE,
-    n_cores = 2
+    n_cores = 1
 )
 
 # View the first few rows of the output data frame
@@ -163,11 +163,11 @@ fRagmentomics includes plotting functions to help you visualize the fragmentomic
 
 ### 1. Fragment Size Distribution
 
-The `plot_size_distribution()` function generates density plots or histograms to compare the distribution of fragment lengths between different groups (e.g., `MUT` vs. `NON-TARGET MUT`).
+The `plot_size_distribution()` function generates density plots or histograms to compare the distribution of fragment lengths between different groups (e.g., `MUT` vs. `WT`).
 
 ```r
 # Assuming 'df_fragments' is the output from run_fRagmentomics()
-plot_resultat <- plot_size_distribution(
+plot_size_distribution(
   df_fragments = df_fragments,
   vals_z = c("MUT", "WT"),
   show_histogram = TRUE,
@@ -224,10 +224,10 @@ visualization modes (`representation`):
 
 ```r
 # Use the default hierarchical representation to visualize 3-mer proportions
-plot_split_by_base <- plot_motif_barplot(
+plot_motif_barplot(
   df_fragments,
   representation = "split_by_base",
-  vals_z = c("MUT", "NON-TARGET MUT")
+  vals_z = c("MUT", "WT")
 )
 ```
 
@@ -235,10 +235,10 @@ plot_split_by_base <- plot_motif_barplot(
 
 ```r
 # Use the side-by-side representation to visualize 3-mer proportions
-plot_new_motif_view <- plot_motif_barplot(
+plot_motif_barplot(
   df_fragments,
   representation = "split_by_motif",
-  vals_z = c("MUT", "NON-TARGET MUT")
+  vals_z = c("MUT", "WT")
 )
 ```
 
@@ -249,7 +249,7 @@ plot_new_motif_view <- plot_motif_barplot(
 plot_motif_barplot(
   df_fragments,
   representation = "differential",
-  vals_z = c("MUT", "NON-TARGET MUT")
+  vals_z = c("MUT", "WT")
 )
 ```
 

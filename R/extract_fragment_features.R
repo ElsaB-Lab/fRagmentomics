@@ -32,7 +32,7 @@
 #' @param alt Character vector representing alternative base(s).
 #' @param fasta_fafile An open connection to an object of class FaFile
 #' @param fasta_seq A list with the fasta sequence between two positions.
-#' @param input_mutation_info Character vecotr representing the input mutation.
+#' @param input_mutation_info Character vector representing the input mutation.
 #'
 #' @return A dataframe with the processed fragment information.
 #'
@@ -54,19 +54,9 @@ extract_fragment_features <- function(
 
     # If the fragment fails QC, return a dataframe with NAs
     if (fragment_qc != "") {
-        result_list <- list(
-            Sample_Id = if (is.na(sample_id)) NA_character_ else as.character(sample_id),
-            Chromosome = chr, Position = pos, Ref = ref, Alt = alt,
-            Input_Mutation = input_mutation_info, Fragment_Id = fragment_name,
-            Fragment_QC = fragment_qc, Fragment_Status_Simple = NA_character_,
-            Fragment_Status_Detail = NA_character_, Fragment_Size = NA_integer_,
-            Read_5p_Status = NA_character_, Read_3p_Status = NA_character_,
-            BASE_5p = NA_character_, BASE_3p = NA_character_,
-            BASQ_5p = NA_character_, BASQ_3p = NA_character_,
-            Position_5p = NA_integer_, Position_3p = NA_integer_,
-            VAF = NA_real_
-        )
-        return(result_list)
+        return(return_fail_qc_fragment(
+            fragment_qc, sample_id, chr, pos, ref, alt, input_mutation_info, fragment_name
+        ))
     }
 
     # ----- Read preprocessing -----
@@ -78,15 +68,20 @@ extract_fragment_features <- function(
     # Sanity check that the fragment is a valid pair.  It must contain exactly
     # one 'first mate' read.
     if (sum(flag_matrix[, "isFirstMateRead"]) != 1) {
-        stop(sprintf("Fragment '%s' is not a valid R1/R2 pair.", fragment_name))
+        fragment_qc <- sprintf("Fragment '%s' is not a valid R1/R2 pair.", fragment_name)
+        return(return_fail_qc_fragment(
+            fragment_qc, sample_id, chr, pos, ref, alt, input_mutation_info, fragment_name
+        ))
     }
     # It must contain one forward and one reverse read.
     if (sum(flag_matrix[, "isMinusStrand"]) != 1) {
-        stoptext <- sprintf(paste(
+        fragment_qc <- sprintf(paste(
             "Fragment '%s' does not have one forward",
             "and one reverse read."
         ), fragment_name)
-        stop(stoptext)
+        return(return_fail_qc_fragment(
+            fragment_qc, sample_id, chr, pos, ref, alt, input_mutation_info, fragment_name
+        ))
     }
 
     # Identify the row index of the 5p read (forward strand, where
@@ -116,19 +111,9 @@ extract_fragment_features <- function(
             read_5p_info_without_softclip$CIGAR == "") {
             # The read is invalid after trimming, so fail the whole fragment.
             fragment_qc <- "Invalid read after softclip trimming"
-            result_list <- list(
-                Sample_Id = if (is.na(sample_id)) NA_character_ else as.character(sample_id),
-                Chromosome = chr, Position = pos, Ref = ref, Alt = alt,
-                Input_Mutation = input_mutation_info, Fragment_Id = fragment_name,
-                Fragment_QC = fragment_qc, Fragment_Status_Simple = NA_character_,
-                Fragment_Status_Detail = NA_character_, Fragment_Size = NA_integer_,
-                Read_5p_Status = NA_character_, Read_3p_Status = NA_character_,
-                BASE_5p = NA_character_, BASE_3p = NA_character_,
-                BASQ_5p = NA_character_, BASQ_3p = NA_character_,
-                Position_5p = NA_integer_, Position_3p = NA_integer_,
-                VAF = NA_real_
-            )
-            return(result_list)
+            return(return_fail_qc_fragment(
+                fragment_qc, sample_id, chr, pos, ref, alt, input_mutation_info, fragment_name
+            ))
         }
 
         read_stats_5p$SEQ <- read_5p_info_without_softclip$SEQ
@@ -141,19 +126,9 @@ extract_fragment_features <- function(
             read_3p_info_without_softclip$CIGAR == "") {
             # The read is invalid after trimming, so fail the whole fragment.
             fragment_qc <- "Invalid read after softclip trimming"
-            result_list <- list(
-                Sample_Id = if (is.na(sample_id)) NA_character_ else as.character(sample_id),
-                Chromosome = chr, Position = pos, Ref = ref, Alt = alt,
-                Input_Mutation = input_mutation_info, Fragment_Id = fragment_name,
-                Fragment_QC = fragment_qc, Fragment_Status_Simple = NA_character_,
-                Fragment_Status_Detail = NA_character_, Fragment_Size = NA_integer_,
-                Read_5p_Status = NA_character_, Read_3p_Status = NA_character_,
-                BASE_5p = NA_character_, BASE_3p = NA_character_,
-                BASQ_5p = NA_character_, BASQ_3p = NA_character_,
-                Position_5p = NA_integer_, Position_3p = NA_integer_,
-                VAF = NA_real_
-            )
-            return(result_list)
+            return(return_fail_qc_fragment(
+                fragment_qc, sample_id, chr, pos, ref, alt, input_mutation_info, fragment_name
+            ))
         }
 
         read_stats_3p$SEQ <- read_3p_info_without_softclip$SEQ

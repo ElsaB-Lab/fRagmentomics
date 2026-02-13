@@ -173,58 +173,71 @@ test_that("QC failure returns a single-row placeholder list with NAs and Fragmen
     expect_true(is.na(res$VAF))
 })
 
-test_that("Stops when not exactly one first mate (invalid R1/R2 pairing)", {
+test_that("Returns fail object when not exactly one first mate (invalid R1/R2 pairing)", {
     df <- .make_df_sam()
 
-    expect_error(
-        with_mocked_bindings(
-            fRagmentomics:::extract_fragment_features(
-                df_sam = df,
-                fragment_name = "fragA",
-                sample_id = NA_character_,
-                chr = "chr1", pos = 1L, ref = "A", alt = "T",
-                report_bam_info = FALSE, report_softclip = FALSE,
-                report_5p_3p_bases_fragment = 0L, remove_softclip = FALSE,
-                fasta_fafile = NULL, fasta_seq = NULL,
-                input_mutation_info = "chr1:1:A>T"
-            ),
-            process_fragment_reads_qc = function(df_fragment_reads, chr) "",
-            bamFlagAsBitMatrix = function(flag_vec) {
-                cbind(
-                    isFirstMateRead = c(TRUE, TRUE), # <- invalid (sum != 1)
-                    isMinusStrand   = c(FALSE, TRUE)
-                )
-            }
+    # Capture the result instead of expecting an error
+    result <- with_mocked_bindings(
+        fRagmentomics:::extract_fragment_features(
+            df_sam = df,
+            fragment_name = "fragA",
+            sample_id = NA_character_,
+            chr = "chr1", pos = 1L, ref = "A", alt = "T",
+            report_bam_info = FALSE, report_softclip = FALSE,
+            report_5p_3p_bases_fragment = 0L, remove_softclip = FALSE,
+            fasta_fafile = NULL, fasta_seq = NULL,
+            input_mutation_info = "chr1:1:A>T"
         ),
-        "not a valid R1/R2 pair"
+        # Mock QC to pass the first check
+        process_fragment_reads_qc = function(df_fragment_reads, chr) "",
+        # Mock flags to simulate invalid R1/R2 pairing
+        bamFlagAsBitMatrix = function(flag_vec) {
+            cbind(
+                isFirstMateRead = c(TRUE, TRUE), # <- invalid (sum != 1)
+                isMinusStrand   = c(FALSE, TRUE)
+            )
+        }
     )
+
+    # Verify that the function returned the correct failure message
+    expect_match(result$Fragment_QC, "not a valid R1/R2 pair")
+
+    # Verify that analysis columns are NA (ensuring early return)
+    expect_true(is.na(result$Fragment_Status_Simple))
 })
 
-test_that("Stops when not exactly one forward and one reverse read", {
+test_that("Returns fail object when not exactly one forward and one reverse read", {
     df <- .make_df_sam()
 
-    expect_error(
-        with_mocked_bindings(
-            fRagmentomics:::extract_fragment_features(
-                df_sam = df,
-                fragment_name = "fragA",
-                sample_id = NA_character_,
-                chr = "chr1", pos = 1L, ref = "A", alt = "T",
-                report_bam_info = FALSE, report_softclip = FALSE,
-                report_5p_3p_bases_fragment = 0L, remove_softclip = FALSE,
-                fasta_fafile = NULL, fasta_seq = NULL,
-                input_mutation_info = "chr1:1:A>T"
-            ),
-            process_fragment_reads_qc = function(df_fragment_reads, chr) "",
-            bamFlagAsBitMatrix = function(flag_vec) {
-                cbind(
-                    isFirstMateRead = c(TRUE, FALSE),
-                    isMinusStrand   = c(FALSE, FALSE) # <- invalid (sum != 1)
-                )
-            }
+    # Capture the result instead of expecting an error
+    result <- with_mocked_bindings(
+        fRagmentomics:::extract_fragment_features(
+            df_sam = df,
+            fragment_name = "fragA",
+            sample_id = NA_character_,
+            chr = "chr1", pos = 1L, ref = "A", alt = "T",
+            report_bam_info = FALSE, report_softclip = FALSE,
+            report_5p_3p_bases_fragment = 0L, remove_softclip = FALSE,
+            fasta_fafile = NULL, fasta_seq = NULL,
+            input_mutation_info = "chr1:1:A>T"
         ),
-        "does not have one forward and one reverse read"
+        # Mock QC to pass the first check
+        process_fragment_reads_qc = function(df_fragment_reads, chr) "",
+        # Mock flags to simulate invalid strand orientation
+        bamFlagAsBitMatrix = function(flag_vec) {
+            cbind(
+                isFirstMateRead = c(TRUE, FALSE),
+                isMinusStrand   = c(FALSE, FALSE) # <- invalid (sum != 1)
+            )
+        }
     )
+
+    # Verify that the function returned the correct failure message
+    expect_match(result$Fragment_QC, "does not have one forward")
+    expect_match(result$Fragment_QC, "and one reverse read")
+
+    # Verify that analysis columns are NA
+    expect_true(is.na(result$Fragment_Status_Simple))
 })
 
 test_that("remove_softclip=TRUE: early return when 5p becomes empty", {
@@ -311,16 +324,16 @@ test_that("TLEN reporting: warning emitted; TLEN is NA_integer_ when missing; Sa
 
     expect_warning(
         res <- fRagmentomics:::extract_fragment_features(
-        df_sam = df,
-        fragment_name = "fragA",
-        sample_id = NA_character_,
-        chr = "chr1", pos = 888L, ref = "C", alt = "A",
-        report_bam_info = TRUE,
-        report_softclip = FALSE,
-        report_5p_3p_bases_fragment = 0L,
-        remove_softclip = FALSE,
-        fasta_fafile = NULL, fasta_seq = NULL,
-        input_mutation_info = "chr1:888:C>A"
+            df_sam = df,
+            fragment_name = "fragA",
+            sample_id = NA_character_,
+            chr = "chr1", pos = 888L, ref = "C", alt = "A",
+            report_bam_info = TRUE,
+            report_softclip = FALSE,
+            report_5p_3p_bases_fragment = 0L,
+            remove_softclip = FALSE,
+            fasta_fafile = NULL, fasta_seq = NULL,
+            input_mutation_info = "chr1:888:C>A"
         ),
         regexp = "TLEN is NULL or missing, cannot be reported\\."
     )

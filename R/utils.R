@@ -106,3 +106,40 @@ get_pos_indels_from_read <- function(read_stats) {
 
     return(list(deletions = list_pos_del, insertions = list_pos_ins))
 }
+
+#' Generate a standardized failure result for a fragment analysis
+#'
+#' @description
+#' This helper function creates a list structure representing a failed fragment analysis.
+#'
+#' @param qc_message A character string describing the reason why the fragment failed
+#'   quality control or analysis.
+#' @inheritParams extract_fragment_features
+#'
+#' @return A named list containing the standardized schema for a single fragment's result row.
+#'
+#' @noRd
+return_fail_qc_fragment <- function(qc_message, sample_id, chr, pos, ref, alt, input_mutation_info, fragment_name) {
+    list(
+        Sample_Id = if (is.na(sample_id)) NA_character_ else as.character(sample_id),
+        Chromosome = chr,
+        Position = pos,
+        Ref = ref,
+        Alt = alt,
+        Input_Mutation = input_mutation_info,
+        Fragment_Id = fragment_name,
+        Fragment_QC = qc_message,
+        Fragment_Status_Simple = NA_character_,
+        Fragment_Status_Detail = NA_character_,
+        Fragment_Size = NA_integer_,
+        Read_5p_Status = NA_character_,
+        Read_3p_Status = NA_character_,
+        BASE_5p = NA_character_,
+        BASE_3p = NA_character_,
+        BASQ_5p = NA_character_,
+        BASQ_3p = NA_character_,
+        Position_5p = NA_integer_,
+        Position_3p = NA_integer_,
+        VAF = NA_real_
+    )
+}

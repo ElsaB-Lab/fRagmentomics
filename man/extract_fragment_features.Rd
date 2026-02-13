@@ -50,7 +50,7 @@ extremity bases in the output.}
 
 \item{fasta_seq}{A list with the fasta sequence between two positions.}
 
-\item{input_mutation_info}{Character vecotr representing the input mutation.}
+\item{input_mutation_info}{Character vector representing the input mutation.}
 }
 \value{
 A dataframe with the processed fragment information.

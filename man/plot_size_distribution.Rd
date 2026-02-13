@@ -14,7 +14,7 @@ plot_size_distribution(
   colors_z = NULL,
   show_histogram = FALSE,
   show_density = TRUE,
-  x_limits = c(0, 750),
+  x_limits = c(0, 600),
   histogram_binwidth = 5,
   show_nuc_peaks = TRUE,
   title = NULL,
@@ -80,9 +80,9 @@ di_nuc_sizes <- rnorm(30, mean = 330, sd = 30)
 example_df_size <- data.frame(
     Fragment_Size = c(mut_sizes, wt_sizes, di_nuc_sizes),
     Fragment_Status_Simple = c(
-        rep('MUT', 100),
-        rep('WT', 150),
-        sample(c('MUT', 'WT'), 30, replace = TRUE)
+        rep("MUT", 100),
+        rep("WT", 150),
+        sample(c("MUT", "WT"), 30, replace = TRUE)
     )
 )
 # Ensure all fragment sizes are positive
@@ -118,15 +118,15 @@ p4 <- plot_size_distribution(
     col_z          = NULL,
     x_limits       = c(50, 400),
     show_nuc_peaks = FALSE,
-    title          = 'All fragments (zoomed)'
+    title          = "All fragments (zoomed)"
 )
 print(p4)
 
 # 5) Custom colors using an RColorBrewer palette.
 p5 <- plot_size_distribution(
     df_fragments = example_df_size,
-    colors_z     = 'Set2',
-    title        = 'Fragment size (Set2 palette)'
+    colors_z     = "Set2",
+    title        = "Fragment size (Set2 palette)"
 )
 print(p5)
 

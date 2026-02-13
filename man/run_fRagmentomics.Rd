@@ -9,13 +9,13 @@ run_fRagmentomics(
   bam,
   fasta,
   sample_id = NA_character_,
-  neg_offset_mate_search = -1000,
-  pos_offset_mate_search = 1000,
+  neg_offset_mate_search = -600,
+  pos_offset_mate_search = 600,
   one_based = TRUE,
   flag_bam_list = list(isPaired = TRUE, isProperPair = NA, isUnmappedQuery = FALSE,
     hasUnmappedMate = NA, isMinusStrand = NA, isMateMinusStrand = NA, isFirstMateRead =
     NA, isSecondMateRead = NA, isSecondaryAlignment = FALSE, isSupplementaryAlignment =
-    FALSE, isNotPassingQualityControls = NA, isDuplicate = FALSE),
+    FALSE, isNotPassingQualityControls = NA, isDuplicate = NA),
   report_bam_info = FALSE,
   report_softclip = FALSE,
   report_5p_3p_bases_fragment = 5,

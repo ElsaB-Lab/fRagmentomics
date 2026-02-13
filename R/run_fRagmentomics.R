@@ -93,12 +93,12 @@
 #' print(head(results))
 #'
 run_fRagmentomics <- function(
-    mut, bam, fasta, sample_id = NA_character_, neg_offset_mate_search = -1000,
-    pos_offset_mate_search = 1000, one_based = TRUE, flag_bam_list = list(
+    mut, bam, fasta, sample_id = NA_character_, neg_offset_mate_search = -600,
+    pos_offset_mate_search = 600, one_based = TRUE, flag_bam_list = list(
         isPaired = TRUE,
         isProperPair = NA, isUnmappedQuery = FALSE, hasUnmappedMate = NA, isMinusStrand = NA,
         isMateMinusStrand = NA, isFirstMateRead = NA, isSecondMateRead = NA, isSecondaryAlignment = FALSE,
-        isSupplementaryAlignment = FALSE, isNotPassingQualityControls = NA, isDuplicate = FALSE
+        isSupplementaryAlignment = FALSE, isNotPassingQualityControls = NA, isDuplicate = NA
     ),
     report_bam_info = FALSE, report_softclip = FALSE, report_5p_3p_bases_fragment = 5,
     remove_softclip = FALSE, retain_fail_qc = FALSE, apply_bcftools_norm = FALSE,

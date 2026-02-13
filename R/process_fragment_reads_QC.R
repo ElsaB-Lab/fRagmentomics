@@ -1,57 +1,97 @@
 #' Perform quality control (QC) checks on the reads of a single fragment
 #'
-#' @description This function runs a series of validation checks on the reads belonging to a single DNA fragment to
-#' ensure they form a valid, properly-mapped pair.
+#' @description This function runs a series of validation checks on the reads belonging to a single DNA fragment.
+#' It ensures the pair is complete, properly mapped, and topologically consistent.
 #'
 #' @details
-#' The function performs the following specific QC checks:
+#' The logic handles the following scenarios:
 #' \itemize{
-#'   \item **Paired Read Count**: Verifies that the fragment consists of exactly two reads.
-#'   \item **Chromosome Consistency**: Ensures all reads in the fragment map to the expected chromosome ('chr').
-#'   \item **Mate Information**: Checks that the mate-pair chromosome ('RNEXT') is available (not '*').
-#'   \item **Intra-chromosomal Mapping**: Confirms that the mate read maps to the same chromosome.
-#'   \item **Mapping Status**: Verifies that both the read and its mate are mapped (i.e., 'POS' and 'PNEXT' are not 0 or 'NA').
+#'   \item **1 Read**: If a read is missing, it deduces why (Unmapped, Translocation, or Far Away).
+#'   \item **2 Reads**: It verifies:
+#'     \itemize{
+#'       \item *Mapping*: Both reads must have valid positions (POS != 0).
+#'       \item *Chromosome*: Both reads must be on the expected chromosome.
+#'       \item *Consistency*: The mate information (RNEXT) must match the current chromosome.
+#'     }
 #' }
 #'
 #' @inheritParams extract_fragment_features
-#' @param df_fragment_reads a data frame containing all reads for a single fragment.
+#' @param df_fragment_reads a data frame containing reads for a single fragment.
 #'
-#' @return a single string containing all quality control messages.
+#' @return a single string containing all quality control messages. Returns "" if OK.
 #'
 #' @noRd
 process_fragment_reads_qc <- function(df_fragment_reads, chr) {
     qc_messages <- c()
+    num_reads <- nrow(df_fragment_reads)
 
-    # Test 1: Report if the fragment does not consist of exactly two reads.
-    if (nrow(df_fragment_reads) != 2) {
-        qc_messages <- c(qc_messages, paste("Fragment has", nrow(df_fragment_reads), "read(s)"))
+    # --- CASE A: Abnormal Read Count (Not 2) ---
+    if (num_reads != 2) {
+        # Detailed diagnosis if we have exactly 1 read
+        if (num_reads == 1) {
+            msg <- paste("Fragment has 1 read")
+            read <- df_fragment_reads[1, , drop = FALSE]
+
+            # Normalize mate chromosome info
+            mate_chr <- read$RNEXT
+            if (!is.na(mate_chr) && mate_chr == "=") {
+                mate_chr <- read$RNAME
+            }
+
+            # Diagnosis 1: Mate is unmapped (RNEXT is *)
+            if (is.na(mate_chr) || mate_chr == "*") {
+                msg <- paste(msg, "- Mate is unmapped")
+            }
+            # Diagnosis 2: Translocation (Mate on diff chr, filtered out by read_bam)
+            else if (mate_chr != read$RNAME) {
+                msg <- paste(msg, "- Mate maps to a different chromosome:", mate_chr)
+            }
+            # Diagnosis 3: Far Away (Mate on same chr but outside window, filtered out)
+            else if (mate_chr == read$RNAME) {
+                dist <- if (!is.na(read$TLEN)) abs(read$TLEN) else "NA"
+                msg <- paste(msg, "- Mate maps outside loaded region. TLEN:", dist)
+            }
+        } else {
+            msg <- paste("Fragment has", num_reads, "read(s)")
+        }
+
+        qc_messages <- c(qc_messages, msg)
     }
 
-    # Test 2: Report if any read in the fragment is not on the expected chromosome.
-    if (!all(df_fragment_reads$RNAME == chr)) {
-        qc_messages <- c(qc_messages, paste("Read(s) found on a chromosome other than", chr))
-    }
-
-    if (nrow(df_fragment_reads) > 0) {
-        # Isolate the first read of the fragment
+    # --- CASE B: Normal Read Count (2 Reads) - Check Consistency ---
+    if (num_reads == 2) {
+        # Use first read to check pairing info consistency
         read <- df_fragment_reads[1, , drop = FALSE]
 
-        # Test 3: Report if mate chromosome info is missing (* in BAM).
-        if (is.na(read$RNEXT)) {
-            qc_messages <- c(qc_messages, "Mate chromosome info is not available (RNEXT was *)")
+        # Normalize mate chromosome
+        mate_chr <- read$RNEXT
+        if (!is.na(mate_chr) && mate_chr == "=") {
+            mate_chr <- read$RNAME
         }
 
-        # Test 4: Report if the mate appears to be on another chromosome (translocation).
-        else if (read$RNEXT != "=" && read$RNAME != read$RNEXT) {
-            qc_messages <- c(qc_messages, paste("Mate maps to a different chromosome. RNEXT=", read$RNEXT))
+        # Test 1: Wrong Chromosome (Are the loaded reads actually on the target chr?)
+        if (!all(df_fragment_reads$RNAME == chr)) {
+            qc_messages <- c(qc_messages, paste("Read(s) found on a chromosome other than", chr))
         }
 
-        # Test 5: Report if the read or its mate is marked as unmapped.
-        if (is.na(read$POS) || read$POS == 0 || is.na(read$PNEXT) || read$PNEXT == 0) {
-            qc_messages <- c(qc_messages, paste("Read or mate is unmapped. POS=", read$POS, "& PNEXT=", read$PNEXT))
+        # Test 2: Missing Mate Info (RNEXT is *)
+        if (is.na(read$RNEXT) || read$RNEXT == "*") {
+            qc_messages <- c(qc_messages, "Mate chromosome info is not available")
+        }
+
+        # Test 3: Internal Consistency (Do reads claim to be on different chromosomes?)
+        # Even if both reads are present, RNEXT should match RNAME.
+        else if (mate_chr != read$RNAME) {
+            qc_messages <- c(qc_messages, paste("- Mate maps to a different chromosome:", mate_chr))
+        }
+
+        # Test 4: Mapping Status
+        # Verify that POS and PNEXT are strictly positive (mapped)
+        if (any(is.na(df_fragment_reads$POS)) || any(df_fragment_reads$POS == 0)) {
+            qc_messages <- c(qc_messages, "One or both reads are unmapped (POS=0 or NA)")
         }
     }
-    fragment_qc <- paste(qc_messages, collapse = " & ")
 
+    fragment_qc <- paste(qc_messages, collapse = " & ")
     return(fragment_qc)
 }
