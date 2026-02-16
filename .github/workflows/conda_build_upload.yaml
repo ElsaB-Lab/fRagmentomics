@@ -22,8 +22,6 @@ jobs:
         include:
           - os: ubuntu-latest
             subdir: linux-64
-          - os: macos-13
-            subdir: osx-64
           - os: macos-14
             subdir: osx-arm64
 
