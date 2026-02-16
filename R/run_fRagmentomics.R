@@ -180,52 +180,12 @@ run_fRagmentomics <- function(
 
         # ----- BAM extraction -----
         # Read and extract bam around the mutation position Return a truncated sam
-        read_bam_out <- read_bam(
+        df_sam <- read_bam(
             bam, chr_norm, pos_norm, neg_offset_mate_search,
             pos_offset_mate_search, flag_bam_list
         )
 
-        df_sam_badly_oriented <- read_bam_out$badly_oriented
-        df_sam <- read_bam_out$well_oriented
-
-        # Check if there are badly-oriented reads and create dataframe with NAs
-        # if any are found
-        if (!is.null(df_sam_badly_oriented)) {
-            fragment_names_badly_oriented <- unique(as.character(df_sam_badly_oriented$QNAME))
-
-            if (length(fragment_names_badly_oriented) > 0L) {
-                list_fragments_info_badly_oriented <- lapply(
-                    fragment_names_badly_oriented,
-                    function(fragment_name) {
-                        list(
-                            Sample_Id = if (is.na(sample_id)) NA_character_ else as.character(sample_id),
-                            Chromosome = chr_norm, Position = pos_norm, Ref = ref_norm,
-                            Alt = alt_norm, Input_Mutation = input_mutation_info,
-                            Fragment_Id = fragment_name, Fragment_QC = "Fragment with badly oriented reads",
-                            Fragment_Status_Simple = NA_character_, Fragment_Status_Detail = NA_character_,
-                            Fragment_Size = NA_integer_, Read_5p_Status = NA_character_,
-                            Read_3p_Status = NA_character_, BASE_5p = NA_character_, BASE_3p = NA_character_,
-                            BASQ_5p = NA_character_, BASQ_3p = NA_character_,
-                            Position_5p = NA_integer_, Position_3p = NA_integer_,
-                            VAF = NA_real_
-                        )
-                    }
-                )
-
-                df_fragments_info_badly_oriented <- data.table::rbindlist(
-                    list_fragments_info_badly_oriented,
-                    use.names = TRUE, fill = TRUE
-                )
-
-                # Add to the final df
-                df_fragments_info_final <- data.table::rbindlist(
-                    list(df_fragments_info_final, df_fragments_info_badly_oriented),
-                    use.names = TRUE, fill = TRUE
-                )
-            }
-        }
-
-        # Check that there are well-oriented reads to be processed
+        # Check that there are reads to be processed
         if (is.null(df_sam)) {
             warning(sprintf(
                 "No read covers the position of interest for the mutation %s:%d:%s>%s. Skipping.",

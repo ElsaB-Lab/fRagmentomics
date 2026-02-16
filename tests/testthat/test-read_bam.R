@@ -1,4 +1,4 @@
-test_that("read_bam returns expected well/badly oriented reads (small BAM)", {
+test_that("read_bam returns expected reads as a data.frame (small BAM)", {
   bam_test <- system.file("testdata/bam/", "chr17_examples.sorted.bam", package = "fRagmentomics")
 
   result <- read_bam(
@@ -16,11 +16,10 @@ test_that("read_bam returns expected well/badly oriented reads (small BAM)", {
     )
   )
 
-  # The result must be a list with well_oriented and badly_oriented elements
-  expect_type(result, "list")
-  expect_setequal(names(result), c("well_oriented", "badly_oriented"))
+  # The result must be a data.frame (not a list)
+  expect_s3_class(result, "data.frame")
 
-  # Expected dataframe for well_oriented reads
+  # Expected dataframe for reads
   expected_df <- data.frame(
     QNAME = c(
       "06106eKSy:0100",
@@ -57,16 +56,15 @@ test_that("read_bam returns expected well/badly oriented reads (small BAM)", {
     stringsAsFactors = FALSE
   )
 
-  # Check that well_oriented exists and contains expected columns
-  expect_s3_class(result$well_oriented, "data.frame")
+  # Check expected columns
   expected_cols <- c("QNAME", "FLAG", "RNAME", "POS", "TLEN", "MAPQ", "CIGAR", "RNEXT", "PNEXT", "SEQ", "QUAL")
-  expect_setequal(colnames(result$well_oriented), expected_cols)
+  expect_setequal(colnames(result), expected_cols)
 
   # Sort both dataframes for stable comparison
-  ord_res <- order(result$well_oriented$QNAME, result$well_oriented$POS, na.last = TRUE)
+  ord_res <- order(result$QNAME, result$POS, na.last = TRUE)
   ord_exp <- order(expected_df$QNAME, expected_df$POS, na.last = TRUE)
 
-  res_cmp <- result$well_oriented[ord_res, expected_cols, drop = FALSE]
+  res_cmp <- result[ord_res, expected_cols, drop = FALSE]
   exp_cmp <- expected_df[ord_exp, expected_cols, drop = FALSE]
 
   # Harmonize integer/numeric types
@@ -76,9 +74,6 @@ test_that("read_bam returns expected well/badly oriented reads (small BAM)", {
     exp_cmp[[cc]] <- as.integer(exp_cmp[[cc]])
   }
   expect_equal(res_cmp, exp_cmp, ignore_attr = TRUE)
-
-  # badly_oriented must be NULL if no mis-oriented reads are present
-  expect_true(is.null(result$badly_oriented) || nrow(result$badly_oriented) >= 0)
 })
 
 test_that("read_bam returns expected columns on larger window (cfDNA BAM)", {
@@ -99,17 +94,11 @@ test_that("read_bam returns expected columns on larger window (cfDNA BAM)", {
     )
   )
 
-  # The result must be a list with potential well_oriented/badly_oriented dataframes
-  expect_type(result, "list")
+  # The result must be a data.frame
+  expect_s3_class(result, "data.frame")
 
   expected_cols <- c("QNAME", "FLAG", "RNAME", "POS", "TLEN", "MAPQ", "CIGAR", "RNEXT", "PNEXT", "SEQ", "QUAL")
-
-  if (!is.null(result$well_oriented)) {
-    expect_true(all(expected_cols %in% colnames(result$well_oriented)))
-  }
-  if (!is.null(result$badly_oriented)) {
-    expect_true(all(expected_cols %in% colnames(result$badly_oriented)))
-  }
+  expect_true(all(expected_cols %in% colnames(result)))
 })
 
 test_that("read_bam returns NULL when no reads are found", {
@@ -146,9 +135,9 @@ test_that("read_bam detects missing required columns", {
     )
   )
 
-  skip_if(is.null(result$well_oriented), "No well_oriented reads to test column deletion.")
+  skip_if(is.null(result), "No reads to test column deletion.")
 
-  df <- result$well_oriented
+  df <- result
   # Simulate deletion of an essential column
   df_no_qual <- df[, setdiff(names(df), "QUAL"), drop = FALSE]
 

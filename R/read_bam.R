@@ -12,25 +12,21 @@
 #' 4.  The names ('QNAME') of the fragments corresponding to these covering reads are collected.
 #' 5.  The function then selects **all** reads from the initially fetched data that share these fragment names, thereby
 #'     retrieving the mates even if they did not directly cover the variant position.
-#' 6.  A final filter is applied to retain only properly oriented pairs, where the read and its mate have opposite strand orientations.
+#' 6.  The function returns all reads belonging to the fragments of interest.
 #'
 #' @inheritParams run_fRagmentomics
 #' @param chr Character. Chromosome of interest.
 #' @param pos Integer. Genomic position of interest.
 #'
-#' @return A named list with two elements:
-#' \describe{
-#'   \item{well_oriented}{A data.frame of reads whose strand orientation differs from their mates (properly oriented). May be \code{NULL} if none found.}
-#'   \item{badly_oriented}{A data.frame of reads whose strand orientation matches their mates (improperly oriented). May be \code{NULL} if none found.}
-#' }
+#' @return A data.frame of reads belonging to fragments covering the position of interest,
+#'   or \code{NULL} if no reads cover the position.
 #'
 #' @importFrom Rsamtools ScanBamParam scanBam
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
-#' @importFrom Rsamtools bamFlagAsBitMatrix
-#'
 #' @keywords internal
-read_bam <- function(bam, chr, pos, neg_offset_mate_search, pos_offset_mate_search,
+read_bam <- function(
+    bam, chr, pos, neg_offset_mate_search, pos_offset_mate_search,
     flag_bam_list) {
     # --------------------------------------- Define region and flags for a
     # single, filtered read from the BAM file
@@ -38,17 +34,23 @@ read_bam <- function(bam, chr, pos, neg_offset_mate_search, pos_offset_mate_sear
     start_ext <- max(1, pos + neg_offset_mate_search)
     end_ext <- pos + pos_offset_mate_search
 
-    region_ext <- GenomicRanges::GRanges(seqnames = chr, ranges = IRanges::IRanges(start = start_ext,
-        end = end_ext))
+    region_ext <- GenomicRanges::GRanges(seqnames = chr, ranges = IRanges::IRanges(
+        start = start_ext,
+        end = end_ext
+    ))
 
     # Generate the flag vector using the user-provided list
     scan_flag <- do.call(Rsamtools::scanBamFlag, flag_bam_list)
 
-    what_to_scan <- c("qname", "flag", "rname", "pos", "isize", "mapq", "cigar",
-        "mrnm", "mpos", "seq", "qual")
+    what_to_scan <- c(
+        "qname", "flag", "rname", "pos", "isize", "mapq", "cigar",
+        "mrnm", "mpos", "seq", "qual"
+    )
 
-    param_ext <- Rsamtools::ScanBamParam(which = region_ext, what = what_to_scan,
-        flag = scan_flag)
+    param_ext <- Rsamtools::ScanBamParam(
+        which = region_ext, what = what_to_scan,
+        flag = scan_flag
+    )
 
     bam_list <- Rsamtools::scanBam(bam, param = param_ext)[[1]]
 
@@ -71,11 +73,13 @@ read_bam <- function(bam, chr, pos, neg_offset_mate_search, pos_offset_mate_sear
     # --------------------------------------- Convert to a dataframe and find
     # reads covering the position of interest
     # ---------------------------------------
-    df_sam_filtered <- data.frame(QNAME = as.character(bam_list$qname), FLAG = as.integer(bam_list$flag),
+    df_sam_filtered <- data.frame(
+        QNAME = as.character(bam_list$qname), FLAG = as.integer(bam_list$flag),
         RNAME = as.character(bam_list$rname), POS = as.integer(bam_list$pos), TLEN = as.integer(bam_list$isize),
         MAPQ = as.integer(bam_list$mapq), CIGAR = as.character(bam_list$cigar), RNEXT = as.character(bam_list$mrnm),
         PNEXT = as.integer(bam_list$mpos), SEQ = as.character(bam_list$seq), QUAL = as.character(bam_list$qual),
-        stringsAsFactors = FALSE)
+        stringsAsFactors = FALSE
+    )
 
     read_width <- get_cigar_width(df_sam_filtered$CIGAR)
     read_end <- df_sam_filtered$POS + read_width - 1
@@ -92,24 +96,5 @@ read_bam <- function(bam, chr, pos, neg_offset_mate_search, pos_offset_mate_sear
     fragment_name_covering <- df_sam_filtered$QNAME %in% fragments_of_interest
     df_reads_of_covering_fragments <- df_sam_filtered[fragment_name_covering, ]
 
-    # --------------------------------------- Select all reads with a different
-    # orientation ---------------------------------------
-    flag_matrix <- bamFlagAsBitMatrix(df_reads_of_covering_fragments$FLAG)
-
-    # Keep only the read with a different orientation
-    well_oriented_reads <- flag_matrix[, "isMinusStrand"] != flag_matrix[, "isMateMinusStrand"]
-    df_well_oriented_reads <- df_reads_of_covering_fragments[well_oriented_reads,
-        , drop = FALSE]
-    df_badly_oriented_reads <- df_reads_of_covering_fragments[!well_oriented_reads,
-        , drop = FALSE]
-
-    if (nrow(df_well_oriented_reads) == 0) {
-        df_well_oriented_reads <- NULL
-    }
-
-    if (nrow(df_badly_oriented_reads) == 0) {
-        df_badly_oriented_reads <- NULL
-    }
-
-    return(list(well_oriented = df_well_oriented_reads, badly_oriented = df_badly_oriented_reads))
+    return(df_reads_of_covering_fragments)
 }

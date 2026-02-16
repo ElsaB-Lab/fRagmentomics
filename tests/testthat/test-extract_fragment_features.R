@@ -173,10 +173,11 @@ test_that("QC failure returns a single-row placeholder list with NAs and Fragmen
     expect_true(is.na(res$VAF))
 })
 
-test_that("Returns fail object when not exactly one first mate (invalid R1/R2 pairing)", {
+test_that("QC failure for invalid R1/R2 pairing is handled via process_fragment_reads_qc", {
     df <- .make_df_sam()
 
-    # Capture the result instead of expecting an error
+    # Simulate the QC function detecting the invalid pairing and returning
+    # the appropriate message (this check now lives in process_fragment_reads_qc)
     result <- with_mocked_bindings(
         fRagmentomics:::extract_fragment_features(
             df_sam = df,
@@ -188,14 +189,8 @@ test_that("Returns fail object when not exactly one first mate (invalid R1/R2 pa
             fasta_fafile = NULL, fasta_seq = NULL,
             input_mutation_info = "chr1:1:A>T"
         ),
-        # Mock QC to pass the first check
-        process_fragment_reads_qc = function(df_fragment_reads, chr) "",
-        # Mock flags to simulate invalid R1/R2 pairing
-        bamFlagAsBitMatrix = function(flag_vec) {
-            cbind(
-                isFirstMateRead = c(TRUE, TRUE), # <- invalid (sum != 1)
-                isMinusStrand   = c(FALSE, TRUE)
-            )
+        process_fragment_reads_qc = function(df_fragment_reads, chr) {
+            "Fragment is not a valid R1/R2 pair"
         }
     )
 
@@ -206,10 +201,11 @@ test_that("Returns fail object when not exactly one first mate (invalid R1/R2 pa
     expect_true(is.na(result$Fragment_Status_Simple))
 })
 
-test_that("Returns fail object when not exactly one forward and one reverse read", {
+test_that("QC failure for badly oriented reads is handled via process_fragment_reads_qc", {
     df <- .make_df_sam()
 
-    # Capture the result instead of expecting an error
+    # Simulate the QC function detecting bad orientation and returning
+    # the appropriate message (this check now lives in process_fragment_reads_qc)
     result <- with_mocked_bindings(
         fRagmentomics:::extract_fragment_features(
             df_sam = df,
@@ -221,20 +217,13 @@ test_that("Returns fail object when not exactly one forward and one reverse read
             fasta_fafile = NULL, fasta_seq = NULL,
             input_mutation_info = "chr1:1:A>T"
         ),
-        # Mock QC to pass the first check
-        process_fragment_reads_qc = function(df_fragment_reads, chr) "",
-        # Mock flags to simulate invalid strand orientation
-        bamFlagAsBitMatrix = function(flag_vec) {
-            cbind(
-                isFirstMateRead = c(TRUE, FALSE),
-                isMinusStrand   = c(FALSE, FALSE) # <- invalid (sum != 1)
-            )
+        process_fragment_reads_qc = function(df_fragment_reads, chr) {
+            "Badly oriented reads"
         }
     )
 
     # Verify that the function returned the correct failure message
-    expect_match(result$Fragment_QC, "does not have one forward")
-    expect_match(result$Fragment_QC, "and one reverse read")
+    expect_match(result$Fragment_QC, "Badly oriented reads")
 
     # Verify that analysis columns are NA
     expect_true(is.na(result$Fragment_Status_Simple))

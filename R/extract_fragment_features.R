@@ -9,8 +9,8 @@
 #' @details
 #' The function executes the following pipeline for each fragment:
 #' 1.  It subsets the reads from 'df_sam' that match the given 'fragment_name'.
-#' 2.  It performs initial quality control checks (e.g., proper pairing,
-#'     chromosome consistency) via 'process_fragment_reads_qc'.
+#' 2.  It performs quality control checks (e.g., proper pairing, chromosome
+#'     consistency, strand orientation) via 'process_fragment_reads_qc'.
 #' 3.  It identifies the 5' (forward strand) and 3' (reverse strand) reads
 #'     based on their SAM FLAGs.
 #' 4.  If 'remove_softclip' is 'TRUE', it trims soft-clipped bases from the
@@ -64,25 +64,6 @@ extract_fragment_features <- function(
     # Get a numeric matrix of FLAG attributes
     # for both reads in the fragment.
     flag_matrix <- bamFlagAsBitMatrix(df_fragment_reads$FLAG)
-
-    # Sanity check that the fragment is a valid pair.  It must contain exactly
-    # one 'first mate' read.
-    if (sum(flag_matrix[, "isFirstMateRead"]) != 1) {
-        fragment_qc <- sprintf("Fragment '%s' is not a valid R1/R2 pair.", fragment_name)
-        return(return_fail_qc_fragment(
-            fragment_qc, sample_id, chr, pos, ref, alt, input_mutation_info, fragment_name
-        ))
-    }
-    # It must contain one forward and one reverse read.
-    if (sum(flag_matrix[, "isMinusStrand"]) != 1) {
-        fragment_qc <- sprintf(paste(
-            "Fragment '%s' does not have one forward",
-            "and one reverse read."
-        ), fragment_name)
-        return(return_fail_qc_fragment(
-            fragment_qc, sample_id, chr, pos, ref, alt, input_mutation_info, fragment_name
-        ))
-    }
 
     # Identify the row index of the 5p read (forward strand, where
     # isMinusStrand is 0).

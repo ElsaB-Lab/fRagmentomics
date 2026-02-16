@@ -12,7 +12,12 @@
 #'       \item *Mapping*: Both reads must have valid positions (POS != 0).
 #'       \item *Chromosome*: Both reads must be on the expected chromosome.
 #'       \item *Consistency*: The mate information (RNEXT) must match the current chromosome.
+#'       \item *Pairing*: The fragment must contain exactly one R1 and one R2 read.
+#'       \item *Orientation*: Both reads must have opposite strand orientations
+#'         (checked directly via isMinusStrand of each read).
 #'     }
+#'   \item **1 Read**: The strand orientation is inferred from the FLAG bits
+#'     (isMinusStrand vs isMateMinusStrand) of the available read.
 #' }
 #'
 #' @inheritParams extract_fragment_features
@@ -89,6 +94,31 @@ process_fragment_reads_qc <- function(df_fragment_reads, chr) {
         # Verify that POS and PNEXT are strictly positive (mapped)
         if (any(is.na(df_fragment_reads$POS)) || any(df_fragment_reads$POS == 0)) {
             qc_messages <- c(qc_messages, "One or both reads are unmapped (POS=0 or NA)")
+        }
+
+        # Test 5: Valid Pair (Must contain exactly one R1 and one R2)
+        # Test 6: Strand Orientation (Must have one forward and one reverse read)
+        # When both reads are present, we check their actual strands directly
+        # rather than relying on isMateMinusStrand which could be inconsistent.
+        flag_matrix <- Rsamtools::bamFlagAsBitMatrix(df_fragment_reads$FLAG)
+
+        if (sum(flag_matrix[, "isFirstMateRead"]) != 1) {
+            qc_messages <- c(qc_messages, "Fragment is not a valid R1/R2 pair")
+        }
+
+        if (sum(flag_matrix[, "isMinusStrand"]) != 1) {
+            qc_messages <- c(qc_messages, "Badly oriented reads")
+        }
+    }
+
+    # --- CASE C: Strand Orientation for single-read fragments ---
+    # When the mate was not loaded, we can still infer orientation from the
+    # FLAG of the available read: it encodes both its own strand (isMinusStrand)
+    # and its mate's strand (isMateMinusStrand).
+    if (num_reads == 1) {
+        flag_matrix <- Rsamtools::bamFlagAsBitMatrix(df_fragment_reads$FLAG[1])
+        if (flag_matrix[, "isMinusStrand"] == flag_matrix[, "isMateMinusStrand"]) {
+            qc_messages <- c(qc_messages, "Badly oriented reads")
         }
     }
 

@@ -1,12 +1,27 @@
 library(testthat)
 
 # --- Helper to generate synthetic read dataframes ---
-make_reads <- function(n = 2, rname = "chr1", rnext = "=", pos = 100, tlen = 167) {
+# FLAG defaults: 83L (first-in-pair, reverse strand) + 163L (second-in-pair, forward strand)
+# This represents a properly oriented, valid R1/R2 pair.
+make_reads <- function(n = 2, rname = "chr1", rnext = "=", pos = 100, tlen = 167,
+                       flag = NULL) {
+    if (is.null(flag)) {
+        if (n == 0) {
+            flag <- integer(0)
+        } else if (n == 1) {
+            flag <- 83L
+        } else if (n == 2) {
+            flag <- c(83L, 163L)
+        } else {
+            flag <- rep(83L, n)
+        }
+    }
     data.frame(
         RNAME = rep(rname, n),
         RNEXT = rep(rnext, n),
         POS = rep(pos, n),
         TLEN = rep(tlen, n),
+        FLAG = as.integer(flag),
         stringsAsFactors = FALSE
     )
 }
@@ -115,8 +130,9 @@ test_that("Case B: Handles multiple errors simultaneously", {
     df_multi <- data.frame(
         RNAME = c("chr2", "chr2"),
         RNEXT = c("=", "="),
-        POS = c(0, 0),
-        TLEN = c(100, -100),
+        POS = c(0L, 0L),
+        TLEN = c(100L, -100L),
+        FLAG = c(83L, 163L),
         stringsAsFactors = FALSE
     )
 
