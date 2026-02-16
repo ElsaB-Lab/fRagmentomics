@@ -1,6 +1,6 @@
 Package: fRagmentomics
 Title: Extract Fragmentomics Features and Mutational Status
-Version: 0.99.2
+Version: 0.99.3
 Authors@R: c(
     person("Killian", "Maudet", email = "killian.maudet@gustaveroussy.fr",
         role = c("aut", "cre"), comment = c(ORCID = "0009-0003-3237-092X")),
@@ -20,10 +20,10 @@ Description: A user-friendly R package that enables the characterization
     and accepts any reference file and species in FASTA format. For each cfDNA
     fragment, fRagmentomics outputs its size, its 3' and 5' sequences, and its
     mutational status.
-    Optionally, when users set apply_bcftools_norm = TRUE, fRagmentomics invokes 
-    the external command-line tool bcftools norm to left-align and normalize variants. 
+    Optionally, when users set apply_bcftools_norm = TRUE, fRagmentomics invokes
+    the external command-line tool bcftools norm to left-align and normalize variants.
     If bcftools is not found on the system PATH while this option is enabled,
-    the function errors. The package does not install external software; see the 
+    the function errors. The package does not install external software; see the
     INSTALL file for per-OS instructions.
 URL: https://github.com/ElsaB-Lab/fRagmentomics
 BugReports: https://github.com/ElsaB-Lab/fRagmentomics/issues

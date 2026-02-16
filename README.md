@@ -1,6 +1,6 @@
 # fRagmentomics <img src="man/figure/logo.svg" align="right" width="150"/>
 
-![Version](https://img.shields.io/badge/version-0.99.2-blue)
+![Version](https://img.shields.io/badge/version-0.99.3-blue)
 [![codecov](https://codecov.io/gh/ElsaB-Lab/fRagmentomics/graph/badge.svg?token=OMTSCRO7LJ)](https://codecov.io/gh/ElsaB-Lab/fRagmentomics)
 
 - [Overview](#overview)

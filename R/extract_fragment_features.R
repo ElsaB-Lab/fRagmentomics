@@ -19,7 +19,7 @@
 #'     mutation status for each individual read at the variant position.
 #' 6.  It calculates the precise fragment size using 'get_fragment_size'.
 #' 7.  It consolidates the two read statuses into a final fragment status
-#'     (e.g., 'MUT', 'DISCORDANT') using 'get_mutation_status_of_fragment'.
+#'     (e.g., 'MUT', 'N/I') using 'get_mutation_status_of_fragment'.
 #' 8.  It assembles and returns a single-row data frame containing all
 #'     extracted information.
 #'
