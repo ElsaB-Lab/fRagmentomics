@@ -53,20 +53,20 @@ df_motif_sample <- data.frame(
 test_that("errors for invalid arguments", {
   # col_z = NULL but vals_z provided
   expect_error(
-    plot_qqseqlogo_meme(df_motif_sample, col_z = NULL, vals_z = "Short"),
+    plot_ggseqlogo_meme(df_motif_sample, col_z = NULL, vals_z = "Short"),
     regexp = "If 'col_z' is NULL, 'vals_z' must also be NULL\\."
   )
 
   # Non-existent grouping column (use fixed match to avoid regex quirks)
   expect_error(
-    plot_qqseqlogo_meme(df_motif_sample, col_z = "NonExistentCol"),
+    plot_ggseqlogo_meme(df_motif_sample, col_z = "NonExistentCol"),
     regexp = "Column 'NonExistentCol' not found in the dataframe.",
     fixed = TRUE
   )
 
   # Invalid motif_type
   expect_error(
-    plot_qqseqlogo_meme(df_motif_sample, motif_type = "InvalidType"),
+    plot_ggseqlogo_meme(df_motif_sample, motif_type = "InvalidType"),
     regexp = "motif_type' must be 'Start', 'End', or 'Both'\\."
   )
 })
@@ -76,7 +76,7 @@ test_that("errors for invalid arguments", {
 test_that("ungrouped and grouped analyses return ggplot and facet labels", {
   # Ungrouped (default 'Both'); use k=2 for deterministic counts
   p_ungrouped <- suppressWarnings(
-    plot_qqseqlogo_meme(df_motif_sample, col_z = NULL, motif_size = 2)
+    plot_ggseqlogo_meme(df_motif_sample, col_z = NULL, motif_size = 2)
   )
   expect_s3_class(p_ungrouped, "ggplot")
 
@@ -89,7 +89,7 @@ test_that("ungrouped and grouped analyses return ggplot and facet labels", {
 
   # Grouped with two groups; accept either exact N or implementation-dependent N
   p_grouped <- suppressWarnings(
-    plot_qqseqlogo_meme(df_motif_sample, vals_z = c("Short", "Long"), motif_size = 3)
+    plot_ggseqlogo_meme(df_motif_sample, vals_z = c("Short", "Long"), motif_size = 3)
   )
   expect_s3_class(p_grouped, "ggplot")
 
@@ -108,7 +108,7 @@ test_that("ungrouped and grouped analyses return ggplot and facet labels", {
 
 test_that("motif_type 'Start', 'End', and 'Both' produce expected structure", {
   # Start (k=2)
-  p_start <- plot_qqseqlogo_meme(df_motif_sample, motif_type = "Start", motif_size = 2, vals_z = "Short")
+  p_start <- plot_ggseqlogo_meme(df_motif_sample, motif_type = "Start", motif_size = 2, vals_z = "Short")
   expect_s3_class(p_start, "ggplot")
   b_start <- ggplot2::ggplot_build(p_start)
   k_start <- round(max(b_start$data[[1]]$x))
@@ -116,14 +116,14 @@ test_that("motif_type 'Start', 'End', and 'Both' produce expected structure", {
   expect_false("GeomVline" %in% sapply(p_start$layers, function(l) class(l$geom)[1]))
 
   # End (k=2)
-  p_end <- plot_qqseqlogo_meme(df_motif_sample, motif_type = "End", motif_size = 2, vals_z = "Short")
+  p_end <- plot_ggseqlogo_meme(df_motif_sample, motif_type = "End", motif_size = 2, vals_z = "Short")
   expect_s3_class(p_end, "ggplot")
   b_end <- ggplot2::ggplot_build(p_end)
   k_end <- round(max(b_end$data[[1]]$x))
   expect_equal(k_end, 2)
 
   # Both (k=2 per side ⇒ 2 + 1 + 2)
-  p_both <- suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, motif_size = 2, vals_z = "Short"))
+  p_both <- suppressWarnings(plot_ggseqlogo_meme(df_motif_sample, motif_size = 2, vals_z = "Short"))
   expect_s3_class(p_both, "ggplot")
   b_both <- ggplot2::ggplot_build(p_both)
   k_both <- round(max(b_both$data[[1]]$x))
@@ -134,7 +134,7 @@ test_that("motif_type 'Start', 'End', and 'Both' produce expected structure", {
 test_that("warnings: motif_size capped when too large; short sequences per-group noted", {
   # Start: we should see the global capping message
   wrn_start <- .capture_warnings(
-    plot_qqseqlogo_meme(df_motif_sample, motif_type = "Start", motif_size = 3)
+    plot_ggseqlogo_meme(df_motif_sample, motif_type = "Start", motif_size = 3)
   )
   expect_true(
     any(grepl("Requested 'motif_size", wrn_start)),
@@ -143,7 +143,7 @@ test_that("warnings: motif_size capped when too large; short sequences per-group
 
   # End: depending on data, either capping happens OR (in other datasets) short-sequence removal
   wrn_end <- .capture_warnings(
-    plot_qqseqlogo_meme(df_motif_sample, motif_type = "End", motif_size = 3, vals_z = "Long")
+    plot_ggseqlogo_meme(df_motif_sample, motif_type = "End", motif_size = 3, vals_z = "Long")
   )
   expect_true(
     any(grepl("Requested 'motif_size", wrn_end)) ||
@@ -158,7 +158,7 @@ test_that("behaves gracefully when nothing remains to plot (returns empty ggplot
     Fragment_Bases_3p = "NNN",
     Fragment_Status_Simple = "A"
   )
-  p_empty <- suppressWarnings(plot_qqseqlogo_meme(df_only_n))
+  p_empty <- suppressWarnings(plot_ggseqlogo_meme(df_only_n))
   expect_s3_class(p_empty, "ggplot")
   expect_identical(p_empty$labels$title, "No data to display")
 })
@@ -168,7 +168,7 @@ test_that("behaves gracefully when nothing remains to plot (returns empty ggplot
 test_that("custom axis labels reflect motif_type", {
   # Start, k=3 (will cap if needed)
   p_start <- suppressWarnings(
-    plot_qqseqlogo_meme(df_motif_sample, motif_type = "Start", motif_size = 3, vals_z = "Short")
+    plot_ggseqlogo_meme(df_motif_sample, motif_type = "Start", motif_size = 3, vals_z = "Short")
   )
   b_start <- ggplot2::ggplot_build(p_start)
   idx_text <- .find_geom_idx(p_start, "GeomText")
@@ -177,7 +177,7 @@ test_that("custom axis labels reflect motif_type", {
 
   # End, k=3 (will cap if needed)
   p_end <- suppressWarnings(
-    plot_qqseqlogo_meme(df_motif_sample, motif_type = "End", motif_size = 3, vals_z = "Short")
+    plot_ggseqlogo_meme(df_motif_sample, motif_type = "End", motif_size = 3, vals_z = "Short")
   )
   b_end <- ggplot2::ggplot_build(p_end)
   idx_text_e <- .find_geom_idx(p_end, "GeomText")
@@ -185,7 +185,7 @@ test_that("custom axis labels reflect motif_type", {
   expect_equal(lab_end, as.character((-2):-1))
 
   # Both, k=2 per side
-  p_both <- plot_qqseqlogo_meme(df_motif_sample, motif_type = "Both", motif_size = 2, vals_z = "Short")
+  p_both <- plot_ggseqlogo_meme(df_motif_sample, motif_type = "Both", motif_size = 2, vals_z = "Short")
   b_both <- ggplot2::ggplot_build(p_both)
   idx_text_b <- .find_geom_idx(p_both, "GeomText")
   lab_both <- b_both$data[[idx_text_b]]$label
@@ -196,7 +196,7 @@ test_that("custom axis labels reflect motif_type", {
 
 test_that("named nucleotide colors are applied; '-' is ignored (logo separator)", {
   custom_cols <- c(A = "blue", C = "red", G = "green", T = "purple", "-" = "grey")
-  p <- suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = custom_cols))
+  p <- suppressWarnings(plot_ggseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = custom_cols))
   b <- ggplot2::ggplot_build(p)
   used <- unique(b$data[[1]]$fill)
   exp <- c("blue", "red", "green", "purple")
@@ -204,7 +204,7 @@ test_that("named nucleotide colors are applied; '-' is ignored (logo separator)"
 })
 
 test_that("RColorBrewer palette name uses four A/C/G/T colors", {
-  p <- suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = "Dark2"))
+  p <- suppressWarnings(plot_ggseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = "Dark2"))
   b <- ggplot2::ggplot_build(p)
   used <- unique(b$data[[1]]$fill)
   exp <- RColorBrewer::brewer.pal(4, "Dark2")
@@ -213,18 +213,18 @@ test_that("RColorBrewer palette name uses four A/C/G/T colors", {
 
 test_that("named vector must include A/C/G/T; unnamed must have 4 colors; invalid palette name errors meaningfully", {
   expect_error(
-    suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = c(A = "blue", C = "red"))),
+    suppressWarnings(plot_ggseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = c(A = "blue", C = "red"))),
     regexp = "Custom colors are incomplete: missing G, T\\."
   )
 
   expect_error(
-    suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = c("red", "green", "blue"))),
+    suppressWarnings(plot_ggseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = c("red", "green", "blue"))),
     regexp = "An unnamed vector must contain exactly 4 colors \\(received: 3\\)\\."
   )
 
   # Non-Brewer single string falls through to "unnamed vector of length 1" case
   expect_error(
-    suppressWarnings(plot_qqseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = "NotAPalette")),
+    suppressWarnings(plot_ggseqlogo_meme(df_motif_sample, motif_size = 1, colors_z = "NotAPalette")),
     regexp = "An unnamed vector must contain exactly 4 colors \\(received: 1\\)\\."
   )
 })
@@ -234,7 +234,7 @@ test_that("user-supplied col_scheme in ... takes precedence over colors_z", {
     chars = c("A", "C", "G", "T"),
     cols  = c("#111111", "#222222", "#333333", "#444444")
   )
-  p <- plot_qqseqlogo_meme(
+  p <- plot_ggseqlogo_meme(
     df_motif_sample,
     motif_size = 1,
     colors_z   = "Set1",
@@ -248,17 +248,17 @@ test_that("user-supplied col_scheme in ... takes precedence over colors_z", {
 # ============== 6) Saving behavior (tempdir only; no interactive ops) =========
 
 test_that("no output_path returns a ggplot object (no saving branch)", {
-  p <- suppressWarnings(plot_qqseqlogo_meme(df_fragments = df_motif_sample))
+  p <- suppressWarnings(plot_ggseqlogo_meme(df_fragments = df_motif_sample))
   expect_s3_class(p, "ggplot")
 })
 
 test_that("valid output_path saves the plot and honors ggsave_params", {
   temp_dir <- tempdir()
-  out_file <- file.path(temp_dir, "qqseqlogo_save.png")
+  out_file <- file.path(temp_dir, "ggseqlogo_save.png")
   if (file.exists(out_file)) file.remove(out_file)
 
   suppressWarnings({
-    plot_qqseqlogo_meme(
+    plot_ggseqlogo_meme(
       df_fragments  = df_motif_sample,
       motif_type    = "Both",
       output_path   = out_file,
@@ -271,15 +271,15 @@ test_that("valid output_path saves the plot and honors ggsave_params", {
 
 test_that("overwriting an existing file is silent (no message required)", {
   temp_dir <- tempdir()
-  out_file <- file.path(temp_dir, "qqseqlogo_overwrite.png")
+  out_file <- file.path(temp_dir, "ggseqlogo_overwrite.png")
 
   suppressWarnings({
-    plot_qqseqlogo_meme(df_fragments = df_motif_sample, output_path = out_file)
+    plot_ggseqlogo_meme(df_fragments = df_motif_sample, output_path = out_file)
   })
   expect_true(file.exists(out_file))
 
   suppressWarnings({
-    plot_qqseqlogo_meme(df_fragments = df_motif_sample, output_path = out_file)
+    plot_ggseqlogo_meme(df_fragments = df_motif_sample, output_path = out_file)
   })
   expect_true(file.exists(out_file))
 
@@ -287,13 +287,13 @@ test_that("overwriting an existing file is silent (no message required)", {
 })
 
 test_that("invalid output_path inputs are ignored and a ggplot is returned", {
-  p_vec <- suppressWarnings(plot_qqseqlogo_meme(
+  p_vec <- suppressWarnings(plot_ggseqlogo_meme(
     df_fragments = df_motif_sample,
     output_path  = c("path1", "path2")
   ))
   expect_s3_class(p_vec, "ggplot")
 
-  p_num <- suppressWarnings(plot_qqseqlogo_meme(
+  p_num <- suppressWarnings(plot_ggseqlogo_meme(
     df_fragments = df_motif_sample,
     output_path  = 123
   ))

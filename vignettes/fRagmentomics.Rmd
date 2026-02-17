@@ -44,7 +44,7 @@ Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. W
 
 **fRagmentomics** addresses this need by providing a robust and flexible R package to integrate cfDNA fragment features with their mutational status. By standardizing the analysis of both SNVs and indels at the single-fragment level, fRagmentomics supports the interpretation of liquid biopsies to distinguish tumoral origin.
 
-This vignette provides a step-by-step walkthrough of the main analysis workflow using the `run_fRagmentomics()` function and demonstrates the package's core visualization capabilities thank to the visualisation functions: `plot_size_distribution()`, `plot_qqseqlogo_meme()`, `plot_freq_barplot()`, `plot_motif_barplot()`.
+This vignette provides a step-by-step walkthrough of the main analysis workflow using the `run_fRagmentomics()` function and demonstrates the package's core visualization capabilities thank to the visualisation functions: `plot_size_distribution()`, `plot_ggseqlogo_meme()`, `plot_freq_barplot()`, `plot_motif_barplot()`.
 
 # Installation
 
@@ -132,16 +132,16 @@ library(dplyr)
 library(fRagmentomics)
 
 # Locate the example files bundled with the package
-mut_file <- system.file(
-  "testdata/mutations", "mutations_cfdna-test-01_chr17_7576000_7579000.tsv",
+mut_file <- system.file("extdata/mutation",
+  "cfdna-egfr-del_chr7_55241864_55243064_10k.mutations.tsv",
   package = "fRagmentomics"
 )
-bam_file <- system.file(
-  "testdata/bam", "cfdna-test-01_chr17_7576000_7579000.bam",
+bam_file <- system.file("extdata/bam",
+  "cfdna-egfr-del_chr7_55241864_55243064_10k.bam",
   package = "fRagmentomics"
 )
-fasta_file <- system.file(
-  "testdata/fasta/hg19", "hg19_chr17_7576000_7579000.fa",
+fasta_file <- system.file("extdata/fasta",
+  "hg19_chr7_55231864_55253064.fa",
   package = "fRagmentomics"
 )
 
@@ -204,7 +204,7 @@ df_frag_basic <- run_fRagmentomics(
   mut = mut_file,
   bam = bam_file,
   fasta = fasta_file,
-  sample_id = "cfdna-test-01",
+  sample_id = "cfdna-egfr-del",
   apply_bcftools_norm = has_bcftools,
   verbose = FALSE,
   n_cores = 2
@@ -235,14 +235,14 @@ df_frag_advanced <- run_fRagmentomics(
   mut = mut_file,
   bam = bam_file,
   fasta = fasta_file,
-  sample_id = "cfdna-test-01",
+  sample_id = "cfdna-egfr-del",
   neg_offset_mate_search = -500,
   pos_offset_mate_search = 500,
   flag_bam_list = list(
     isProperPair = TRUE,
     isUnmappedQuery = FALSE,
-    isSecondaryAlignment = FALSE,
-    isDuplicate = FALSE
+    hasUnmappedMate = FALSE,
+    isSecondaryAlignment = FALSE
   ),
   report_bam_info = TRUE,
   report_softclip = TRUE,
@@ -427,18 +427,19 @@ plot_motif_barplot(
 
 ### End Motif Sequence Logos
 
-To visualize the nucleotide frequency at each position of the fragment ends, the package provides `plot_qqseqlogo_meme()`. This function uses the popular `ggseqlogo` package to create sequence logo plots, which are excellent for identifying conserved patterns or sequence preferences.
+To visualize the nucleotide frequency at each position of the fragment ends, the package provides `plot_ggseqlogo_meme()`. This function uses the popular `ggseqlogo` package to create sequence logo plots, which are excellent for identifying conserved patterns or sequence preferences.
 
 #### 1. Comparing Motifs Between Groups
 
 A common use case is to compare the end-motif patterns of different fragment groups. Here, we'll look at the first 6 bases (`motif_size = 6`) of the 5' end (`motif_type = "Start"`) for `MUT` versus `WT` fragments.
 
 ```{r plot_logo_comparison}
-plot_qqseqlogo_meme(
+plot_ggseqlogo_meme(
   df_fragments = df_frag_basic,
   motif_type = "Start",
   motif_size = 6,
-  vals_z = c("MUT", "WT")
+  vals_z = c("MUT", "WT"),
+  colors_z = c("#F6BD60", "#84A59D", "#FD96A9", "#083D77")
 )
 ```
 
@@ -447,11 +448,12 @@ plot_qqseqlogo_meme(
 You can also analyze a single group in more detail. By setting `motif_type = "Both"`, the function will display the 5'-end motif and the 3'-end motif side-by-side. Let's look at the 4-base motifs for just the `MUT` fragments.
 
 ```{r plot_logo_single_group}
-plot_qqseqlogo_meme(
+plot_ggseqlogo_meme(
   df_fragments = df_frag_basic,
   motif_type = "Both",
   motif_size = 4,
-  vals_z = "MUT"
+  vals_z = "MUT",
+  colors_z = c("#F6BD60", "#84A59D", "#FD96A9", "#083D77")
 )
 ```
 

@@ -1,14 +1,24 @@
 test_that("normalize_to_vcf_rep", {
-  fasta_19 <- system.file("testdata/fasta/hg19", "hg19_chr1_230709546_230710546.fa", package = "fRagmentomics")
-  fasta_38 <- system.file("testdata/fasta/hg38", "hg38_chr1_230709546_230710546.fa", package = "fRagmentomics")
+  # ----------------------------------------------------------------------------------------------
+  # SETUP: Synthetic Reference
+  # Constructed to match the specific logic of the original HG19 snippet at pos 500+
+  # Pattern required for tests:
+  # Pos 501: A
+  # Pos 502: G
+  # Pos 503: G
+  # Pos 504: T
+  # Pos 505: T
+  # Sequence segment: ...AGGTT...
+  # ----------------------------------------------------------------------------------------------
+  seq_chr1 <- paste0(
+    strrep("N", 500), # Padding 1-500
+    "AGGTT", # ROI 501-505
+    strrep("N", 100) # Padding suffix
+  )
+  names(seq_chr1) <- "chr1"
 
-  # Both fastas are in "chrX" format
-  # Load fasta as FaFile
-  fasta_loaded_19 <- FaFile(fasta_19)
-  open(fasta_loaded_19)
-
-  fasta_loaded_38 <- FaFile(fasta_38)
-  open(fasta_loaded_38)
+  fasta_env <- setup_test_fasta(seq_chr1)
+  fasta_loaded <- fasta_env$fa_obj
 
   # --------------------------------------------------------------------------
   # Case 1: SNP (one-based)
@@ -18,7 +28,7 @@ test_that("normalize_to_vcf_rep", {
     pos = 503,
     ref = "G",
     alt = "A",
-    fasta = fasta_loaded_19,
+    fasta_fafile = fasta_loaded,
     one_based = TRUE,
     verbose = TRUE
   )
@@ -35,12 +45,13 @@ test_that("normalize_to_vcf_rep", {
     pos = 503,
     ref = "GTT",
     alt = "-",
-    fasta = fasta_loaded_19,
+    fasta_fafile = fasta_loaded,
     one_based = TRUE,
     verbose = TRUE
   )
   # For a deletion, we expect an anchor base prepended to both REF and ALT,
   # and pos shifts left by 1.
+  # Anchor at 502 is 'G'.
   expect_equal(out2$chr, "chr1")
   expect_equal(out2$pos, 502)
   expect_equal(out2$ref, "GGTT")
@@ -54,10 +65,11 @@ test_that("normalize_to_vcf_rep", {
     pos = 501,
     ref = "",
     alt = "AT",
-    fasta = fasta_loaded_19,
+    fasta_fafile = fasta_loaded,
     one_based = TRUE,
     verbose = TRUE
   )
+  # Anchor at 501 is 'A'.
   expect_equal(out3$chr, "chr1")
   expect_equal(out3$pos, 501)
   expect_equal(out3$ref, "A")
@@ -72,7 +84,7 @@ test_that("normalize_to_vcf_rep", {
     pos = 502,
     ref = "GGTT",
     alt = "G_",
-    fasta = fasta_loaded_19,
+    fasta_fafile = fasta_loaded,
     one_based = TRUE,
     verbose = TRUE
   )
@@ -89,7 +101,7 @@ test_that("normalize_to_vcf_rep", {
     pos = 502,
     ref = "GGTT",
     alt = "A",
-    fasta = fasta_loaded_19,
+    fasta_fafile = fasta_loaded,
     one_based = TRUE,
     verbose = TRUE
   )
@@ -106,7 +118,7 @@ test_that("normalize_to_vcf_rep", {
     pos = 501,
     ref = "A",
     alt = "GAT",
-    fasta = fasta_loaded_19,
+    fasta_fafile = fasta_loaded,
     one_based = TRUE,
     verbose = TRUE
   )
@@ -120,10 +132,10 @@ test_that("normalize_to_vcf_rep", {
   # --------------------------------------------------------------------------
   out7 <- normalize_to_vcf_rep(
     chr = "chr1",
-    pos = 502, # 0-based
+    pos = 502, # 0-based (matches 503 1-based)
     ref = "GT",
     alt = "AC",
-    fasta = fasta_loaded_19,
+    fasta_fafile = fasta_loaded,
     one_based = FALSE,
     verbose = TRUE
   )
@@ -133,31 +145,14 @@ test_that("normalize_to_vcf_rep", {
   expect_equal(out7$alt, "AC")
 
   # --------------------------------------------------------------------------
-  # Case 8: SNP normal case but in hg38 position
-  # --------------------------------------------------------------------------
-  out8 <- normalize_to_vcf_rep(
-    chr = "chr1",
-    pos = 503,
-    ref = "A",
-    alt = "T",
-    fasta = fasta_loaded_38,
-    one_based = TRUE,
-    verbose = TRUE
-  )
-  expect_equal(out8$chr, "chr1")
-  expect_equal(out8$pos, 503)
-  expect_equal(out8$ref, "A")
-  expect_equal(out8$alt, "T")
-
-  # --------------------------------------------------------------------------
-  # Case 9: Check chromosome transformation
+  # Case 8: Check chromosome transformation
   # --------------------------------------------------------------------------
   out8 <- normalize_to_vcf_rep(
     chr = 1,
     pos = 503,
     ref = "G",
     alt = "A",
-    fasta = fasta_loaded_19,
+    fasta_fafile = fasta_loaded,
     one_based = TRUE,
     verbose = TRUE
   )
@@ -167,15 +162,15 @@ test_that("normalize_to_vcf_rep", {
   expect_equal(out8$alt, "A")
 
   # --------------------------------------------------------------------------
-  # Case 10: Check if seq ref != fasta
+  # Case 9: Check if seq ref != fasta
   # --------------------------------------------------------------------------
   expect_warning(
     out9 <- normalize_to_vcf_rep(
       chr = "chr1", # Ensure this matches the FASTA convention
       pos = 503,
-      ref = "T", # Incorrect reference allele
+      ref = "T", # Incorrect reference allele (Actual is G)
       alt = "A",
-      fasta = fasta_loaded_19,
+      fasta_fafile = fasta_loaded,
       one_based = TRUE,
       verbose = TRUE
     ),
@@ -184,7 +179,7 @@ test_that("normalize_to_vcf_rep", {
   expect_null(out9)
 
   # --------------------------------------------------------------------------
-  # Case 11: Expect no message when verbose = FALSE
+  # Case 10: Expect no message when verbose = FALSE
   # --------------------------------------------------------------------------
   expect_no_message(
     out <- normalize_to_vcf_rep(
@@ -192,7 +187,7 @@ test_that("normalize_to_vcf_rep", {
       pos = 503,
       ref = "G",
       alt = "A",
-      fasta = fasta_loaded_19,
+      fasta_fafile = fasta_loaded,
       one_based = TRUE,
       verbose = FALSE
     )
@@ -202,6 +197,5 @@ test_that("normalize_to_vcf_rep", {
   expect_equal(out$ref, "G")
   expect_equal(out$alt, "A")
 
-  close(fasta_loaded_38)
-  close(fasta_loaded_19)
+  cleanup_test_fasta(fasta_env)
 })

@@ -1,5 +1,26 @@
 # fRagmentomics NEWS
 
+## fRagmentomics 0.99.4 (2026-02-17)
+
+### NEW FEATURES
+
+- **Example Dataset**: Added a benchmark case study featuring a 15-bp in-frame deletion in *EGFR* exon 19 (lung cancer cfDNA) to demonstrate indel-specific fragment sizing and genotyping.
+- **Reproducibility Scripts**: Included data generation and anonymization scripts for the test dataset in `inst/scripts/`.
+- **Developer Tools**: Added a pre-commit configuration to standardize the development workflow.
+
+### OTHER CHANGES
+
+- **Documentation**:
+  - Updated README and vignette to incorporate the new case study and illustrative figures.
+- **Testing**: Updated the test suite to include coverage for the new *EGFR* case study.
+
+## fRagmentomics 0.99.3 (2026-02-16)
+
+### OTHER CHANGES
+
+- **QC Logic**: Improved `process_fragment_reads_QC` with updated default parameters and enhanced messaging for failed fragments.
+- **Code Refactoring**: Factorized internal code and replaced `stop()` calls in `extract_fragment_features` to improve robustness.
+
 ## fRagmentomics 0.99.2 (2025-10-28)
 
 ### OTHER CHANGES
@@ -46,7 +67,7 @@
 - Added new plotting functions for in-depth fragment analysis:
   - `plot_size_distribution()` to visualize fragment size distributions.
   - `plot_freq_barplot()` to display nucleotide frequencies in end motifs.
-  - `plot_qqseqlogo_meme()` for generating sequence logo plots of end motifs using `ggseqlogo`.
+  - `plot_ggseqlogo_meme()` for generating sequence logo plots of end motifs using `ggseqlogo`.
   - `plot_motif_barplot()` for generating end motifs in barplot.
 
 ### OTHER CHANGES

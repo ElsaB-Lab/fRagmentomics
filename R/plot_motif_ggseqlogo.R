@@ -71,11 +71,11 @@
 #'
 #' # 1) Default plot: 3-mer from both 5' and 3' ends, separated by a dash,
 #' #    faceted by group ('MUT' and 'WT').
-#' p1 <- plot_qqseqlogo_meme(example_df)
+#' p1 <- plot_ggseqlogo_meme(example_df)
 #' print(p1)
 #'
 #' # 2) Single-end motif: 5-mer from the 5' end only.
-#' p2 <- plot_qqseqlogo_meme(
+#' p2 <- plot_ggseqlogo_meme(
 #'   df_fragments = example_df,
 #'   motif_type   = "Start",
 #'   motif_size   = 5,
@@ -85,7 +85,7 @@
 #'
 #' # 3) Custom colors using an RColorBrewer palette (first 4 colors mapped to A/C/G/T).
 #' #    Note: the '-' separator in 'Both' is not colored.
-#' p3 <- plot_qqseqlogo_meme(
+#' p3 <- plot_ggseqlogo_meme(
 #'   df_fragments = example_df,
 #'   motif_type   = "Both",
 #'   motif_size   = 3,
@@ -96,7 +96,7 @@
 #'
 #' # 4) Fully custom nucleotide colors (named vector).
 #' custom_cols <- c(A = "#1B9E77", C = "#D95F02", G = "#7570B3", T = "#E7298A")
-#' p4 <- plot_qqseqlogo_meme(
+#' p4 <- plot_ggseqlogo_meme(
 #'   df_fragments = example_df,
 #'   motif_type   = "Start",
 #'   motif_size   = 3,
@@ -106,11 +106,11 @@
 #' print(p4)
 #'
 #' # 5) Ungrouped: analyze all fragments together (single facet).
-#' p5 <- plot_qqseqlogo_meme(example_df, col_z = NULL, title = "All fragments pooled")
+#' p5 <- plot_ggseqlogo_meme(example_df, col_z = NULL, title = "All fragments pooled")
 #' print(p5)
 #'
 #' # 6) Passing extra ggseqlogo options via '...' (e.g., stack width and font)
-#' p6 <- plot_qqseqlogo_meme(
+#' p6 <- plot_ggseqlogo_meme(
 #'   df_fragments = example_df,
 #'   motif_type   = "End",
 #'   motif_size   = 4,
@@ -122,7 +122,7 @@
 #'
 #' # 7) Save to file (commented out for CRAN)
 #' # out_file <- file.path(tempdir(), 'motif_logo.png')
-#' # plot_qqseqlogo_meme(
+#' # plot_ggseqlogo_meme(
 #' #   df_fragments  = example_df,
 #' #   motif_type    = 'Both',
 #' #   motif_size    = 3,
@@ -131,14 +131,13 @@
 #' #   ggsave_params = list(width = 7, height = 5, units = 'in', dpi = 300, bg = 'white')
 #' # )
 #'
-plot_qqseqlogo_meme <- function(
-  df_fragments, end_motif_5p = "Fragment_Bases_5p",
-  end_motif_3p = "Fragment_Bases_3p", motif_type = "Both", motif_size = 3, col_z = "Fragment_Status_Simple",
-  vals_z = NULL, colors_z = NULL, title = NULL, output_path = NA_character_, ggsave_params = list(
-    width = 12,
-    height = 6, units = "in", dpi = 300, bg = "white"
-  ), ...
-) {
+plot_ggseqlogo_meme <- function(
+    df_fragments, end_motif_5p = "Fragment_Bases_5p",
+    end_motif_3p = "Fragment_Bases_3p", motif_type = "Both", motif_size = 3, col_z = "Fragment_Status_Simple",
+    vals_z = NULL, colors_z = NULL, title = NULL, output_path = NA_character_, ggsave_params = list(
+      width = 12,
+      height = 6, units = "in", dpi = 300, bg = "white"
+    ), ...) {
   stopifnot(is.data.frame(df_fragments))
   if (!motif_type %in% c("Start", "End", "Both")) {
     stop("motif_type' must be 'Start', 'End', or 'Both'.")

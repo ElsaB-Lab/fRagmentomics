@@ -31,6 +31,7 @@
 - [Explanation of Fragment Size](#explanation-of-fragment-size)
   - [An Indel-Aware Method](#an-indel-aware-method)
   - [Handling Soft-Clipped Bases](#handling-soft-clipped-bases)
+- [Example Dataset: EGFR Exon 19 Deletion Case Study](#example-dataset-egfr-exon-19-deletion-case-study)
 - [Contributing and Bug Reports](#contributing-and-bug-reports)
 - [License](#license)
 
@@ -123,16 +124,16 @@ First, load the library and locate the example files using `system.file()`.
 library(fRagmentomics)
 
 # Locate the example files bundled with the package
-mut_file <- system.file(
-  "testdata/mutations", "mutations_cfdna-test-01_chr17_7576000_7579000.tsv",
+mut_file = system.file("extdata/mutation",
+  "cfdna-egfr-del_chr7_55241864_55243064_10k.mutations.tsv", 
   package = "fRagmentomics"
 )
-bam_file <- system.file(
-  "testdata/bam", "cfdna-test-01_chr17_7576000_7579000.bam",
+bam_file = system.file("extdata/bam",
+  "cfdna-egfr-del_chr7_55241864_55243064_10k.bam", 
   package = "fRagmentomics"
 )
-fasta_file <- system.file(
-  "testdata/fasta/hg19", "hg19_chr17_7576000_7579000.fa",
+fasta_file = system.file("extdata/fasta",
+  "hg19_chr7_55231864_55253064.fa", 
   package = "fRagmentomics"
 )
 ```
@@ -145,13 +146,10 @@ df_fragments <- run_fRagmentomics(
     mut = mut_file,
     bam = bam_file,
     fasta = fasta_file,
-    sample_id = "cfdna-test-01",
+    sample_id = "cfdna-egfr-del",
     apply_bcftools_norm = TRUE,
     n_cores = 1
 )
-
-# View the first few rows of the output data frame
-head(df_fragments)
 ```
 
 <!-- The resulting `df_fragments` data frame contains the per-fragment analysis, ready for exploration and visualization with the package's plotting functions. You can also save this data frame to a tab-separated (`.tsv`) file by providing a path to the `output_path` argument. -->
@@ -172,47 +170,55 @@ The `plot_size_distribution()` function generates density plots or histograms to
 ```r
 # Assuming 'df_fragments' is the output from run_fRagmentomics()
 plot_size_distribution(
-  df_fragments = df_fragments,
+  df_fragments,
   vals_z = c("MUT", "WT"),
   show_histogram = TRUE,
   show_density = TRUE,
-  x_limits = c(100, 420),
-  histo_args = list(alpha = 0.2),
-  density_args = list(linewidth = 1.5)
+  x_limits = c(100,420),
+  histo_args = list(alpha = 0.25),
+  density_args = list(linewidth = 2),
+  histogram_binwidth = 10,
+  colors_z = c("#F6BD60", "#84A59D")
 )
 ```
 
-<img src="man/figure/plot_README_size_distribution.png" align="center" width="700"/>
+<img src="man/figure/plot_README_size_distribution.png" align="center" width="600" height="600"/>
 
 ### 2. End Motif Sequence Logos
 
-The `plot_qqseqlogo_meme()` function creates sequence logo plots to visualize the nucleotide frequency at each position of the fragment ends.
+The `plot_ggseqlogo_meme()` function creates sequence logo plots to visualize the nucleotide frequency at each position of the fragment ends.
 
 ```r
-# Plot the sequence logo for the first 3 bases in 5p and 3p ends of the fragment
-plot_qqseqlogo_meme(
-  df_fragments = df_fragments,
+# Plot the sequence logo for the first 3 bases in 5p and 3p ends of the MUT and WT fragments
+plot_ggseqlogo_meme(
+  df_fragments,
   motif_size = 3,
-  vals_z = c("MUT", "WT")
+  motif_type = "Both",
+  col_z  = "Fragment_Status_Simple",
+  vals_z = c("MUT", "WT"),
+  colors_z = c("#F6BD60", "#84A59D", "#FD96A9", "#083D77")
 )
 ```
 
-<img src="man/figure/plot_README_ggseqlogo.png" align="center" width="750"/>
+<img src="man/figure/plot_README_ggseqlogo.png" align="center" width="650" height="550"/>
 
 ### 3. Overall Nucleotide Frequency
 
 The `plot_freq_barplot()` function creates a faceted bar plot to show the overall proportion of A, C, G, and T within the terminal motifs of fragments.
 
 ```r
-# Analyze the overall nucleotide frequency in the bases of the 5-bases start and end sequences
+# Analyze the overall nucleotide frequency in the bases of the 5-bases start and end sequences of the MUT and WT fragments
 plot_freq_barplot(
-  df_fragments = df_fragments,
+  df_fragments,
+  motif_size = 5,
   motif_type = "Both", # can be changed to "Start" or "End"
-  motif_size = 5
+  col_z  = "Fragment_Status_Simple",
+  vals_z = c("MUT", "WT"),
+  colors_z = c("#F6BD60", "#84A59D")
 )
 ```
 
-<img src="man/figure/plot_README_freq_barplot.png" align="center" width="750"/>
+<img src="man/figure/plot_README_freq_barplot.png" align="center" width="650" height="600"/>
 
 ### 4. Detailed 3-Base Motif Proportions
 
@@ -227,26 +233,32 @@ visualization modes (`representation`):
    represent a log2 fold-change plot between two fragment categories (supports only two categories).
 
 ```r
-# Use the default hierarchical representation to visualize 3-mer proportions
+# Use the default hierarchical representation to visualize 3-mer proportions of the MUT fragments
 plot_motif_barplot(
   df_fragments,
+  motif_type = "Both",
   representation = "split_by_base",
-  vals_z = c("MUT", "WT")
+  vals_z = "MUT",
+  colors_z = c("#F6BD60", "#84A59D", "#FD96A9", "#083D77")
 )
 ```
 
-<img src="man/figure/plot_README_motif_barplot_splitbybase.png" align="center" width="1400"/>
+<img src="man/figure/plot_README_motif_barplot_splitbybase.png" align="center" width="600" height="600"/>
 
 ```r
 # Use the side-by-side representation to visualize 3-mer proportions
 plot_motif_barplot(
   df_fragments,
+  motif_type = "Both",
   representation = "split_by_motif",
-  vals_z = c("MUT", "WT")
+  motif_start = c("A", "C"),
+  vals_z = c("MUT", "WT"),
+  colors_z = c("#F6BD60", "#84A59D")
 )
+
 ```
 
-<img src="man/figure/plot_README_freq_barplot_splitbymotif.png" align="center" width="1400"/>
+<img src="man/figure/plot_README_freq_barplot_splitbymotif.png" align="center" width="600" height="600"/>
 
 ```r
 # Use the differential representation to visualize 3-mer proportions
@@ -257,7 +269,7 @@ plot_motif_barplot(
 )
 ```
 
-<img src="man/figure/plot_README_freq_barplot_differential.png" align="center" width="1400"/>
+<img src="man/figure/plot_README_freq_barplot_differential.png" align="center" width="700" height="600"/>
 
 ---
 
@@ -266,8 +278,8 @@ plot_motif_barplot(
 1.  **`bam`**: Path to BAM file containing **paired-end** reads (the package has so far only been tested on BAM files
     from experiments of targeted sequencing of cfDNA).
     The function `run_fRagmentomics` preprocesses the BAM file to select reads relevant to each mutation. By default:
-    _ It only considers reads within a user-configurable window (default=2000 bp window, 1000 bp before - `neg_offset_mate_search` and 1000bp after - `pos_offset_mate_search`).
-    _ It applies a default filter to keep only paired reads (not to be confounded with "properly paired reads") while removing unmapped, secondary, supplementary, and duplicate alignments. This corresponds to the default settings of the `flag_bam_list` argument.
+    - It only considers reads within a user-configurable window (default=2000 bp window, 1000 bp before - `neg_offset_mate_search` and 1000bp after - `pos_offset_mate_search`).
+    - It applies a default filter to keep only paired reads (not to be confounded with "properly paired reads") while removing unmapped, secondary and supplementary alignments. This corresponds to the default settings of the `flag_bam_list` argument.
 
         **NOTE**: The above filtering parameters can be customized when calling the `run_fRagmentomics()` function.
 
@@ -353,8 +365,8 @@ output is a dataframe with one line per fragment and the following headers:
 | 8 - `Fragment_QC`                                                  | Quality control status. Is `"OK"` for valid pairs or contains a failure reason.       |
 | 9 - `Fragment_Status_Simple`                                       | Simplified mutation status of the fragment ("MUT", "WT", "OTH", "N/I").               |
 | 10 - `Fragment_Status_Detail`                                      | Detailed mutation status, created by concatenating read statuses if they differ.      |
-| 11 - `Read_5p_Status`                                              | Mutation status for the 5' read ("MUT", "WT", "NA", "AMB", "DISCORDANT").             |
-| 12 - `Read_3p_Status`                                              | Mutation status for the 3' read ("MUT", "WT", "NA", "AMB", "DISCORDANT").             |
+| 11 - `Read_5p_Status`                                              | Mutation status for the 5' read ("MUT", "WT", "OTH", "AMB", "[MUT/WT/OTH] by CIGAR but potentially [MUT/WT/OTH]").            |
+| 12 - `Read_3p_Status`                                              | Mutation status for the 3' read ("MUT", "WT", "OTH", "AMB", "[MUT/WT/OTH] by CIGAR but potentially [MUT/WT/OTH]").            |
 | 13 - `BASE_5p`                                                     | Base(s) from the 5' read covering the variant position.[¹](#footnote1)                |
 | 14 - `BASE_3p`                                                     | Base(s) from the 3' read covering the variant position.[¹](#footnote1)                |
 | 15 - `BASQ_5p`                                                     | Base quality/qualities from the 5' read covering the variant position.[¹](#footnote1) |
@@ -580,7 +592,7 @@ This column provides a single, high-level interpretation of the fragment's state
 
   - **`AMB`**: The fragment is ambiguous, the evidence is not strong enough to make a high-confidence call (e.g., both reads are ambiguous).
 
-**Tie-breaker for "potentially X":** If one read is a certain class `X` and the other read states "potentially `X`", the fragment resolves to `X` (e.g., `MUT` + “WT by CIGAR but potentially MUT" → **`MUT`**; `WT` + “MUT by CIGAR but potentially WT" → **`WT`**).
+**Tie-breaker for "potentially X":** If one read is a certain class `X` and the other read states "potentially `X`", the fragment resolves to `X` (e.g., `MUT` + "WT by CIGAR but potentially MUT" → **`MUT`**; `WT` + "MUT by CIGAR but potentially WT" → **`WT`**).
 
 For the VAF (variant allele fraction) calculation, fRagmentomics includes the `WT`, `MUT`, and `OTH` categories in the denominator. This differs from some other methods, as we include not only wild-type (WT) fragments but also those with non-target mutations (OTH). See the [Fragment Mutational Status](#fragment-mutational-status) section.
 
@@ -624,6 +636,24 @@ The `remove_softclip` argument gives you control over how to treat the **externa
 - **`remove_softclip = TRUE`**: External soft-clipped bases are treated as technical artifacts. They are trimmed from the reads _before_ any size calculation or other analysis occurs.
 
 <img src="man/figure/Fragment_Size_fRagmentomics.png" align="center" width="700"/>
+
+
+<img src="man/figure/size_compared_to_ref_genome_1.png" align="center" width="700"/>
+<img src="man/figure/size_compared_to_ref_genome_2.png" align="center" width="700"/>
+
+---
+
+## Example Dataset: EGFR Exon 19 Deletion Case Study
+
+This package includes a test case to demonstrate the library's performance on indels and to allow users to test all functionalities. The dataset is based on a lung cancer cfDNA sample featuring a **15-bp in-frame deletion** in _EGFR_ exon 19.
+
+- **Physical sizing:** `fRagmentomics` accurately captures the 15-bp physical shift of mutated fragments, whereas reference-based tools may overestimate the size by relying on genomic coordinates.
+- **Genotyping rescue:** The package employs a sequence-comparison logic to resolve fragment-level genotypes even when individual read statuses are ambiguous or inconsistent.
+
+The scripts used to generate, subset, and anonymize the test BAM and FASTA files are available in the package directory:
+`inst/scripts/`
+
+<img src="man/figure/complete_application_example_EGFR.png" align="center" width="1200"/>
 
 ---
 

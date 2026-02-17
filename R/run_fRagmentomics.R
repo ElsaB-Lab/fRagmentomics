@@ -64,15 +64,15 @@
 #' # The package includes small example files to demonstrate its functionality.
 #' # We locate them using system.file().
 #' mut_file <- system.file(
-#'   "extdata", "mutations_cfdna-test-01_chr1_27433000_27435000.tsv",
+#'   "extdata/mutation", "cfdna-egfr-del_chr7_55241864_55243064_10k.mutations.tsv",
 #'   package = "fRagmentomics"
 #' )
 #' bam_file <- system.file(
-#'   "extdata", "cfdna-test-01_chr1_27433000_27435000.bam",
+#'   "extdata/bam", "cfdna-egfr-del_chr7_55241864_55243064_10k.bam",
 #'   package = "fRagmentomics"
 #' )
 #' fasta_file <- system.file(
-#'   "extdata", "hg19_chr1_27433000_27435000.fa",
+#'   "extdata/fasta", "hg19_chr7_55231864_55253064.fa",
 #'   package = "fRagmentomics"
 #' )
 #'
@@ -84,7 +84,7 @@
 #'   mut = mut_file,
 #'   bam = bam_file,
 #'   fasta = fasta_file,
-#'   sample_id = "cfdna-test-01",
+#'   sample_id = "cfdna-egfr-del",
 #'   n_cores = 1L
 #' )
 #'
@@ -93,17 +93,16 @@
 #' print(head(results))
 #'
 run_fRagmentomics <- function(
-  mut, bam, fasta, sample_id = NA_character_, neg_offset_mate_search = -600,
-  pos_offset_mate_search = 600, one_based = TRUE, flag_bam_list = list(
-    isPaired = TRUE,
-    isProperPair = NA, isUnmappedQuery = FALSE, hasUnmappedMate = NA, isMinusStrand = NA,
-    isMateMinusStrand = NA, isFirstMateRead = NA, isSecondMateRead = NA, isSecondaryAlignment = FALSE,
-    isSupplementaryAlignment = FALSE, isNotPassingQualityControls = NA, isDuplicate = NA
-  ),
-  report_bam_info = FALSE, report_softclip = FALSE, report_5p_3p_bases_fragment = 5,
-  remove_softclip = FALSE, retain_fail_qc = FALSE, apply_bcftools_norm = FALSE,
-  tmp_folder = tempdir(), output_path = NA_character_, verbose = FALSE, n_cores = 1
-) {
+    mut, bam, fasta, sample_id = NA_character_, neg_offset_mate_search = -600,
+    pos_offset_mate_search = 600, one_based = TRUE, flag_bam_list = list(
+      isPaired = TRUE,
+      isProperPair = NA, isUnmappedQuery = FALSE, hasUnmappedMate = FALSE, isMinusStrand = NA,
+      isMateMinusStrand = NA, isFirstMateRead = NA, isSecondMateRead = NA, isSecondaryAlignment = FALSE,
+      isSupplementaryAlignment = FALSE, isNotPassingQualityControls = NA, isDuplicate = NA
+    ),
+    report_bam_info = FALSE, report_softclip = FALSE, report_5p_3p_bases_fragment = 5,
+    remove_softclip = FALSE, retain_fail_qc = FALSE, apply_bcftools_norm = FALSE,
+    tmp_folder = tempdir(), output_path = NA_character_, verbose = FALSE, n_cores = 1) {
   # ===========================================
   # Load inputs, check parameters and normalize
   # ===========================================

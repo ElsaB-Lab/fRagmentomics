@@ -1,9 +1,19 @@
 test_that("get_mutation_status_of_read works", {
-  fasta <- system.file("testdata/fasta/hg19/", "hg19_chr1_27433000_27434000.fa", package = "fRagmentomics")
-  fasta_fafile <- Rsamtools::FaFile(fasta)
-  open(fasta_fafile)
+  # ----------------------------------------------------------------------------------------------
+  # SETUP: Standard Synthetic Reference
+  # Context constructed to match HG19 fragment at chr1:495-506: TGGGAAGTCCCT
+  # This covers the range for POS 500 (A) and surrounding Indel tests.
+  # ----------------------------------------------------------------------------------------------
+  seq_chr1 <- paste0(
+    strrep("N", 494), # Padding 1-494
+    "TGGGAAGTCCCT", # ROI 495-506
+    strrep("N", 100) # Padding suffix
+  )
+  names(seq_chr1) <- "chr1"
+  fasta_env <- setup_test_fasta(seq_chr1)
+  fasta_fafile <- fasta_env$fa_obj
 
-  # INSERTIONS =============================================================================================
+  # INSERTIONS ===================================================================================
 
   # REF: AGTCCC
   # MUT: A > AGT
@@ -37,7 +47,6 @@ test_that("get_mutation_status_of_read works", {
   )
   expect_equal(mstat, "MUT")
 
-
   # REF: AGTCCC
   # MUT: A > AGT
   # READ: AGTGT
@@ -54,7 +63,7 @@ test_that("get_mutation_status_of_read works", {
   )
   expect_equal(mstat, "MUT by CIGAR but AMB")
 
-  # Not the good position in the CIGAR
+  # Incorrect position in CIGAR
   mstat <- get_mutation_status_of_read(
     chr                    = "chr1",
     pos                    = 500,
@@ -206,7 +215,7 @@ test_that("get_mutation_status_of_read works", {
   expect_equal(mstat, "WT by CIGAR but potentially MUT")
 
 
-  # DELETION COMPLETE COMPARISON =============================================================================================
+  # DELETION COMPLETE COMPARISON =================================================================
 
   # REF TGGGAAGTCCCT (495-506)
   # MUT: GT > G (501)
@@ -373,7 +382,7 @@ test_that("get_mutation_status_of_read works", {
   )
   expect_equal(mstat, "WT")
 
-  # DELETION COMPLETE COMPARISON =============================================================================================
+  # DELETION COMPLETE COMPARISON =================================================================
 
   # REF TGGGAAGTCCCT (495-506)
   # REF:TGGG / MUT:TGGA
@@ -477,7 +486,12 @@ test_that("get_mutation_status_of_read works", {
   )
   expect_equal(mstat, "OTH")
 
-  # COMPLEX CASES ======================================================================================================
+  # Cleanup standard FASTA
+  cleanup_test_fasta(fasta_env)
+
+  # COMPLEX CASES ================================================================================
+  # SETUP: Complex Synthetic Reference
+  # ----------------------------------------------------------------------------------------------
   sequences <- c(chr1 = "ATCGAGGGGTCCAACCAAGGA")
   fasta_env <- setup_test_fasta(sequences)
 
@@ -613,7 +627,7 @@ test_that("get_mutation_status_of_read works", {
   # REF:  ATCGAGGGGT
   # MUT: A > AGG
   # READ: ATCGAGAGGGGT
-  # Mutation at the end of the repeted sequence
+  # Mutation at the end of the repeated sequence
   mstat <- get_mutation_status_of_read(
     chr = "chr1",
     pos = 5,
@@ -630,7 +644,7 @@ test_that("get_mutation_status_of_read works", {
   # REF:  ATCGAGGGGT
   # MUT: A > AGG
   # READ: ATCGAGAGGGGT
-  # Not the good inserted
+  # Incorrect insertion sequence
   mstat <- get_mutation_status_of_read(
     chr = "chr1",
     pos = 5,
@@ -709,8 +723,9 @@ test_that("get_mutation_status_of_read works", {
 
   cleanup_test_fasta(fasta_env)
 
-  # complex case encountered in real-worl data =========================================================================
-
+  # REAL WORLD COMPLEX CASES =====================================================================
+  # SETUP: Real World Synthetic Reference
+  # ----------------------------------------------------------------------------------------------
   sequences <- c(chr4 = "ACAGCACTATCTGAAACCAGGATGGATTGAATTGAAGGCCAAAGAGAGAGAAGAGATTTAGATGGATTTTAGAGTTCAAATGATATAG")
   fasta_env <- setup_test_fasta(sequences)
 
