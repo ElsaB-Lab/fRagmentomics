@@ -69,22 +69,22 @@ set.seed(42)
 
 # Helper to generate random DNA sequences with base bias
 generate_biased_dna <- function(n_seq, len, prob) {
-    bases <- c('A', 'C', 'G', 'T')
-    replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ''))
+  bases <- c("A", "C", "G", "T")
+  replicate(n_seq, paste(sample(bases, len, replace = TRUE, prob = prob), collapse = ""))
 }
 
 # 50 'MUT' fragments biased toward 'C'
 df_mut <- data.frame(
-    Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
-    Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
-    Fragment_Status_Simple = 'MUT'
+  Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+  Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.2, 0.5, 0.15, 0.15)),
+  Fragment_Status_Simple = "MUT"
 )
 
 # 50 'WT' fragments biased toward 'G'
 df_wt <- data.frame(
-    Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
-    Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
-    Fragment_Status_Simple = 'WT'
+  Fragment_Bases_5p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+  Fragment_Bases_3p = generate_biased_dna(50, 10, prob = c(0.15, 0.15, 0.5, 0.2)),
+  Fragment_Status_Simple = "WT"
 )
 
 # Combine into a single data frame
@@ -98,30 +98,30 @@ print(p1)
 
 # 2) First-nucleotide only (k = 1) on 5' end, with custom colors
 p2 <- plot_freq_barplot(
-    df_fragments = example_df,
-    motif_type   = 'Start',
-    motif_size   = 1,
-    colors_z     = c('MUT' = '#d95f02', 'WT' = '#1b9e77'),
-    title        = "5' First Base Composition"
+  df_fragments = example_df,
+  motif_type   = "Start",
+  motif_size   = 1,
+  colors_z     = c("MUT" = "#d95f02", "WT" = "#1b9e77"),
+  title        = "5' First Base Composition"
 )
 print(p2)
 
 # 3) Ungrouped: overall nucleotide frequencies across all fragments
-p3 <- plot_freq_barplot(example_df, col_z = NULL, title = 'Overall Composition')
+p3 <- plot_freq_barplot(example_df, col_z = NULL, title = "Overall Composition")
 print(p3)
 
 # 4) Subset of groups (if you had >2 groups, e.g., 'MUT', 'WT', 'AMB')
 p4 <- plot_freq_barplot(
-    df_fragments = example_df,
-    vals_z       = c('MUT', 'WT')
+  df_fragments = example_df,
+  vals_z       = c("MUT", "WT")
 )
 print(p4)
 
 # 5) Include non-ACGT characters tallied as 'Other'
-example_df$Fragment_Bases_5p[1:3] <- c('NNNNNNNNNN', 'ACGTNACGTN', 'TTTNAAAAAA')
+example_df$Fragment_Bases_5p[1:3] <- c("NNNNNNNNNN", "ACGTNACGTN", "TTTNAAAAAA")
 p5 <- plot_freq_barplot(example_df,
-    motif_size = 2, drop_non_acgt = FALSE,
-    title = "Including 'Other' (non-ACGT)"
+  motif_size = 2, drop_non_acgt = FALSE,
+  title = "Including 'Other' (non-ACGT)"
 )
 print(p5)
 

@@ -32,11 +32,8 @@ overlaps the queried position.}
 NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.}
 }
 \value{
-A named list with two elements:
-\describe{
-\item{well_oriented}{A data.frame of reads whose strand orientation differs from their mates (properly oriented). May be \code{NULL} if none found.}
-\item{badly_oriented}{A data.frame of reads whose strand orientation matches their mates (improperly oriented). May be \code{NULL} if none found.}
-}
+A data.frame of reads belonging to fragments covering the position of interest,
+or \code{NULL} if no reads cover the position.
 }
 \description{
 This function performs a targeted extraction of sequencing reads from a BAM file. It first fetches reads
@@ -52,7 +49,7 @@ The read retrieval and filtering process follows a multi-step pipeline:
 \item The names ('QNAME') of the fragments corresponding to these covering reads are collected.
 \item The function then selects \strong{all} reads from the initially fetched data that share these fragment names, thereby
 retrieving the mates even if they did not directly cover the variant position.
-\item A final filter is applied to retain only properly oriented pairs, where the read and its mate have opposite strand orientations.
+\item The function returns all reads belonging to the fragments of interest.
 }
 }
 \keyword{internal}

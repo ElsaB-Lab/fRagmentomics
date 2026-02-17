@@ -1,0 +1,54 @@
+repos:
+  # 1. Standard file hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+        args: ["--maxkb=200"]
+      - id: check-yaml
+      - id: check-json
+      # I commented this out so you can commit to 'main' if you want.
+      # Uncomment if you want to force yourself to use branches.
+      # - id: no-commit-to-branch
+      #   args: ['--branch', 'main', '--branch', 'master']
+
+  # 2. R Package Tools (Local System Version)
+  # Use local Conda R instead of building a new one.
+  # This avoid the "Missing dependency: Biostrings" errors.
+  - repo: local
+    hooks:
+      - id: style-files
+        name: Style Files (styler)
+        entry: Rscript -e "styler::style_file(commandArgs(trailingOnly = TRUE))"
+        language: system
+        files: \.[rR](md|nw|markdown)?$
+
+      - id: roxygenize
+        name: Roxygenize (roxygen2)
+        # Re-generates documentation (man/*.Rd) whenever you commit
+        entry: Rscript -e "roxygen2::roxygenise()"
+        language: system
+        files: ^(R/|man/|NAMESPACE|DESCRIPTION)
+        pass_filenames: false
+
+      - id: parsable-R
+        name: Check for valid R syntax
+        entry: Rscript -e "invisible(lapply(commandArgs(trailingOnly = TRUE), parse))"
+        language: system
+        files: \.R$
+
+  # 3. YAML, JSON, Markdown Formatter (Prettier)
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        types_or: [yaml, json, markdown]
+
+  # 4. Shell Formatter
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.12.0-2
+    hooks:
+      - id: shfmt
+        args: ["-i", "2", "-w"]

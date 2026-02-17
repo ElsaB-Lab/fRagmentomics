@@ -27,101 +27,101 @@
 #'
 #' @noRd
 process_fragment_reads_qc <- function(df_fragment_reads, chr) {
-    qc_messages <- c()
-    num_reads <- nrow(df_fragment_reads)
+  qc_messages <- c()
+  num_reads <- nrow(df_fragment_reads)
 
-    # --- CASE A: Abnormal Read Count (Not 2) ---
-    if (num_reads != 2) {
-        # Detailed diagnosis if we have exactly 1 read
-        if (num_reads == 1) {
-            msg <- paste("Fragment has 1 read")
-            read <- df_fragment_reads[1, , drop = FALSE]
-
-            # Normalize mate chromosome info
-            mate_chr <- read$RNEXT
-            if (!is.na(mate_chr) && mate_chr == "=") {
-                mate_chr <- read$RNAME
-            }
-
-            # Diagnosis 1: Mate is unmapped (RNEXT is *)
-            if (is.na(mate_chr) || mate_chr == "*") {
-                msg <- paste(msg, "- Mate is unmapped")
-            }
-            # Diagnosis 2: Translocation (Mate on diff chr, filtered out by read_bam)
-            else if (mate_chr != read$RNAME) {
-                msg <- paste(msg, "- Mate maps to a different chromosome:", mate_chr)
-            }
-            # Diagnosis 3: Far Away (Mate on same chr but outside window, filtered out)
-            else if (mate_chr == read$RNAME) {
-                dist <- if (!is.na(read$TLEN)) abs(read$TLEN) else "NA"
-                msg <- paste(msg, "- Mate maps outside loaded region. TLEN:", dist)
-            }
-        } else {
-            msg <- paste("Fragment has", num_reads, "read(s)")
-        }
-
-        qc_messages <- c(qc_messages, msg)
-    }
-
-    # --- CASE B: Normal Read Count (2 Reads) - Check Consistency ---
-    if (num_reads == 2) {
-        # Use first read to check pairing info consistency
-        read <- df_fragment_reads[1, , drop = FALSE]
-
-        # Normalize mate chromosome
-        mate_chr <- read$RNEXT
-        if (!is.na(mate_chr) && mate_chr == "=") {
-            mate_chr <- read$RNAME
-        }
-
-        # Test 1: Wrong Chromosome (Are the loaded reads actually on the target chr?)
-        if (!all(df_fragment_reads$RNAME == chr)) {
-            qc_messages <- c(qc_messages, paste("Read(s) found on a chromosome other than", chr))
-        }
-
-        # Test 2: Missing Mate Info (RNEXT is *)
-        if (is.na(read$RNEXT) || read$RNEXT == "*") {
-            qc_messages <- c(qc_messages, "Mate chromosome info is not available")
-        }
-
-        # Test 3: Internal Consistency (Do reads claim to be on different chromosomes?)
-        # Even if both reads are present, RNEXT should match RNAME.
-        else if (mate_chr != read$RNAME) {
-            qc_messages <- c(qc_messages, paste("- Mate maps to a different chromosome:", mate_chr))
-        }
-
-        # Test 4: Mapping Status
-        # Verify that POS and PNEXT are strictly positive (mapped)
-        if (any(is.na(df_fragment_reads$POS)) || any(df_fragment_reads$POS == 0)) {
-            qc_messages <- c(qc_messages, "One or both reads are unmapped (POS=0 or NA)")
-        }
-
-        # Test 5: Valid Pair (Must contain exactly one R1 and one R2)
-        # Test 6: Strand Orientation (Must have one forward and one reverse read)
-        # When both reads are present, we check their actual strands directly
-        # rather than relying on isMateMinusStrand which could be inconsistent.
-        flag_matrix <- Rsamtools::bamFlagAsBitMatrix(df_fragment_reads$FLAG)
-
-        if (sum(flag_matrix[, "isFirstMateRead"]) != 1) {
-            qc_messages <- c(qc_messages, "Fragment is not a valid R1/R2 pair")
-        }
-
-        if (sum(flag_matrix[, "isMinusStrand"]) != 1) {
-            qc_messages <- c(qc_messages, "Badly oriented reads")
-        }
-    }
-
-    # --- CASE C: Strand Orientation for single-read fragments ---
-    # When the mate was not loaded, we can still infer orientation from the
-    # FLAG of the available read: it encodes both its own strand (isMinusStrand)
-    # and its mate's strand (isMateMinusStrand).
+  # --- CASE A: Abnormal Read Count (Not 2) ---
+  if (num_reads != 2) {
+    # Detailed diagnosis if we have exactly 1 read
     if (num_reads == 1) {
-        flag_matrix <- Rsamtools::bamFlagAsBitMatrix(df_fragment_reads$FLAG[1])
-        if (flag_matrix[, "isMinusStrand"] == flag_matrix[, "isMateMinusStrand"]) {
-            qc_messages <- c(qc_messages, "Badly oriented reads")
-        }
+      msg <- paste("Fragment has 1 read")
+      read <- df_fragment_reads[1, , drop = FALSE]
+
+      # Normalize mate chromosome info
+      mate_chr <- read$RNEXT
+      if (!is.na(mate_chr) && mate_chr == "=") {
+        mate_chr <- read$RNAME
+      }
+
+      # Diagnosis 1: Mate is unmapped (RNEXT is *)
+      if (is.na(mate_chr) || mate_chr == "*") {
+        msg <- paste(msg, "- Mate is unmapped")
+      }
+      # Diagnosis 2: Translocation (Mate on diff chr, filtered out by read_bam)
+      else if (mate_chr != read$RNAME) {
+        msg <- paste(msg, "- Mate maps to a different chromosome:", mate_chr)
+      }
+      # Diagnosis 3: Far Away (Mate on same chr but outside window, filtered out)
+      else if (mate_chr == read$RNAME) {
+        dist <- if (!is.na(read$TLEN)) abs(read$TLEN) else "NA"
+        msg <- paste(msg, "- Mate maps outside loaded region. TLEN:", dist)
+      }
+    } else {
+      msg <- paste("Fragment has", num_reads, "read(s)")
     }
 
-    fragment_qc <- paste(qc_messages, collapse = " & ")
-    return(fragment_qc)
+    qc_messages <- c(qc_messages, msg)
+  }
+
+  # --- CASE B: Normal Read Count (2 Reads) - Check Consistency ---
+  if (num_reads == 2) {
+    # Use first read to check pairing info consistency
+    read <- df_fragment_reads[1, , drop = FALSE]
+
+    # Normalize mate chromosome
+    mate_chr <- read$RNEXT
+    if (!is.na(mate_chr) && mate_chr == "=") {
+      mate_chr <- read$RNAME
+    }
+
+    # Test 1: Wrong Chromosome (Are the loaded reads actually on the target chr?)
+    if (!all(df_fragment_reads$RNAME == chr)) {
+      qc_messages <- c(qc_messages, paste("Read(s) found on a chromosome other than", chr))
+    }
+
+    # Test 2: Missing Mate Info (RNEXT is *)
+    if (is.na(read$RNEXT) || read$RNEXT == "*") {
+      qc_messages <- c(qc_messages, "Mate chromosome info is not available")
+    }
+
+    # Test 3: Internal Consistency (Do reads claim to be on different chromosomes?)
+    # Even if both reads are present, RNEXT should match RNAME.
+    else if (mate_chr != read$RNAME) {
+      qc_messages <- c(qc_messages, paste("- Mate maps to a different chromosome:", mate_chr))
+    }
+
+    # Test 4: Mapping Status
+    # Verify that POS and PNEXT are strictly positive (mapped)
+    if (any(is.na(df_fragment_reads$POS)) || any(df_fragment_reads$POS == 0)) {
+      qc_messages <- c(qc_messages, "One or both reads are unmapped (POS=0 or NA)")
+    }
+
+    # Test 5: Valid Pair (Must contain exactly one R1 and one R2)
+    # Test 6: Strand Orientation (Must have one forward and one reverse read)
+    # When both reads are present, we check their actual strands directly
+    # rather than relying on isMateMinusStrand which could be inconsistent.
+    flag_matrix <- Rsamtools::bamFlagAsBitMatrix(df_fragment_reads$FLAG)
+
+    if (sum(flag_matrix[, "isFirstMateRead"]) != 1) {
+      qc_messages <- c(qc_messages, "Fragment is not a valid R1/R2 pair")
+    }
+
+    if (sum(flag_matrix[, "isMinusStrand"]) != 1) {
+      qc_messages <- c(qc_messages, "Badly oriented reads")
+    }
+  }
+
+  # --- CASE C: Strand Orientation for single-read fragments ---
+  # When the mate was not loaded, we can still infer orientation from the
+  # FLAG of the available read: it encodes both its own strand (isMinusStrand)
+  # and its mate's strand (isMateMinusStrand).
+  if (num_reads == 1) {
+    flag_matrix <- Rsamtools::bamFlagAsBitMatrix(df_fragment_reads$FLAG[1])
+    if (flag_matrix[, "isMinusStrand"] == flag_matrix[, "isMateMinusStrand"]) {
+      qc_messages <- c(qc_messages, "Badly oriented reads")
+    }
+  }
+
+  fragment_qc <- paste(qc_messages, collapse = " & ")
+  return(fragment_qc)
 }

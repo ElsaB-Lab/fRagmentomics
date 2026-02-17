@@ -18,30 +18,36 @@
 #'
 #' @noRd
 get_seq_from_fasta <- function(chr, start, end, fasta_fafile = NULL, fasta_seq = NULL) {
-    if (!is.null(fasta_seq)) {
-        f_chr <- fasta_seq$chr
-        f_start <- fasta_seq$start
-        f_end <- fasta_seq$end
-        f_seq <- fasta_seq$seq
-        if (f_chr != chr) {
-            stop(sprintf("Requested chromosome '%s' does not match the available chromosome '%s'.",
-                chr, f_chr))
-        }
-        if (start < f_start || end > f_end) {
-            stop(sprintf("Requested sequence range %d:%d does not fit into the available reference sequence range %d:%d.",
-                start, end, f_start, f_end))
-        }
-        ref_seq <- substr(f_seq, start - f_start + 1, end - f_start + 1)
-    } else {
-        # Fetch a single nucleotide from the FASTA using the chromosome, and
-        # start = end = position
-        ref_seq <- Biostrings::getSeq(x = fasta_fafile, param = GenomicRanges::GRanges(seqnames = chr,
-            ranges = IRanges::IRanges(start = start, end = end)))
+  if (!is.null(fasta_seq)) {
+    f_chr <- fasta_seq$chr
+    f_start <- fasta_seq$start
+    f_end <- fasta_seq$end
+    f_seq <- fasta_seq$seq
+    if (f_chr != chr) {
+      stop(sprintf(
+        "Requested chromosome '%s' does not match the available chromosome '%s'.",
+        chr, f_chr
+      ))
     }
+    if (start < f_start || end > f_end) {
+      stop(sprintf(
+        "Requested sequence range %d:%d does not fit into the available reference sequence range %d:%d.",
+        start, end, f_start, f_end
+      ))
+    }
+    ref_seq <- substr(f_seq, start - f_start + 1, end - f_start + 1)
+  } else {
+    # Fetch a single nucleotide from the FASTA using the chromosome, and
+    # start = end = position
+    ref_seq <- Biostrings::getSeq(x = fasta_fafile, param = GenomicRanges::GRanges(
+      seqnames = chr,
+      ranges = IRanges::IRanges(start = start, end = end)
+    ))
+  }
 
-    # Transform fasta_seq into string
-    ref_seq_char <- unname(as.character(ref_seq))
-    return(as.character(ref_seq_char))
+  # Transform fasta_seq into string
+  ref_seq_char <- unname(as.character(ref_seq))
+  return(as.character(ref_seq_char))
 }
 
 
@@ -58,21 +64,21 @@ get_seq_from_fasta <- function(chr, start, end, fasta_fafile = NULL, fasta_seq =
 #'
 #' @noRd
 harmonize_chr_to_fasta <- function(chr, fasta_fafile) {
-    # Extract chromosome names from the FASTA index
-    fasta_index <- scanFaIndex(fasta_fafile)  # Get the indexed FASTA sequence info
-    fasta_chromosomes <- seqnames(fasta_index)  # Extract chromosome names
+  # Extract chromosome names from the FASTA index
+  fasta_index <- scanFaIndex(fasta_fafile) # Get the indexed FASTA sequence info
+  fasta_chromosomes <- seqnames(fasta_index) # Extract chromosome names
 
-    # Determine whether FASTA uses 'chr1' or '1'
-    fasta_format <- ifelse(any(grepl("^chr", fasta_chromosomes)), "chr", "no_chr")
+  # Determine whether FASTA uses 'chr1' or '1'
+  fasta_format <- ifelse(any(grepl("^chr", fasta_chromosomes)), "chr", "no_chr")
 
-    # Harmonize chromosome notation
-    if (fasta_format == "chr" && !grepl("^chr", chr)) {
-        chr <- paste0("chr", chr)  # Add 'chr' if missing
-    } else if (fasta_format == "no_chr" && grepl("^chr", chr)) {
-        chr <- sub("^chr", "", chr)  # Remove 'chr' if present
-    }
+  # Harmonize chromosome notation
+  if (fasta_format == "chr" && !grepl("^chr", chr)) {
+    chr <- paste0("chr", chr) # Add 'chr' if missing
+  } else if (fasta_format == "no_chr" && grepl("^chr", chr)) {
+    chr <- sub("^chr", "", chr) # Remove 'chr' if present
+  }
 
-    chr
+  chr
 }
 
 
@@ -93,27 +99,27 @@ harmonize_chr_to_fasta <- function(chr, fasta_fafile) {
 #'
 #' @noRd
 check_if_ref_matches_fasta <- function(chr, pos, ref, fasta_fafile) {
-    # Fetch the names (i.e., FASTA headers) for each sequence
-    idx <- scanFaIndex(fasta_fafile)
-    seq_names <- as.character(seqnames(idx))
+  # Fetch the names (i.e., FASTA headers) for each sequence
+  idx <- scanFaIndex(fasta_fafile)
+  seq_names <- as.character(seqnames(idx))
 
-    # Check if the chrom existe in the Fasta
-    if (!chr %in% seq_names) {
-        warning(sprintf("Chromosome '%s' not found in FASTA.", chr))
-        return(FALSE)
-    }
+  # Check if the chrom existe in the Fasta
+  if (!chr %in% seq_names) {
+    warning(sprintf("Chromosome '%s' not found in FASTA.", chr))
+    return(FALSE)
+  }
 
-    # Calculate the end position in the FASTA based on the length of 'ref'
-    ref_length <- nchar(ref)
-    end_pos <- pos + ref_length - 1
+  # Calculate the end position in the FASTA based on the length of 'ref'
+  ref_length <- nchar(ref)
+  end_pos <- pos + ref_length - 1
 
-    # Retrieve the expected reference sequence from FASTA
-    fasta_seq <- get_seq_from_fasta(chr = chr, start = pos, end = end_pos, fasta_fafile = fasta_fafile)
+  # Retrieve the expected reference sequence from FASTA
+  fasta_seq <- get_seq_from_fasta(chr = chr, start = pos, end = end_pos, fasta_fafile = fasta_fafile)
 
-    # Compare the full 'ref' to the fetched FASTA sequence
-    if (identical(ref, fasta_seq)) {
-        return(TRUE)
-    } else {
-        return(FALSE)
-    }
+  # Compare the full 'ref' to the fetched FASTA sequence
+  if (identical(ref, fasta_seq)) {
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
 }

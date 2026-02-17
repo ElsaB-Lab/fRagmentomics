@@ -28,7 +28,7 @@ mamba install -c conda-forge -c bioconda bcftools=1.21
 ───────────────────────────────────────────────
 Windows
 ───────────────────────────────────────────────
-bcftools does not have an official native Windows build. Please use Windows 
+bcftools does not have an official native Windows build. Please use Windows
 Subsystem for Linux (WSL).
 
 WSL (recommended)
@@ -103,4 +103,4 @@ if (!nzchar(bcftools_path) || !file.exists(bcftools_path)) {
 } else {
   message("bcftools found at: ", bcftools_path)
 }
-``` 
+```

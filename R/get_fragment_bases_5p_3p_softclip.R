@@ -18,20 +18,22 @@
 #'
 #' @keywords internal
 get_fragment_bases_5p_3p_softclip <- function(cigar_5p, cigar_3p) {
-    # For CIGAR in 5' : We look if the CIGAR start with a softlipping
-    if (grepl("^(\\d+)S", cigar_5p)) {
-        nb_softclip_5p <- as.numeric(sub("^(\\d+)S.*", "\\1", cigar_5p))
-    } else {
-        nb_softclip_5p <- 0
-    }
+  # For CIGAR in 5' : We look if the CIGAR start with a softlipping
+  if (grepl("^(\\d+)S", cigar_5p)) {
+    nb_softclip_5p <- as.numeric(sub("^(\\d+)S.*", "\\1", cigar_5p))
+  } else {
+    nb_softclip_5p <- 0
+  }
 
-    # For CIGAR in 3' : We look if the CIGAR end with a softlipping
-    if (grepl("(\\d+)S$", cigar_3p)) {
-        nb_softclip_3p <- as.numeric(sub(".*?(\\d+)S$", "\\1", cigar_3p))
-    } else {
-        nb_softclip_3p <- 0
-    }
+  # For CIGAR in 3' : We look if the CIGAR end with a softlipping
+  if (grepl("(\\d+)S$", cigar_3p)) {
+    nb_softclip_3p <- as.numeric(sub(".*?(\\d+)S$", "\\1", cigar_3p))
+  } else {
+    nb_softclip_3p <- 0
+  }
 
-    return(list(nb_softclip_5p = nb_softclip_5p,
-                nb_softclip_3p = nb_softclip_3p))
+  return(list(
+    nb_softclip_5p = nb_softclip_5p,
+    nb_softclip_3p = nb_softclip_3p
+  ))
 }

@@ -4,19 +4,19 @@
 
 ### OTHER CHANGES
 
-* Improved `future.apply::future_lapply`  parallelization by setting properly the `chunk` parameter and reduced exported objects per worker.
+- Improved `future.apply::future_lapply` parallelization by setting properly the `chunk` parameter and reduced exported objects per worker.
 
 ## fRagmentomics 0.99.1 (2025-10-22)
 
 ### NEW FEATURES
 
-* Added `flag_bam_list` instead of `TLEN` (`default: FALSE`). Parameter to include all BAM fields in the output.
-* Added `Position_3p` to the output. `Position_3p` represents the last aligned position of the 3′ read of the fragment.
-* Replaced rbind in the main function with `data.table::rbindlist` to make it more consistent and faster.
+- Added `flag_bam_list` instead of `TLEN` (`default: FALSE`). Parameter to include all BAM fields in the output.
+- Added `Position_3p` to the output. `Position_3p` represents the last aligned position of the 3′ read of the fragment.
+- Replaced rbind in the main function with `data.table::rbindlist` to make it more consistent and faster.
 
 ### OTHER CHANGES
 
-* Change `future.apply::future_lapply` parameter to remove a warning.
+- Change `future.apply::future_lapply` parameter to remove a warning.
 
 ---
 
@@ -24,13 +24,13 @@
 
 ### NEW FEATURES
 
-* Added `verbose`  (default `FALSE`) parameter to remove messages.
+- Added `verbose` (default `FALSE`) parameter to remove messages.
 
 ## fRagmentomics 0.2.9 (2025-10-07)
 
 ### NEW FEATURES
 
-* Change fragment if DIS with potentially compatible with DIS.
+- Change fragment if DIS with potentially compatible with DIS.
 
 ### OTHER CHANGES
 
@@ -43,15 +43,15 @@
 
 ### NEW FEATURES
 
-* Added new plotting functions for in-depth fragment analysis:
-  * `plot_size_distribution()` to visualize fragment size distributions.
-  * `plot_freq_barplot()` to display nucleotide frequencies in end motifs.
-  * `plot_qqseqlogo_meme()` for generating sequence logo plots of end motifs using `ggseqlogo`.
-  * `plot_motif_barplot()` for generating end motifs in barplot.
+- Added new plotting functions for in-depth fragment analysis:
+  - `plot_size_distribution()` to visualize fragment size distributions.
+  - `plot_freq_barplot()` to display nucleotide frequencies in end motifs.
+  - `plot_qqseqlogo_meme()` for generating sequence logo plots of end motifs using `ggseqlogo`.
+  - `plot_motif_barplot()` for generating end motifs in barplot.
 
 ### OTHER CHANGES
 
-* The package has been updated to meet all Bioconductor submission requirements.
+- The package has been updated to meet all Bioconductor submission requirements.
 
 ---
 
@@ -59,8 +59,8 @@
 
 ### IMPROVEMENTS
 
-* Improved fragment size calculation to more accurately account for insertions and deletions within the overlapping section of read pairs.
-* Added the `remove_softclip` parameter to trim soft-clipped bases from the ends of fragments.
+- Improved fragment size calculation to more accurately account for insertions and deletions within the overlapping section of read pairs.
+- Added the `remove_softclip` parameter to trim soft-clipped bases from the ends of fragments.
 
 ---
 
@@ -68,9 +68,9 @@
 
 ### IMPROVEMENTS
 
-* Upgraded BAM flag selection for more precise read filtering.
-* Fragments with reads aligned in the same orientation are now automatically removed.
-* The definition of 5' and 3' reads is now based on strand information rather than genomic position for greater accuracy.
+- Upgraded BAM flag selection for more precise read filtering.
+- Fragments with reads aligned in the same orientation are now automatically removed.
+- The definition of 5' and 3' reads is now based on strand information rather than genomic position for greater accuracy.
 
 ---
 
@@ -78,12 +78,12 @@
 
 ### NEW FEATURES
 
-* Introduced parallel processing (`future`) and a progress bar (`progressr`) to significantly speed up analysis on multi-core systems.
+- Introduced parallel processing (`future`) and a progress bar (`progressr`) to significantly speed up analysis on multi-core systems.
 
 ### IMPROVEMENTS
 
-* Improved mutation classification for reads with soft-clipping at their ends, preventing potential false negatives. Cases previously classified as `WT` are now correctly labeled `AMB`.
-* Added an `Input_Mutation` column to the output to retain the original mutation information before normalization.
+- Improved mutation classification for reads with soft-clipping at their ends, preventing potential false negatives. Cases previously classified as `WT` are now correctly labeled `AMB`.
+- Added an `Input_Mutation` column to the output to retain the original mutation information before normalization.
 
 ---
 
@@ -91,9 +91,9 @@
 
 ### BUG FIXES
 
-* Fixed a critical bug related to incorrect fetching of the reference sequence.
-* Improved handling of ambiguous cases and multi-nucleotide variants (MNVs).
-* Optimized the SNV detection algorithm.
+- Fixed a critical bug related to incorrect fetching of the reference sequence.
+- Improved handling of ambiguous cases and multi-nucleotide variants (MNVs).
+- Optimized the SNV detection algorithm.
 
 ---
 
@@ -101,7 +101,7 @@
 
 ### IMPROVEMENTS
 
-* Improved performance by replacing per-fragment FASTA requests with a single, larger request per mutation, resulting in a **1.5x to 2x speed increase**.
+- Improved performance by replacing per-fragment FASTA requests with a single, larger request per mutation, resulting in a **1.5x to 2x speed increase**.
 
 ---
 
@@ -109,18 +109,18 @@
 
 ### IMPROVEMENTS
 
-* Introduced more descriptive mutation statuses (e.g., `"MUT but potentially larger MNV"`, `"OTH (DEL)"`).
-* Updated the reporting of `BASE_5p` and `BASE_3p` to be more comprehensive around the variant position.
-* Finalized the definitions for `Fragment_Status_Simple` and `Fragment_Status_Detail` columns.
+- Introduced more descriptive mutation statuses (e.g., `"MUT but potentially larger MNV"`, `"OTH (DEL)"`).
+- Updated the reporting of `BASE_5p` and `BASE_3p` to be more comprehensive around the variant position.
+- Finalized the definitions for `Fragment_Status_Simple` and `Fragment_Status_Detail` columns.
 
 ### BUG FIXES
 
-* Corrected mutation status assignment for reads with hard or soft-clipping near the variant.
-* The `get_index_aligning_with_pos()` function now correctly handles deletions at the position of interest.
+- Corrected mutation status assignment for reads with hard or soft-clipping near the variant.
+- The `get_index_aligning_with_pos()` function now correctly handles deletions at the position of interest.
 
 ### OTHER CHANGES
 
-* Renamed parameter `cigar_free_mode` to `cigar_free_indel_match` for clarity.
+- Renamed parameter `cigar_free_mode` to `cigar_free_indel_match` for clarity.
 
 ---
 
@@ -128,11 +128,11 @@
 
 ### BUG FIXES
 
-* Corrected the Variant Allele Frequency (VAF) calculation.
+- Corrected the Variant Allele Frequency (VAF) calculation.
 
 ### OTHER CHANGES
 
-* Harmonized all output column names to use "Upper_Snake_Case" for consistency.
+- Harmonized all output column names to use "Upper_Snake_Case" for consistency.
 
 ---
 
@@ -140,11 +140,11 @@
 
 ### NEW FEATURES
 
-* Implemented a new, alternative algorithm for determining mutation status that is independent of the CIGAR string. This significantly improves INDEL detection and is controllable via the `cigar_free_indel_match` parameter.
+- Implemented a new, alternative algorithm for determining mutation status that is independent of the CIGAR string. This significantly improves INDEL detection and is controllable via the `cigar_free_indel_match` parameter.
 
 ### OTHER CHANGES
 
-* Major code refactoring for clearer function names and better maintainability.
+- Major code refactoring for clearer function names and better maintainability.
 
 ---
 
@@ -152,6 +152,6 @@
 
 ### NEW FEATURES
 
-* Initial beta version of the package.
-* Core functionality for extracting key fragmentomic features, including **end motifs** and **fragment size**.
-* Initial implementation of fragment mutational status classification (e.g., `WT`, `MUT`, `AMB`, and more complex states)
+- Initial beta version of the package.
+- Core functionality for extracting key fragmentomic features, including **end motifs** and **fragment size**.
+- Initial implementation of fragment mutational status classification (e.g., `WT`, `MUT`, `AMB`, and more complex states)

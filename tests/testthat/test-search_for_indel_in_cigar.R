@@ -4,7 +4,7 @@ test_that("search_for_indel_in_cigar works for deletions", {
     pos        = 9,
     ref        = "TAT",
     alt        = "T",
-    read_stats = list(POS=1, CIGAR="9M2D10M"),
+    read_stats = list(POS = 1, CIGAR = "9M2D10M"),
     type       = "D"
   )[[1]], TRUE)
 
@@ -13,7 +13,7 @@ test_that("search_for_indel_in_cigar works for deletions", {
     pos        = 9,
     ref        = "TA",
     alt        = "T",
-    read_stats = list(POS=1, CIGAR="15M1D4M"),
+    read_stats = list(POS = 1, CIGAR = "15M1D4M"),
     type       = "D"
   )[[1]], FALSE)
 
@@ -22,7 +22,7 @@ test_that("search_for_indel_in_cigar works for deletions", {
     pos        = 9,
     ref        = "TAT",
     alt        = "T",
-    read_stats = list(POS=1, CIGAR="9M1D5M"),
+    read_stats = list(POS = 1, CIGAR = "9M1D5M"),
     type       = "D"
   )[[1]], FALSE)
 
@@ -31,7 +31,7 @@ test_that("search_for_indel_in_cigar works for deletions", {
     pos        = 9,
     ref        = "TAT",
     alt        = "T",
-    read_stats = list(POS=1, CIGAR="8M"),
+    read_stats = list(POS = 1, CIGAR = "8M"),
     type       = "D"
   )[[1]], FALSE)
 
@@ -40,7 +40,7 @@ test_that("search_for_indel_in_cigar works for deletions", {
     pos        = 9,
     ref        = "TAT",
     alt        = "T",
-    read_stats = list(POS=1, CIGAR="9M"),
+    read_stats = list(POS = 1, CIGAR = "9M"),
     type       = "D"
   )[[1]], FALSE)
 
@@ -50,7 +50,7 @@ test_that("search_for_indel_in_cigar works for deletions", {
     pos        = 9,
     ref        = "TAT",
     alt        = "T",
-    read_stats = list(POS=1, CIGAR="1M2D6M2D10M"),
+    read_stats = list(POS = 1, CIGAR = "1M2D6M2D10M"),
     type       = "D"
   )[[1]], TRUE)
 
@@ -59,7 +59,7 @@ test_that("search_for_indel_in_cigar works for deletions", {
     pos        = 9,
     ref        = "TAT",
     alt        = "T",
-    read_stats = list(POS=1, CIGAR="9M1D"),
+    read_stats = list(POS = 1, CIGAR = "9M1D"),
     type       = "D"
   )[[1]], FALSE)
 
@@ -69,7 +69,7 @@ test_that("search_for_indel_in_cigar works for deletions", {
     pos        = 1,
     ref        = "TAT",
     alt        = "T",
-    read_stats = list(POS=1, CIGAR="1D9M"),
+    read_stats = list(POS = 1, CIGAR = "1D9M"),
     type       = "D"
   )[[1]], FALSE)
 
@@ -79,7 +79,7 @@ test_that("search_for_indel_in_cigar works for deletions", {
     pos        = 1,
     ref        = "TAT",
     alt        = "T",
-    read_stats = list(POS=1, CIGAR="3D9M"),
+    read_stats = list(POS = 1, CIGAR = "3D9M"),
     type       = "D"
   )[[1]], FALSE)
 
@@ -89,7 +89,7 @@ test_that("search_for_indel_in_cigar works for deletions", {
     pos        = 1,
     ref        = "TAT",
     alt        = "T",
-    read_stats = list(POS=1, CIGAR="1M3D9M"),
+    read_stats = list(POS = 1, CIGAR = "1M3D9M"),
     type       = "D"
   )[[1]], FALSE)
 })
@@ -101,7 +101,7 @@ test_that("search_for_indel_in_cigar works for insertions", {
     pos        = 15,
     ref        = "A",
     alt        = "ATT",
-    read_stats = list(POS=10, CIGAR="3S6M2I1M", SEQ="AAAAAAAAATTA"),
+    read_stats = list(POS = 10, CIGAR = "3S6M2I1M", SEQ = "AAAAAAAAATTA"),
     type       = "I"
   )[[1]], TRUE)
 
@@ -111,7 +111,7 @@ test_that("search_for_indel_in_cigar works for insertions", {
     pos        = 15,
     ref        = "A",
     alt        = "ATT",
-    read_stats = list(POS=10, CIGAR="3S6M2I1M", SEQ="AAAAAAAAATCA"),
+    read_stats = list(POS = 10, CIGAR = "3S6M2I1M", SEQ = "AAAAAAAAATCA"),
     type       = "I"
   )[[1]], FALSE)
 
@@ -120,7 +120,7 @@ test_that("search_for_indel_in_cigar works for insertions", {
     pos        = 15,
     ref        = "A",
     alt        = "ATT",
-    read_stats = list(POS=10, CIGAR="3S7M", SEQ="AAAAAAAAAATT"),
+    read_stats = list(POS = 10, CIGAR = "3S7M", SEQ = "AAAAAAAAAATT"),
     type       = "I"
   )[[1]], FALSE)
 
@@ -129,7 +129,7 @@ test_that("search_for_indel_in_cigar works for insertions", {
     pos        = 15,
     ref        = "A",
     alt        = "ATT",
-    read_stats = list(POS=10, CIGAR="3S6M1I2M", SEQ="AAAAAAAAAATT"),
+    read_stats = list(POS = 10, CIGAR = "3S6M1I2M", SEQ = "AAAAAAAAAATT"),
     type       = "I"
   )[[1]], FALSE)
 
@@ -138,7 +138,7 @@ test_that("search_for_indel_in_cigar works for insertions", {
     pos        = 15,
     ref        = "A",
     alt        = "ATT",
-    read_stats = list(POS=9, CIGAR="3S6M2I1M", SEQ="AAAAAAAAAATT"),
+    read_stats = list(POS = 9, CIGAR = "3S6M2I1M", SEQ = "AAAAAAAAAATT"),
     type       = "I"
   )[[1]], FALSE)
 
@@ -147,7 +147,7 @@ test_that("search_for_indel_in_cigar works for insertions", {
     pos        = 15,
     ref        = "A",
     alt        = "ATT",
-    read_stats = list(POS=10, CIGAR="2M2I4M2I1M", SEQ="AAAAAAAATTA"),
+    read_stats = list(POS = 10, CIGAR = "2M2I4M2I1M", SEQ = "AAAAAAAATTA"),
     type       = "I"
   )[[1]], TRUE)
 
@@ -156,7 +156,7 @@ test_that("search_for_indel_in_cigar works for insertions", {
     pos        = 15,
     ref        = "A",
     alt        = "ATT",
-    read_stats = list(POS=16, CIGAR="2I8M", SEQ="TTAAAAAAAA"),
+    read_stats = list(POS = 16, CIGAR = "2I8M", SEQ = "TTAAAAAAAA"),
     type       = "I"
   )[[1]], FALSE)
 
@@ -165,7 +165,7 @@ test_that("search_for_indel_in_cigar works for insertions", {
     pos        = 15,
     ref        = "A",
     alt        = "ATT",
-    read_stats = list(POS=16, CIGAR="3I8M", SEQ="TTTAAAAAAAA"),
+    read_stats = list(POS = 16, CIGAR = "3I8M", SEQ = "TTTAAAAAAAA"),
     type       = "I"
   )[[1]], FALSE)
 
@@ -175,7 +175,7 @@ test_that("search_for_indel_in_cigar works for insertions", {
     pos        = 3,
     ref        = "G",
     alt        = "GTT",
-    read_stats = list(POS=1, CIGAR="3M2I", SEQ="AAGTT"),
+    read_stats = list(POS = 1, CIGAR = "3M2I", SEQ = "AAGTT"),
     type       = "I"
   )[[1]], TRUE)
 
@@ -184,7 +184,7 @@ test_that("search_for_indel_in_cigar works for insertions", {
     pos        = 3,
     ref        = "G",
     alt        = "GTT",
-    read_stats = list(POS=1, CIGAR="3M2I2M", SEQ="AACTTCG"),
+    read_stats = list(POS = 1, CIGAR = "3M2I2M", SEQ = "AACTTCG"),
     type       = "I"
   )[[1]], FALSE)
 })

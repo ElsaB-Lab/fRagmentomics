@@ -49,8 +49,7 @@ test_that("apply_bcftools_norm", {
 
 test_that("apply_bcftools_norm is quiet when verbose = FALSE", {
   msgs <- testthat::capture_messages(
-    res <- apply_bcftools_norm("chr17", 126, "TG", "TG", fasta_38, tempdir(), verbose = FALSE
-    )
+    res <- apply_bcftools_norm("chr17", 126, "TG", "TG", fasta_38, tempdir(), verbose = FALSE)
   )
 
   expect_equal(length(msgs), 0, info = "No messages should be emitted when verbose = FALSE")

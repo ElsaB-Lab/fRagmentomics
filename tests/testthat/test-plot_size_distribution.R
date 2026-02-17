@@ -26,7 +26,7 @@ test_that("errors for invalid or missing columns", {
   expect_error(
     plot_size_distribution(df_sample, col_z = "NonExistentGroupCol"),
     regexp = "Column 'NonExistentGroupCol' not found in the dataframe.",
-    fixed  = TRUE
+    fixed = TRUE
   )
 
   # Non-numeric size column
@@ -104,9 +104,9 @@ test_that("plot layers are correctly added or removed", {
   # Histogram only
   p_hist <- plot_size_distribution(df_sample, show_histogram = TRUE, show_density = FALSE)
   geoms_hist <- vapply(p_hist$layers, function(l) class(l$geom)[1], character(1))
-  expect_true("GeomBar" %in% geoms_hist)      # geom_histogram
+  expect_true("GeomBar" %in% geoms_hist) # geom_histogram
   expect_false("GeomDensity" %in% geoms_hist)
-  expect_equal(p_hist$labels$y, "Density")    # y label for histogram is density (via after_stat)
+  expect_equal(p_hist$labels$y, "Density") # y label for histogram is density (via after_stat)
 
   # Both histogram and density
   p_both <- plot_size_distribution(df_sample, show_histogram = TRUE, show_density = TRUE)
@@ -151,7 +151,7 @@ test_that("coloring schemes are applied correctly (manual and Brewer)", {
     colors_z = custom_colors
   )
   built_custom <- ggplot2::ggplot_build(p_custom)
-  used_custom  <- unique(built_custom$data[[1]]$colour)
+  used_custom <- unique(built_custom$data[[1]]$colour)
   # Compare hex-to-hex to be robust across devices/versions
   expect_setequal(tolower(to_hex(used_custom)), tolower(to_hex(custom_colors)))
 
@@ -161,8 +161,8 @@ test_that("coloring schemes are applied correctly (manual and Brewer)", {
     vals_z   = c("Mono", "Di", "Tri"),
     colors_z = "Set1"
   )
-  built_brewer   <- ggplot2::ggplot_build(p_brewer)
-  used_brewer    <- unique(built_brewer$data[[1]]$colour)
+  built_brewer <- ggplot2::ggplot_build(p_brewer)
+  used_brewer <- unique(built_brewer$data[[1]]$colour)
   expected_brewer <- RColorBrewer::brewer.pal(3, "Set1")
   expect_setequal(tolower(to_hex(used_brewer)), tolower(to_hex(expected_brewer)))
 })
@@ -184,14 +184,14 @@ test_that("groups with <2 points are dropped only in density mode", {
   # Density mode: 'Tiny' (n=1) should be removed, 'A' (n=2) retained
   p_dens <- plot_size_distribution(tiny, show_density = TRUE, show_histogram = FALSE)
   fac_cols_d <- names(p_dens$data)[vapply(p_dens$data, is.factor, logical(1))]
-  levels_d   <- unique(unlist(lapply(fac_cols_d, function(nm) levels(p_dens$data[[nm]]))))
+  levels_d <- unique(unlist(lapply(fac_cols_d, function(nm) levels(p_dens$data[[nm]]))))
   expect_false(any(grepl("^Tiny \\(N=", levels_d)))
   expect_true(any(grepl("^A \\(N=", levels_d)))
 
   # Histogram-only: 'Tiny' should remain
   p_hist <- plot_size_distribution(tiny, show_density = FALSE, show_histogram = TRUE)
   fac_cols_h <- names(p_hist$data)[vapply(p_hist$data, is.factor, logical(1))]
-  levels_h   <- unique(unlist(lapply(fac_cols_h, function(nm) levels(p_hist$data[[nm]]))))
+  levels_h <- unique(unlist(lapply(fac_cols_h, function(nm) levels(p_hist$data[[nm]]))))
   expect_true(any(grepl("^Tiny \\(N=", levels_h)))
 })
 
@@ -208,7 +208,7 @@ test_that("named color vector using base group names maps to '(N=...)' labels", 
     colors_z = cols_named
   )
   built <- ggplot2::ggplot_build(p)
-  used  <- unique(built$data[[1]]$colour)
+  used <- unique(built$data[[1]]$colour)
   expected <- c("black", "grey50", "grey80")
   expect_true(all(tolower(to_hex(used)) %in% tolower(to_hex(expected))))
 })
@@ -234,7 +234,7 @@ test_that("valid output_path saves the plot and honors ggsave_params", {
   suppressWarnings({
     plot_size_distribution(
       df_fragments       = df_sample,
-      show_histogram     = TRUE,               # exercise histogram path too
+      show_histogram     = TRUE, # exercise histogram path too
       histogram_binwidth = 10,
       output_path        = out_file,
       ggsave_params      = list(width = 7, height = 5, units = "in", dpi = 150, bg = "white")

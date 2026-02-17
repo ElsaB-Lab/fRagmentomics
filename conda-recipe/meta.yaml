@@ -59,7 +59,7 @@ requirements:
 
 test:
   commands:
-    - $R -e "library('fRagmentomics'); packageVersion('fRagmentomics')"   # [unix]
+    - $R -e "library('fRagmentomics'); packageVersion('fRagmentomics')" # [unix]
   requires:
     - r-base
 

@@ -66,8 +66,8 @@ structured format.
 The function executes the following pipeline for each fragment:
 \enumerate{
 \item It subsets the reads from 'df_sam' that match the given 'fragment_name'.
-\item It performs initial quality control checks (e.g., proper pairing,
-chromosome consistency) via 'process_fragment_reads_qc'.
+\item It performs quality control checks (e.g., proper pairing, chromosome
+consistency, strand orientation) via 'process_fragment_reads_qc'.
 \item It identifies the 5' (forward strand) and 3' (reverse strand) reads
 based on their SAM FLAGs.
 \item If 'remove_softclip' is 'TRUE', it trims soft-clipped bases from the
@@ -76,7 +76,7 @@ sequences, qualities, and CIGAR strings.
 mutation status for each individual read at the variant position.
 \item It calculates the precise fragment size using 'get_fragment_size'.
 \item It consolidates the two read statuses into a final fragment status
-(e.g., 'MUT', 'DISCORDANT') using 'get_mutation_status_of_fragment'.
+(e.g., 'MUT', 'N/I') using 'get_mutation_status_of_fragment'.
 \item It assembles and returns a single-row data frame containing all
 extracted information.
 }

@@ -205,5 +205,3 @@ test_that("normalize_to_vcf_rep", {
   close(fasta_loaded_38)
   close(fasta_loaded_19)
 })
-
-

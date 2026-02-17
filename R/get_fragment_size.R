@@ -15,89 +15,89 @@
 #'
 #' @keywords internal
 get_fragment_size <- function(read_stats_5p, read_stats_3p) {
-    # --- Extract necessary metrics --- bases matched read
-    bases_match_5p <- sum(as.numeric(
-        stringr::str_extract_all(read_stats_5p$CIGAR,
-            "[[:digit:]]+(?=M)",
-            simplify = TRUE
-        )
-    ))
-
-    # bases deleted read
-    bases_del_5p <- sum(as.numeric(
-        stringr::str_extract_all(read_stats_5p$CIGAR,
-            "[[:digit:]]+(?=D)",
-            simplify = TRUE
-        )
-    ))
-
-    # bases soft-clipped left
-    bases_softcl_left_3p <- as.numeric(
-        str_extract(read_stats_3p$CIGAR, "^[[:digit:]]+(?=S)")
+  # --- Extract necessary metrics --- bases matched read
+  bases_match_5p <- sum(as.numeric(
+    stringr::str_extract_all(read_stats_5p$CIGAR,
+      "[[:digit:]]+(?=M)",
+      simplify = TRUE
     )
-    bases_softcl_left_3p <- ifelse(
-        is.na(bases_softcl_left_3p), 0, bases_softcl_left_3p
+  ))
+
+  # bases deleted read
+  bases_del_5p <- sum(as.numeric(
+    stringr::str_extract_all(read_stats_5p$CIGAR,
+      "[[:digit:]]+(?=D)",
+      simplify = TRUE
     )
+  ))
 
-    # bases soft-clipped right
-    bases_softcl_right_5p <- as.numeric(
-        str_extract(read_stats_5p$CIGAR, "[[:digit:]]+(?=S$)")
-    )
-    bases_softcl_right_5p <- ifelse(
-        is.na(bases_softcl_right_5p), 0, bases_softcl_right_5p
-    )
+  # bases soft-clipped left
+  bases_softcl_left_3p <- as.numeric(
+    str_extract(read_stats_3p$CIGAR, "^[[:digit:]]+(?=S)")
+  )
+  bases_softcl_left_3p <- ifelse(
+    is.na(bases_softcl_left_3p), 0, bases_softcl_left_3p
+  )
 
-    # --- Check presence of insertions at 3p of the 5p read and at 5p of the 3p read ---
-    # 5p of read 3p
-    bases_ins_left_3p <- as.integer(stringr::str_replace_na(
-        stringr::str_extract(read_stats_3p$CIGAR, "^[[:digit:]]+(?=I)"), "0"
-    ))
+  # bases soft-clipped right
+  bases_softcl_right_5p <- as.numeric(
+    str_extract(read_stats_5p$CIGAR, "[[:digit:]]+(?=S$)")
+  )
+  bases_softcl_right_5p <- ifelse(
+    is.na(bases_softcl_right_5p), 0, bases_softcl_right_5p
+  )
 
-    # 3p of read 5p
-    bases_ins_rigth_5p <- as.integer(stringr::str_replace_na(
-        stringr::str_extract(read_stats_5p$CIGAR, "[[:digit:]]+(?=I$)"), "0"
-    ))
+  # --- Check presence of insertions at 3p of the 5p read and at 5p of the 3p read ---
+  # 5p of read 3p
+  bases_ins_left_3p <- as.integer(stringr::str_replace_na(
+    stringr::str_extract(read_stats_3p$CIGAR, "^[[:digit:]]+(?=I)"), "0"
+  ))
 
-    # --- Define overlapping windows ---
-    start_overlap <- read_stats_3p$POS - bases_softcl_left_3p
-    end_overlap <- read_stats_5p$POS + bases_match_5p + bases_del_5p +
-        bases_softcl_right_5p - 1
+  # 3p of read 5p
+  bases_ins_rigth_5p <- as.integer(stringr::str_replace_na(
+    stringr::str_extract(read_stats_5p$CIGAR, "[[:digit:]]+(?=I$)"), "0"
+  ))
 
-    # Define the real range of the overlapping with inserted bases
-    extended_start_overlap <- start_overlap - bases_ins_left_3p
-    extended_end_overlap <- end_overlap + bases_ins_rigth_5p
+  # --- Define overlapping windows ---
+  start_overlap <- read_stats_3p$POS - bases_softcl_left_3p
+  end_overlap <- read_stats_5p$POS + bases_match_5p + bases_del_5p +
+    bases_softcl_right_5p - 1
 
-    # --- Calculate inner size of the fragment ---
-    inner_distance <- extended_start_overlap - extended_end_overlap - 1
+  # Define the real range of the overlapping with inserted bases
+  extended_start_overlap <- start_overlap - bases_ins_left_3p
+  extended_end_overlap <- end_overlap + bases_ins_rigth_5p
 
-    # Taking indels into account in the overlapping windows to no count them
-    # twice Get indels for each read
-    indels_5p <- get_pos_indels_from_read(read_stats_5p)
-    indels_3p <- get_pos_indels_from_read(read_stats_3p)
+  # --- Calculate inner size of the fragment ---
+  inner_distance <- extended_start_overlap - extended_end_overlap - 1
 
-    # Merge the deletion lists and keep unique positions in the overlapping
-    # windows
-    unique_fragment_deletions <- intersect(indels_5p$deletions, indels_3p$deletions)
+  # Taking indels into account in the overlapping windows to no count them
+  # twice Get indels for each read
+  indels_5p <- get_pos_indels_from_read(read_stats_5p)
+  indels_3p <- get_pos_indels_from_read(read_stats_3p)
 
-    overlapping_window_deletion <- sort(
-        unique_fragment_deletions[
-            unique_fragment_deletions >= start_overlap &
-                unique_fragment_deletions <= end_overlap
-        ]
-    )
+  # Merge the deletion lists and keep unique positions in the overlapping
+  # windows
+  unique_fragment_deletions <- intersect(indels_5p$deletions, indels_3p$deletions)
 
-    # Merge the insertion lists and keep unique positions in the overlapping
-    # windows
-    unique_fragment_insertions <- intersect(indels_5p$insertions, indels_3p$insertions)
+  overlapping_window_deletion <- sort(
+    unique_fragment_deletions[
+      unique_fragment_deletions >= start_overlap &
+        unique_fragment_deletions <= end_overlap
+    ]
+  )
 
-    overlapping_window_insertion <- sort(
-        unique_fragment_insertions[
-            unique_fragment_insertions >= start_overlap &
-                unique_fragment_insertions <= end_overlap
-        ]
-    )
+  # Merge the insertion lists and keep unique positions in the overlapping
+  # windows
+  unique_fragment_insertions <- intersect(indels_5p$insertions, indels_3p$insertions)
 
-    fragment_size <- read_stats_5p$read_length + read_stats_3p$read_length +
-        inner_distance + length(overlapping_window_deletion) -
-        length(overlapping_window_insertion)
+  overlapping_window_insertion <- sort(
+    unique_fragment_insertions[
+      unique_fragment_insertions >= start_overlap &
+        unique_fragment_insertions <= end_overlap
+    ]
+  )
+
+  fragment_size <- read_stats_5p$read_length + read_stats_3p$read_length +
+    inner_distance + length(overlapping_window_deletion) -
+    length(overlapping_window_insertion)
 }
