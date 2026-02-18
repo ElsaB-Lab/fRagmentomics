@@ -6,6 +6,7 @@
 [![R style: styler](https://img.shields.io/badge/code%20style-styler-blue.svg)](https://github.com/r-lib/styler)
 [![Formatting: prettier](https://img.shields.io/badge/formatter-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![DOI](https://zenodo.org/badge/935487176.svg)](https://doi.org/10.5281/zenodo.18679583)
 
 - [Overview](#overview)
 - [Installation](#installation)
@@ -125,15 +126,15 @@ library(fRagmentomics)
 
 # Locate the example files bundled with the package
 mut_file = system.file("extdata/mutation",
-  "cfdna-egfr-del_chr7_55241864_55243064_10k.mutations.tsv", 
+  "cfdna-egfr-del_chr7_55241864_55243064_10k.mutations.tsv",
   package = "fRagmentomics"
 )
 bam_file = system.file("extdata/bam",
-  "cfdna-egfr-del_chr7_55241864_55243064_10k.bam", 
+  "cfdna-egfr-del_chr7_55241864_55243064_10k.bam",
   package = "fRagmentomics"
 )
 fasta_file = system.file("extdata/fasta",
-  "hg19_chr7_55231864_55253064.fa", 
+  "hg19_chr7_55231864_55253064.fa",
   package = "fRagmentomics"
 )
 ```
@@ -278,10 +279,11 @@ plot_motif_barplot(
 1.  **`bam`**: Path to BAM file containing **paired-end** reads (the package has so far only been tested on BAM files
     from experiments of targeted sequencing of cfDNA).
     The function `run_fRagmentomics` preprocesses the BAM file to select reads relevant to each mutation. By default:
+
     - It only considers reads within a user-configurable window (default=2000 bp window, 1000 bp before - `neg_offset_mate_search` and 1000bp after - `pos_offset_mate_search`).
     - It applies a default filter to keep only paired reads (not to be confounded with "properly paired reads") while removing unmapped, secondary and supplementary alignments. This corresponds to the default settings of the `flag_bam_list` argument.
 
-        **NOTE**: The above filtering parameters can be customized when calling the `run_fRagmentomics()` function.
+      **NOTE**: The above filtering parameters can be customized when calling the `run_fRagmentomics()` function.
 
     <br>
 
@@ -351,48 +353,48 @@ output is a dataframe with one line per fragment and the following headers:
 
 ---
 
-| Column                                                             | Description                                                                           |
-| :----------------------------------------------------------------- | :------------------------------------------------------------------------------------ |
-| **_Mutation Information_**                                         |                                                                                       |
-| 1 - `Sample_Id`                                                    | User-provided sample identifier.                                                      |
-| 2 - `Chromosome`                                                   | Chromosome of the mutation **after** normalization.                                   |
-| 3 - `Position`                                                     | Start position of the mutation **after** normalization.                               |
-| 4 - `Ref`                                                          | Reference allele **after** normalization.                                             |
-| 5 - `Alt`                                                          | Alternate allele **after** normalization.                                             |
-| 6 - `Input_Mutation`                                               | The original mutation information as provided in the input file.                      |
-| **_Fragment & Read Status_**                                       |                                                                                       |
-| 7 - `Fragment_Id`                                                  | The read name (QNAME) that uniquely identifies the DNA fragment.                      |
-| 8 - `Fragment_QC`                                                  | Quality control status. Is `"OK"` for valid pairs or contains a failure reason.       |
-| 9 - `Fragment_Status_Simple`                                       | Simplified mutation status of the fragment ("MUT", "WT", "OTH", "N/I").               |
-| 10 - `Fragment_Status_Detail`                                      | Detailed mutation status, created by concatenating read statuses if they differ.      |
-| 11 - `Read_5p_Status`                                              | Mutation status for the 5' read ("MUT", "WT", "OTH", "AMB", "[MUT/WT/OTH] by CIGAR but potentially [MUT/WT/OTH]").            |
-| 12 - `Read_3p_Status`                                              | Mutation status for the 3' read ("MUT", "WT", "OTH", "AMB", "[MUT/WT/OTH] by CIGAR but potentially [MUT/WT/OTH]").            |
-| 13 - `BASE_5p`                                                     | Base(s) from the 5' read covering the variant position.[¹](#footnote1)                |
-| 14 - `BASE_3p`                                                     | Base(s) from the 3' read covering the variant position.[¹](#footnote1)                |
-| 15 - `BASQ_5p`                                                     | Base quality/qualities from the 5' read covering the variant position.[¹](#footnote1) |
-| 16 - `BASQ_3p`                                                     | Base quality/qualities from the 3' read covering the variant position.[¹](#footnote1) |
-| 17 - `VAF`                                                         | Variant Allele Frequency, expressed as a percentage.[²](#footnote2)                   |
-| **_Fragmentomic & Alignment Features_**                            |                                                                                       |
-| 18 - `Fragment_Size`                                               | The size of the DNA fragment.                                                         |
-| 19 - `Position_5p`                                                 | 1-based leftmost mapping position of the 5' read.                                     |
-| 20 - `Position_3p`                                                 | 1-based rightmost mapping position of the 3' read.                                    |
-| 21 - `Fragment_Bases_5p` (if `report_5p_3p_bases_fragment` > 0)    | The first `n` bases from the 5' end of the fragment.                                  |
-| 22 - `Fragment_Bases_3p` (if `report_5p_3p_bases_fragment` > 0)    | The last `n` bases from the 3' end of the fragment.                                   |
-| **_Bam Information_** (if `report_bam_info` = TRUE)                |                                                                                       |
-| 23 - `POS_5p`                                                      | 1-based leftmost mapping position of the 5' read.                                     |
-| 24 - `POS_3p`                                                      | 1-based leftmost mapping position of the 3' read.                                     |
-| 25 - `FLAG_5p`                                                     | SAM flag for the 5' read.                                                             |
-| 26 - `FLAG_3p`                                                     | SAM flag for the 3' read.                                                             |
-| 27 - `MAPQ_5p`                                                     | Mapping quality for the 5' read.                                                      |
-| 28 - `MAPQ_3p`                                                     | Mapping quality for the 3' read.                                                      |
-| 29 - `CIGAR_5p`                                                    | CIGAR string for the 5' read.                                                         |
-| 30 - `CIGAR_3p`                                                    | CIGAR string for the 3' read.                                                         |
-| 31 - `TLEN`                                                        | Template length of the fragment, from the BAM file.                                   |
-| **_Other Information_**                                            |                                                                                       |
-| 32 - `Fragment_Basqs_5p` (if `report_5p_3p_bases_fragment` > 0)    | The first `n` base qualities from the 5' end of the fragment.                         |
-| 33 - `Fragment_Basqs_3p` (if `report_5p_3p_bases_fragment` > 0)    | The last `n` base qualities from the 3' end of the fragment.                          |
-| 34 - `Nb_Fragment_Bases_Softclip_5p` (if `report_softclip` = TRUE) | Number of soft-clipped bases at the 5' end of the fragment.                           |
-| 35 - `Nb_Fragment_Bases_Softclip_3p` (if `report_softclip` = TRUE) | Number of soft-clipped bases at the 3' end of the fragment.                           |
+| Column                                                             | Description                                                                                                        |
+| :----------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
+| **_Mutation Information_**                                         |                                                                                                                    |
+| 1 - `Sample_Id`                                                    | User-provided sample identifier.                                                                                   |
+| 2 - `Chromosome`                                                   | Chromosome of the mutation **after** normalization.                                                                |
+| 3 - `Position`                                                     | Start position of the mutation **after** normalization.                                                            |
+| 4 - `Ref`                                                          | Reference allele **after** normalization.                                                                          |
+| 5 - `Alt`                                                          | Alternate allele **after** normalization.                                                                          |
+| 6 - `Input_Mutation`                                               | The original mutation information as provided in the input file.                                                   |
+| **_Fragment & Read Status_**                                       |                                                                                                                    |
+| 7 - `Fragment_Id`                                                  | The read name (QNAME) that uniquely identifies the DNA fragment.                                                   |
+| 8 - `Fragment_QC`                                                  | Quality control status. Is `"OK"` for valid pairs or contains a failure reason.                                    |
+| 9 - `Fragment_Status_Simple`                                       | Simplified mutation status of the fragment ("MUT", "WT", "OTH", "N/I").                                            |
+| 10 - `Fragment_Status_Detail`                                      | Detailed mutation status, created by concatenating read statuses if they differ.                                   |
+| 11 - `Read_5p_Status`                                              | Mutation status for the 5' read ("MUT", "WT", "OTH", "AMB", "[MUT/WT/OTH] by CIGAR but potentially [MUT/WT/OTH]"). |
+| 12 - `Read_3p_Status`                                              | Mutation status for the 3' read ("MUT", "WT", "OTH", "AMB", "[MUT/WT/OTH] by CIGAR but potentially [MUT/WT/OTH]"). |
+| 13 - `BASE_5p`                                                     | Base(s) from the 5' read covering the variant position.[¹](#footnote1)                                             |
+| 14 - `BASE_3p`                                                     | Base(s) from the 3' read covering the variant position.[¹](#footnote1)                                             |
+| 15 - `BASQ_5p`                                                     | Base quality/qualities from the 5' read covering the variant position.[¹](#footnote1)                              |
+| 16 - `BASQ_3p`                                                     | Base quality/qualities from the 3' read covering the variant position.[¹](#footnote1)                              |
+| 17 - `VAF`                                                         | Variant Allele Frequency, expressed as a percentage.[²](#footnote2)                                                |
+| **_Fragmentomic & Alignment Features_**                            |                                                                                                                    |
+| 18 - `Fragment_Size`                                               | The size of the DNA fragment.                                                                                      |
+| 19 - `Position_5p`                                                 | 1-based leftmost mapping position of the 5' read.                                                                  |
+| 20 - `Position_3p`                                                 | 1-based rightmost mapping position of the 3' read.                                                                 |
+| 21 - `Fragment_Bases_5p` (if `report_5p_3p_bases_fragment` > 0)    | The first `n` bases from the 5' end of the fragment.                                                               |
+| 22 - `Fragment_Bases_3p` (if `report_5p_3p_bases_fragment` > 0)    | The last `n` bases from the 3' end of the fragment.                                                                |
+| **_Bam Information_** (if `report_bam_info` = TRUE)                |                                                                                                                    |
+| 23 - `POS_5p`                                                      | 1-based leftmost mapping position of the 5' read.                                                                  |
+| 24 - `POS_3p`                                                      | 1-based leftmost mapping position of the 3' read.                                                                  |
+| 25 - `FLAG_5p`                                                     | SAM flag for the 5' read.                                                                                          |
+| 26 - `FLAG_3p`                                                     | SAM flag for the 3' read.                                                                                          |
+| 27 - `MAPQ_5p`                                                     | Mapping quality for the 5' read.                                                                                   |
+| 28 - `MAPQ_3p`                                                     | Mapping quality for the 3' read.                                                                                   |
+| 29 - `CIGAR_5p`                                                    | CIGAR string for the 5' read.                                                                                      |
+| 30 - `CIGAR_3p`                                                    | CIGAR string for the 3' read.                                                                                      |
+| 31 - `TLEN`                                                        | Template length of the fragment, from the BAM file.                                                                |
+| **_Other Information_**                                            |                                                                                                                    |
+| 32 - `Fragment_Basqs_5p` (if `report_5p_3p_bases_fragment` > 0)    | The first `n` base qualities from the 5' end of the fragment.                                                      |
+| 33 - `Fragment_Basqs_3p` (if `report_5p_3p_bases_fragment` > 0)    | The last `n` base qualities from the 3' end of the fragment.                                                       |
+| 34 - `Nb_Fragment_Bases_Softclip_5p` (if `report_softclip` = TRUE) | Number of soft-clipped bases at the 5' end of the fragment.                                                        |
+| 35 - `Nb_Fragment_Bases_Softclip_3p` (if `report_softclip` = TRUE) | Number of soft-clipped bases at the 3' end of the fragment.                                                        |
 
 ---
 
@@ -636,7 +638,6 @@ The `remove_softclip` argument gives you control over how to treat the **externa
 - **`remove_softclip = TRUE`**: External soft-clipped bases are treated as technical artifacts. They are trimmed from the reads _before_ any size calculation or other analysis occurs.
 
 <img src="man/figure/Fragment_Size_fRagmentomics.png" align="center" width="700"/>
-
 
 <img src="man/figure/size_compared_to_ref_genome_1.png" align="center" width="700"/>
 <img src="man/figure/size_compared_to_ref_genome_2.png" align="center" width="700"/>
