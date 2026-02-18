@@ -1,5 +1,12 @@
 # fRagmentomics NEWS
 
+## fRagmentomics 0.99.9 (2026-02-18)
+
+### OTHER CHANGES
+
+- Preparing pre-release version.
+- **Test**: Add test to the package.
+
 ## fRagmentomics 0.99.4 (2026-02-17)
 
 ### NEW FEATURES

@@ -1,5 +1,3 @@
-# tests/testthat/test-plot_freq_barplot.R
-
 # --- Sample data used by multiple tests ---------------------------------------
 
 df_freq_sample <- data.frame(

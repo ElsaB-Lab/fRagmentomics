@@ -1,5 +1,3 @@
-# tests/testthat/test-plot_size_distribution.R
-
 # --- Sample data used by multiple tests ---------------------------------------
 
 set.seed(42)

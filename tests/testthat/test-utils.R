@@ -1,5 +1,3 @@
-library(testthat)
-
 # --- Helper to generate synthetic read dataframes ---
 # FLAG defaults: 83L (first-in-pair, reverse strand) + 163L (second-in-pair, forward strand)
 # This represents a properly oriented, valid R1/R2 pair.
@@ -141,4 +139,24 @@ test_that("Case B: Handles multiple errors simultaneously", {
   expect_match(res, "found on a chromosome other than chr1")
   expect_match(res, "&") # Checks that errors are concatenated
   expect_match(res, "One or both reads are unmapped")
+})
+
+test_that("calculate_len_without_end_softclip computes effective length correctly", {
+  seq_10 <- "ACGTACGTAC"
+
+  # 1. No soft clip (10M)
+  # Expected: 10 (Full length)
+  expect_equal(calculate_len_without_end_softclip("10M", seq_10), 10)
+
+  # 2. Soft clip at the end (8M2S)
+  # Expected: 10 - 2 = 8
+  expect_equal(calculate_len_without_end_softclip("8M2S", seq_10), 8)
+
+  # 3. Soft clip at the start only (2S8M)
+  # Expected: 10 (Start clip is ignored by logic)
+  expect_equal(calculate_len_without_end_softclip("2S8M", seq_10), 10)
+
+  # 4. Soft clip at both ends (2S6M2S)
+  # Expected: 10 - 2 = 8 (Only end clip is subtracted)
+  expect_equal(calculate_len_without_end_softclip("2S6M2S", seq_10), 8)
 })

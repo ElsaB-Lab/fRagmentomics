@@ -1,5 +1,3 @@
-# tests/testthat/test-plot_motif_barplot.R
-
 # --- Sample data shared by tests ------------------------------------------------
 
 df_barplot_sample <- data.frame(

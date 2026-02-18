@@ -22,8 +22,13 @@ jobs:
         include:
           - os: ubuntu-latest
             subdir: linux-64
+            arch: x64
           - os: macos-14
             subdir: osx-arm64
+            arch: arm64
+          - os: macos-14
+            subdir: osx-64
+            arch: x64
 
     env:
       RECIPE_DIR: conda-recipe
@@ -41,6 +46,7 @@ jobs:
           channels: conda-forge,bioconda,defaults
           channel-priority: strict
           auto-update-conda: true
+          architecture: ${{ matrix.arch }}
 
       - name: Show conda info
         shell: bash -l {0}

@@ -1,6 +1,6 @@
 package:
   name: r-fragmentomics
-  version: 0.99.2
+  version: 0.99.9
 
 source:
   path: ..

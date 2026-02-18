@@ -1,5 +1,3 @@
-# tests/testthat/test-fasta-utils.R
-
 # Define the toy sequence and setup the FASTA environment for all tests
 sequences <- c(chr4 = "ACAGCACTATCTGAAACCAGGATGGATTGAATTGAAGGCCAAAGAGAGAGAAGAGATTTAGATGGATTTTAGAGTTCAAATGATATAG")
 fasta_env <- setup_test_fasta(sequences)
