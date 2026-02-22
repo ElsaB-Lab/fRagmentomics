@@ -34,6 +34,7 @@
 #' @importFrom purrr map2 map_dbl
 #' @importFrom scales percent_format pvalue
 #' @importFrom RColorBrewer brewer.pal brewer.pal.info
+#' @importFrom magrittr %>%
 #' @import ggplot2
 #'
 #' @export
@@ -107,14 +108,13 @@
 #' #   ggsave_params = list(width = 7, height = 5, units = 'in', dpi = 300, bg = 'white')
 #' # )
 plot_freq_barplot <- function(
-  df_fragments, end_motif_5p = "Fragment_Bases_5p", end_motif_3p = "Fragment_Bases_3p",
-  motif_type = "Both", motif_size = 3, col_z = "Fragment_Status_Simple", vals_z = NULL,
-  ..., colors_z = "Dark2", title = NULL, output_path = NA_character_, ggsave_params = list(
-    width = 14,
-    height = 5, units = "in", dpi = 300, bg = "white"
-  ), show_pvalue = FALSE,
-  drop_non_acgt = TRUE
-) {
+    df_fragments, end_motif_5p = "Fragment_Bases_5p", end_motif_3p = "Fragment_Bases_3p",
+    motif_type = "Both", motif_size = 3, col_z = "Fragment_Status_Simple", vals_z = NULL,
+    ..., colors_z = "Dark2", title = NULL, output_path = NA_character_, ggsave_params = list(
+      width = 14,
+      height = 5, units = "in", dpi = 300, bg = "white"
+    ), show_pvalue = FALSE,
+    drop_non_acgt = TRUE) {
   # ---- Capture & sanitize dots to avoid duplicate/invalid args ----
   dots <- list(...)
   if (length(dots)) {
@@ -133,7 +133,7 @@ plot_freq_barplot <- function(
   # ---- Basic checks ----
   stopifnot(is.data.frame(df_fragments))
   if (!motif_type %in% c("Start", "End", "Both")) {
-    stop("otif_type' must be one of 'Start', 'End', or 'Both'.")
+    stop("Motif_type' must be one of 'Start', 'End', or 'Both'.")
   }
   if (!is.numeric(motif_size) || length(motif_size) != 1L || motif_size < 1L) {
     stop("otif_size' must be a single integer >= 1.")
@@ -203,20 +203,20 @@ plot_freq_barplot <- function(
   # ---- Build motif table ----
   motifs_list <- list()
   if (motif_type %in% c("Start", "Both")) {
-    motifs_list$start <- df_filtered |>
-      dplyr::select(group = dplyr::all_of(col_z), motif = dplyr::all_of(end_motif_5p)) |>
+    motifs_list$start <- df_filtered %>%
+      dplyr::select(group = dplyr::all_of(col_z), motif = dplyr::all_of(end_motif_5p)) %>%
       dplyr::mutate(motif = stringr::str_sub(motif, 1L, motif_size))
   }
   if (motif_type %in% c("End", "Both")) {
-    motifs_list$end <- df_filtered |>
-      dplyr::select(group = dplyr::all_of(col_z), motif = dplyr::all_of(end_motif_3p)) |>
+    motifs_list$end <- df_filtered %>%
+      dplyr::select(group = dplyr::all_of(col_z), motif = dplyr::all_of(end_motif_3p)) %>%
       dplyr::mutate(motif = stringr::str_sub(motif, -motif_size, -1L))
   }
-  dat <- dplyr::bind_rows(motifs_list) |>
+  dat <- dplyr::bind_rows(motifs_list) %>%
     dplyr::filter(!is.na(motif))
 
   # ---- Count bases ----
-  count_df <- dat |>
+  count_df <- dat %>%
     dplyr::mutate(a_count = stringr::str_count(motif, "A"), c_count = stringr::str_count(
       motif,
       "C"
@@ -227,24 +227,24 @@ plot_freq_barplot <- function(
       nchar(motif) - (a_count + c_count + g_count + t_count)
     } else {
       0L
-    }) |>
-    dplyr::select(group, a_count, c_count, g_count, t_count, Other) |>
+    }) %>%
+    dplyr::select(group, a_count, c_count, g_count, t_count, Other) %>%
     tidyr::pivot_longer(
       cols = c(a_count, c_count, g_count, t_count, Other),
       names_to = "nuc_key", values_to = "count"
-    ) |>
+    ) %>%
     dplyr::mutate(nucleotide = dplyr::recode(nuc_key,
       a_count = "A", c_count = "C",
       g_count = "G", t_count = "T", Other = "Other"
-    )) |>
+    )) %>%
     dplyr::select(group, nucleotide, count)
 
   if (drop_non_acgt) {
     count_df <- dplyr::filter(count_df, nucleotide %in% c("A", "C", "G", "T"))
   }
 
-  count_df <- count_df |>
-    dplyr::group_by(group, nucleotide) |>
+  count_df <- count_df %>%
+    dplyr::group_by(group, nucleotide) %>%
     dplyr::summarise(total_count = sum(count, na.rm = TRUE), .groups = "drop")
 
   # --- Drop 'Other' entirely if it has zero counts (prevents NA facet) ---
@@ -257,10 +257,10 @@ plot_freq_barplot <- function(
   }
 
   # ---- Frequencies & CIs ----
-  plot_data <- count_df |>
-    dplyr::group_by(group) |>
-    dplyr::mutate(total_bases_in_group = sum(total_count)) |>
-    dplyr::ungroup() |>
+  plot_data <- count_df %>%
+    dplyr::group_by(group) %>%
+    dplyr::mutate(total_bases_in_group = sum(total_count)) %>%
+    dplyr::ungroup() %>%
     dplyr::mutate(frequency = total_count / total_bases_in_group, ci = purrr::map2(
       total_count,
       total_bases_in_group, ~ stats::prop.test(.x, .y)$conf.int
@@ -280,7 +280,7 @@ plot_freq_barplot <- function(
   y_max <- min(1, max(plot_data$ci_high, na.rm = TRUE) * 1.1)
 
   # ---- Labels & global χ² ----
-  group_totals <- dplyr::distinct(plot_data, group, total_bases_in_group) |>
+  group_totals <- dplyr::distinct(plot_data, group, total_bases_in_group) %>%
     dplyr::arrange(factor(group, levels = vals_z))
   x_labels <- paste0(
     group_totals$group, " (N=", group_totals$total_bases_in_group,
