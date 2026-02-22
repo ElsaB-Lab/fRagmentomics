@@ -1,5 +1,11 @@
 # fRagmentomics NEWS
 
+## fRagmentomics 0.99.10 (2026-02-22)
+
+### OTHER CHANGES
+- **Windows Compatibility**: Enforced strict LF line endings for FASTA files via `.gitattributes` to prevent `Rsamtools` indexing errors (`.fai`) on Windows environments.
+- **Compatibility**: Replaced native R pipes (`|>`) with `magrittr` pipes (`%>%`) to ensure broader backward compatibility and avoid `R (>= 4.1.0)` dependency warnings.
+
 ## fRagmentomics 0.99.9 (2026-02-18)
 
 ### OTHER CHANGES

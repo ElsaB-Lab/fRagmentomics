@@ -1,6 +1,6 @@
 Package: fRagmentomics
 Title: Extract Fragmentomics Features and Mutational Status
-Version: 0.99.9
+Version: 0.99.10
 Authors@R: c(
     person("Killian", "Maudet", email = "killian.maudet@gustaveroussy.fr",
         role = c("aut", "cre"), comment = c(ORCID = "0009-0003-3237-092X")),
