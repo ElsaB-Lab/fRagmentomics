@@ -1,0 +1,16 @@
+# Git's default behavior on Windows (core.autocrlf) converts LF to CRLF (\r\n).
+# This strictly enforces LF to prevent breaking byte-offset indexing tools 
+# (like Rsamtools with .fai files)
+
+*.fa text eol=lf
+*.fasta text eol=lf
+*.fai text eol=lf
+*.tsv text eol=lf
+*.csv text eol=lf
+*.vcf text eol=lf
+*.bed text eol=lf
+*.bam binary
+*.bai binary
+*.gz binary
+*.rds binary
+*.RData binary
