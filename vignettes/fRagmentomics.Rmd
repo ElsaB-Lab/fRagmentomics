@@ -132,15 +132,18 @@ library(dplyr)
 library(fRagmentomics)
 
 # Locate the example files bundled with the package
-mut_file <- system.file("extdata/mutation",
+mut_file <- system.file(
+  "extdata/mutation",
   "cfdna-egfr-del_chr7_55241864_55243064_10k.mutations.tsv",
   package = "fRagmentomics"
 )
-bam_file <- system.file("extdata/bam",
+bam_file <- system.file(
+  "extdata/bam",
   "cfdna-egfr-del_chr7_55241864_55243064_10k.bam",
   package = "fRagmentomics"
 )
-fasta_file <- system.file("extdata/fasta",
+fasta_file <- system.file(
+  "extdata/fasta",
   "hg19_chr7_55231864_55253064.fa",
   package = "fRagmentomics"
 )
@@ -153,7 +156,9 @@ print(fasta_file)
 # Detect whether bcftools is available on the system PATH
 has_bcftools <- nzchar(Sys.which("bcftools"))
 if (!has_bcftools) {
-  message("bcftools not found on PATH; normalization examples will run without it.")
+  message(
+    "bcftools not found on PATH; normalization examples will run without it."
+  )
 }
 ```
 
@@ -207,7 +212,7 @@ df_frag_basic <- run_fRagmentomics(
   sample_id = "cfdna-egfr-del",
   apply_bcftools_norm = has_bcftools,
   verbose = FALSE,
-  n_cores = 2
+  n_cores = 1
 )
 
 # View the dimensions and the first few rows
@@ -227,7 +232,9 @@ Specifically, we will:
 
 ```{r run_analysis_advanced, message=TRUE, warning=TRUE}
 if (!has_bcftools) {
-  message("bcftools not detected; running advanced workflow without external normalization.")
+  message(
+    "bcftools not detected; running advanced workflow without external normalization."
+  )
 }
 
 # Run the analysis with custom parameters
@@ -250,7 +257,7 @@ df_frag_advanced <- run_fRagmentomics(
   report_5p_3p_bases_fragment = 3,
   apply_bcftools_norm = has_bcftools,
   verbose = FALSE,
-  n_cores = 2
+  n_cores = 1
 )
 
 # Observe that stricter filtering may result in fewer fragments
@@ -258,7 +265,12 @@ cat("Dimensions of advanced results:", dim(df_frag_advanced), "\n")
 
 # View the newly added columns
 df_frag_advanced %>%
-  select(Fragment_Id, TLEN, Nb_Fragment_Bases_Softclip_5p, Fragment_Bases_5p) %>%
+  select(
+    Fragment_Id,
+    TLEN,
+    Nb_Fragment_Bases_Softclip_5p,
+    Fragment_Bases_5p
+  ) %>%
   head()
 ```
 

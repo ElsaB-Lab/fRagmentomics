@@ -256,7 +256,6 @@ plot_motif_barplot(
   vals_z = c("MUT", "WT"),
   colors_z = c("#F6BD60", "#84A59D")
 )
-
 ```
 
 <img src="man/figure/plot_README_freq_barplot_splitbymotif.png" align="center" width="600" height="600"/>
