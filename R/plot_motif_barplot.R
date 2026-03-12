@@ -25,7 +25,7 @@
 #'
 #' @return A ggplot object.
 #'
-#' @importFrom dplyr %>% filter select mutate all_of group_by summarise ungroup n count bind_rows left_join pull arrange
+#' @importFrom dplyr filter select mutate all_of group_by summarise ungroup n count bind_rows left_join pull arrange
 #' @importFrom stringr str_sub str_length str_detect
 #' @importFrom tidyr drop_na pivot_wider
 #' @importFrom ggh4x facet_nested
@@ -72,7 +72,7 @@
 #'   df_fragments   = example_df,
 #'   representation = "split_by_base"
 #' )
-#' print(p1)
+#' p1
 #'
 #' # You can also filter this plot to show only motifs starting with certain bases.
 #' p1_filtered <- plot_motif_barplot(
@@ -81,7 +81,7 @@
 #'   motif_start    = c("C", "G"),
 #'   title          = "Motifs starting with C/G"
 #' )
-#' print(p1_filtered)
+#' p1_filtered
 #'
 #' # Optional: customize colors for the 2nd base (A/C/G/T) in split_by_base
 #' p1_colors <- plot_motif_barplot(
@@ -89,7 +89,7 @@
 #'   representation = "split_by_base",
 #'   colors_z       = c(A = "#FD96A9", C = "#E88B00", G = "#0D539E", T = "#6CAE75")
 #' )
-#' print(p1_colors)
+#' p1_colors
 #'
 #' # 2. Differential Plot (representation = 'differential')
 #' # Shows log2 fold-change in motif proportions between two groups (needs exactly two groups).
@@ -100,7 +100,7 @@
 #'   colors_z       = c(Positive = "#66C2A5", Negative = "#E78AC3"),
 #'   title          = "MUT vs WT (log2FC)"
 #' )
-#' print(p2)
+#' p2
 #'
 #' # 3. Side-by-side Motif Plot (representation = 'split_by_motif')
 #' # Motifs on the x-axis; bars for each group shown side-by-side.
@@ -109,7 +109,7 @@
 #'   representation = "split_by_motif",
 #'   colors_z       = "Set2" # or a vector named by group names
 #' )
-#' print(p3)
+#' p3
 #'
 #' # 4. Save the default hierarchical plot (commented for CRAN)
 #' # out_file1 <- file.path(tempdir(), 'motif_split_by_base.png')
@@ -231,6 +231,9 @@ plot_motif_barplot <- function(
     stop("Differential analysis requires a grouping column 'col_z'.")
   }
 
+  # ---- Coerce S4 DataFrame to base data.frame ----
+  df_fragments <- as.data.frame(df_fragments)
+
   # ---- Force UPPERCASE sequences ----
   if (motif_type %in% c("Start", "Both") && end_motif_5p %in% names(df_fragments)) {
     df_fragments[[end_motif_5p]] <- toupper(df_fragments[[end_motif_5p]])
@@ -240,10 +243,10 @@ plot_motif_barplot <- function(
   }
 
   # ---- Filter rows & groups ----
-  df_filtered <- df_fragments %>%
+  df_filtered <- df_fragments |>
     dplyr::filter(!is.na(.data[[col_z]]))
   if (is_grouped && !is.null(vals_z)) {
-    df_filtered <- df_filtered %>%
+    df_filtered <- df_filtered |>
       dplyr::filter(.data[[col_z]] %in% vals_z)
   }
   if (nrow(df_filtered) == 0) {
@@ -257,21 +260,21 @@ plot_motif_barplot <- function(
   # ---- Build motif table (ACGT only; length = 3) ----
   motifs_list <- list()
   if (motif_type %in% c("Start", "Both")) {
-    motifs_list$start <- df_filtered %>%
+    motifs_list$start <- df_filtered |>
       dplyr::select(group = dplyr::all_of(col_z), motif = dplyr::all_of(end_motif_5p))
   }
   if (motif_type %in% c("End", "Both")) {
-    motifs_list$end <- df_filtered %>%
+    motifs_list$end <- df_filtered |>
       dplyr::select(group = dplyr::all_of(col_z), motif = dplyr::all_of(end_motif_3p))
   }
 
-  analysis_df <- dplyr::bind_rows(motifs_list) %>%
-    tidyr::drop_na(motif) %>%
-    dplyr::mutate(motif = stringr::str_sub(motif, 1, motif_size)) %>%
+  analysis_df <- dplyr::bind_rows(motifs_list) |>
+    tidyr::drop_na(motif) |>
+    dplyr::mutate(motif = stringr::str_sub(motif, 1, motif_size)) |>
     dplyr::filter(stringr::str_detect(motif, "^[ACGT]{3}$"))
 
   if (!is.null(motif_start)) {
-    analysis_df <- analysis_df %>%
+    analysis_df <- analysis_df |>
       dplyr::filter(stringr::str_sub(motif, 1, 1) %in% motif_start)
   }
   if (nrow(analysis_df) == 0) {
@@ -279,15 +282,15 @@ plot_motif_barplot <- function(
   }
 
   # ---- Proportions per group ----
-  proportions_df <- analysis_df %>%
-    dplyr::group_by(group) %>%
-    dplyr::count(motif, name = "count") %>%
-    dplyr::mutate(proportion = count / sum(count)) %>%
+  proportions_df <- analysis_df |>
+    dplyr::group_by(group) |>
+    dplyr::count(motif, name = "count") |>
+    dplyr::mutate(proportion = count / sum(count)) |>
     dplyr::ungroup()
 
   # ---- Prepare plotting data ----
   base_levels <- c("A", "C", "G", "T")
-  plot_data <- proportions_df %>%
+  plot_data <- proportions_df |>
     dplyr::mutate(
       first_base = factor(stringr::str_sub(motif, 1, 1), levels = base_levels),
       second_base = factor(stringr::str_sub(motif, 2, 2), levels = base_levels),
@@ -307,9 +310,9 @@ plot_motif_barplot <- function(
     }
 
     pseudocount <- 1e-09
-    diff_data <- plot_data %>%
-      dplyr::select(motif, group, proportion, first_base, second_base, third_base) %>%
-      tidyr::pivot_wider(names_from = group, values_from = proportion, values_fill = 0) %>%
+    diff_data <- plot_data |>
+      dplyr::select(motif, group, proportion, first_base, second_base, third_base) |>
+      tidyr::pivot_wider(names_from = group, values_from = proportion, values_fill = 0) |>
       dplyr::mutate(log2FC = log2((.data[[vals_z[1]]] + pseudocount) / (.data[[vals_z[2]]] +
         pseudocount)), sign = ifelse(log2FC >= 0, "Positive", "Negative"))
 
@@ -347,16 +350,16 @@ plot_motif_barplot <- function(
     final_plot <- final_plot + ggplot2::guides(fill = "none")
   } else {
     # common additions for proportion plots
-    total_counts <- analysis_df %>%
+    total_counts <- analysis_df |>
       dplyr::count(group, name = "total_n")
-    plot_data <- plot_data %>%
-      dplyr::left_join(total_counts, by = "group") %>%
+    plot_data <- plot_data |>
+      dplyr::left_join(total_counts, by = "group") |>
       dplyr::mutate(group_label = paste0(group, " (N=", total_n, ")"))
 
-    ordered_levels <- plot_data %>%
-      dplyr::mutate(group = factor(group, levels = vals_z)) %>%
-      dplyr::arrange(group) %>%
-      dplyr::pull(group_label) %>%
+    ordered_levels <- plot_data |>
+      dplyr::mutate(group = factor(group, levels = vals_z)) |>
+      dplyr::arrange(group) |>
+      dplyr::pull(group_label) |>
       unique()
     plot_data$group_label <- factor(plot_data$group_label, levels = ordered_levels)
 

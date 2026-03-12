@@ -89,7 +89,7 @@ NOTE: If you hit compilation issues (e.g. with Rsamtools / BiocParallel), try on
 - **With Conda/Mamba** (preinstall Rsamtools)
 
 ```bash
-mamba env create -n fRagmentomics-env -c conda-forge -c bioconda bioconductor-rsamtools bcftools=1.21 # To use bcftools normalisation (RECOMMENDED for indels)
+mamba env create -n fRagmentomics-env -c conda-forge -c bioconda bioconductor-rsamtools bioconductor-variantannotation bcftools=1.21 # To use bcftools normalisation (RECOMMENDED for indels)
 mamba activate fRagmentomics-env
 Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
                 install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
@@ -105,7 +105,7 @@ Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
                 install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
             if (!requireNamespace("remotes", quietly=TRUE))
                 install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
-            BiocManager::install(c("Rsamtools","GenomicAlignments","BiocParallel"), ask=FALSE, update=FALSE);
+            BiocManager::install(c("Rsamtools","VariantAnnotation","GenomicAlignments","BiocParallel"), ask=FALSE, update=FALSE);
             remotes::install_github("ElsaB-Lab/fRagmentomics", build_vignettes=FALSE, upgrade="never")'
 ```
 
@@ -118,18 +118,25 @@ To make it user-friendly, the entire analysis is performed by a single function:
 For a deeper dive into the package's methodology, please refer to the `README.md` file on the project's [GitHub repository](https://github.com/ElsaB-Lab/fRagmentomics).
 
 The README provides detailed explanations of:
-* The normalization for converting indel representations into a standardized VCF format.
-* The context-aware algorithm for determining read status.
-* The formulas used for precise fragment size calculation.
-* The logic for classifying fragments into different mutational groups.
+
+- The normalization for converting indel representations into a standardized VCF format.
+
+- The context-aware algorithm for determining read status.
+
+- The formulas used for precise fragment size calculation.
+
+- The logic for classifying fragments into different mutational groups.
 
 ## 1. Loading the Package and Example Data
 
-First, we load the `fRagmentomics` library. The package includes a small BAM file, a corresponding FASTA reference, and a list of mutations to make testing easy.
+We begin by loading the fRagmentomics library. To facilitate reproducibility, the package ships with a fully anonymized test dataset comprising a small BAM file, its corresponding FASTA reference, and a mutation file. This test sample originates from a **lung cancer** case harboring an **EGFR exon 19 15 bp in-frame deletion** — a well-characterized oncogenic driver associated with sensitivity to tyrosine kinase inhibitors.
 
-```{r load_data}
-library(dplyr)
-library(fRagmentomics)
+The scripts used to generate, subset, and anonymize the test BAM and FASTA files are available in the package directory: `inst/scripts/`
+
+```{r Loading the Package and Example Data, message=TRUE, warning=TRUE}
+suppressPackageStartupMessages({
+  library(fRagmentomics)
+})
 
 # Locate the example files bundled with the package
 mut_file <- system.file(
@@ -149,9 +156,9 @@ fasta_file <- system.file(
 )
 
 # Print the file paths to confirm they were found
-print(mut_file)
-print(bam_file)
-print(fasta_file)
+mut_file
+bam_file
+fasta_file
 
 # Detect whether bcftools is available on the system PATH
 has_bcftools <- nzchar(Sys.which("bcftools"))
@@ -225,10 +232,14 @@ head(df_frag_basic)
 The `run_fRagmentomics()` function can be customized for more specific use cases. In the example below, we will perform a more stringent analysis and request additional information in the output table.
 
 Specifically, we will:
-* **Narrow the search window** to 1000 bp around the variant using `neg_offset_mate_search` and `pos_offset_mate_search`.
-* **Apply stricter BAM filters** by requiring reads to be in a "proper pair" using `flag_bam_list`.
-* **Request additional output columns** for bam information (`report_bam_info`), soft-clip counts (`report_softclip`), and the 3-base motifs at the fragment ends (`report_5p_3p_bases_fragment`).
-* **keep fragments that do not pass quality control using the parameter retain_fail_qc**: e.g., reads with incorrect orientation, mapped to different chromosomes, unmapped mates.
+
+- **Narrow the search window** to 1000 bp around the variant using `neg_offset_mate_search` and `pos_offset_mate_search`.
+
+- **Apply stricter BAM filters** by requiring reads to be in a "proper pair" using `flag_bam_list`.
+
+- **Request additional output columns** for bam information (`report_bam_info`), soft-clip counts (`report_softclip`), and the 3-base motifs at the fragment ends (`report_5p_3p_bases_fragment`).
+
+- **Keep fragments that do not pass quality control using the parameter retain_fail_qc**: e.g., reads with incorrect orientation, mapped to different chromosomes, unmapped mates.
 
 ```{r run_analysis_advanced, message=TRUE, warning=TRUE}
 if (!has_bcftools) {
@@ -264,29 +275,25 @@ df_frag_advanced <- run_fRagmentomics(
 cat("Dimensions of advanced results:", dim(df_frag_advanced), "\n")
 
 # View the newly added columns
-df_frag_advanced %>%
-  select(
-    Fragment_Id,
-    TLEN,
-    Nb_Fragment_Bases_Softclip_5p,
-    Fragment_Bases_5p
-  ) %>%
-  head()
+head(df_frag_advanced[, c(
+  "Fragment_Id",
+  "TLEN",
+  "Nb_Fragment_Bases_Softclip_5p",
+  "Fragment_Bases_5p"
+)])
 ```
 
 ## 3. Exploring the Output
 
 **Note**: The following outputs and visualizations are generated from a small, simulated test dataset. They are intended to demonstrate the package's functionality and are not representative of real biological results.
 
-The `run_fRagmentomics()` function returns a `data.frame` where each row represents the analysis of a single fragment. Let's explore the key columns to understand the results.
+The `run_fRagmentomics()` function returns a `DataFrame` where each row represents the analysis of a single fragment. Let's explore the key columns to understand the results.
 
 ### A First Look at the Results Table
 
-A great way to get an overview of all the columns and their data types is to use `dplyr::glimpse()`.
-
-```{r glimpse_output}
-# Load dplyr to use glimpse()
-glimpse(df_frag_basic)
+```{r dataframe_output}
+# Dataframe output
+df_frag_basic
 ```
 
 ### Understanding the Fragment Status
@@ -305,15 +312,13 @@ The **`Fragment_Status_Simple`** column provides a high-level classification for
 You can quickly summarize the results for a given mutation by counting the occurrences of each status:
 
 ```{r count_status_simple}
-df_frag_advanced %>%
-  count(Fragment_Status_Simple)
+table(df_frag_advanced$Fragment_Status_Simple)
 ```
 
 The **`Fragment_Status_Detail`** column concatenates the statuses of the two reads (e.g., `"WT & AMB"`).
 
 ```{r count_status_detail}
-df_frag_advanced %>%
-  count(Fragment_Status_Detail)
+table(df_frag_advanced$Fragment_Status_Detail)
 ```
 
 ### Exploring Other Key Features
@@ -327,8 +332,7 @@ summary(df_frag_advanced$Fragment_Size)
 And you can easily extract the final **VAF** calculated for each mutation:
 
 ```{r extract_vaf}
-df_frag_advanced %>%
-  distinct(VAF)
+unique(df_frag_advanced$VAF)
 ```
 
 For a complete description of every column in the output, please refer to the `README.md` file on the package's [GitHub repository](https://github.com/ElsaB-Lab/fRagmentomics).

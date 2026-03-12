@@ -58,77 +58,40 @@ test_that("read_mut works with character string input", {
 
 test_that("read_mut works with VCF files", {
   # ----------------------------------------------------------------------------------------------
-  # SETUP: Synthetic VCF Content matching
+  # SETUP: Valid VCF content (SNV, deletion, multi-allelic)
   # ----------------------------------------------------------------------------------------------
   vcf_content <- c(
     "##fileformat=VCFv4.2",
     "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO",
     "chr1\t12345\t.\tA\tT\t.\t.\t.",
-    "2\t67890\t.\tGT\tC\t.\t.\t.",
-    "chr3\t101112\t.\tA.\tA-\t.\t.\t.",
-    "chr22\t56789\t.\tNA\tNA\t.\t.\t.",
-    "22\t56789\t.\t.\t-\t.\t.\t.",
-    "chrX\t54321\t.\tA\t.\t.\t.\t.",
-    "chrY\t99999\t.\t.\tC\t.\t.\t.",
-    "chr4\t1234\t.\t-\tA\t.\t.\t.",
-    "chr5\t5678\t.\t.\t.\t.\t.\t.",
-    "chr6\t91011\t.\tG\tNA\t.\t.\t.",
-    "chr8\t151617\t.\tG\tA,T\t.\t.\t.",
-    "chrY\tNA\t.\tT\tC\t.\t.\t.",
-    "42453\t181920\t.\tAC\t-\t.\t.\t.",
-    ".\t181920\t.\tAC\t-\t.\t.\t."
+    "2\t67890\t.\tGAT\tG\t.\t.\t.",
+    "chr8\t151617\t.\tG\tA,T\t.\t.\t."
   )
 
   vcf_file <- tempfile(fileext = ".vcf")
   writeLines(vcf_content, vcf_file)
   on.exit(unlink(vcf_file))
 
-  # Case 1: Standard VCF
-  captured_warnings <- testthat::capture_warnings(
-    df_vcf_test <- read_mut(vcf_file)
-  )
-
   expected_results <- data.frame(
-    CHROM = c(
-      "chr1", "2", "chr3", "chr22", "22", "chrX", "chrY", "chr4", "chr5", "chr6",
-      "chr8", "chr8", "chrY", "42453", "."
-    ),
-    POS = c(
-      12345, 67890, 101112, 56789, 56789, 54321, 99999, 1234, 5678, 91011,
-      151617, 151617, NA, 181920, 181920
-    ),
-    REF = c(
-      "A", "GT", "A.", "NA", ".", "A", ".", "-", ".", "G",
-      "G", "G", "T", "AC", "AC"
-    ),
-    ALT = c(
-      "T", "C", "A-", "NA", "-", ".", "C", "A", ".", "NA",
-      "A", "T", "C", "-", "-"
-    ),
+    CHROM = c("chr1", "2", "chr8", "chr8"),
+    POS   = c(12345L, 67890L, 151617L, 151617L),
+    REF   = c("A", "GAT", "G", "G"),
+    ALT   = c("T", "G", "A", "T"),
     stringsAsFactors = FALSE
   )
 
-  # Check warnings
-  expect_true(any(grepl("non-integer values in the POS column", captured_warnings)))
-
-  # Check results
-  # We sort to ensure stable comparison if row order varies
+  # Case 1: Plain VCF
+  df_vcf_test <- read_mut(vcf_file)
   expect_equal(df_vcf_test, expected_results)
 
-  # Case 2: Compressed VCF
-  vcf_file_gz <- tempfile(fileext = ".vcf.gz")
-  # Use gzfile to write compressed
-  gz_con <- gzfile(vcf_file_gz, "wt")
-  writeLines(vcf_content, gz_con)
-  close(gz_con)
-  on.exit(unlink(vcf_file_gz), add = TRUE)
+  # Case 2: Compressed VCF (bgzip + tabix index required by VariantAnnotation)
+  vcf_gz <- tempfile(fileext = ".vcf.gz")
+  Rsamtools::bgzip(vcf_file, dest = vcf_gz, overwrite = TRUE)
+  Rsamtools::indexTabix(vcf_gz, format = "vcf")
+  on.exit(unlink(c(vcf_gz, paste0(vcf_gz, ".tbi"))), add = TRUE)
 
-  captured_warnings_gz <- testthat::capture_warnings(
-    df_vcf_test2 <- read_mut(vcf_file_gz)
-  )
-
-  expect_true(any(grepl("non-integer values in the POS column", captured_warnings_gz)))
-  expect_equal(df_vcf_test2, expected_results)
+  df_vcf_gz <- read_mut(vcf_gz)
+  expect_equal(df_vcf_gz, expected_results)
 })
 
 test_that("read_mut works with TSV files", {
@@ -205,21 +168,126 @@ test_that("read_mut works with TSV files", {
   expect_equal(df_tsv_test2, expected_results3)
 })
 
-test_that("read_mut detects multiallelic REF in VCF/TSV", {
+test_that("read_mut detects multiallelic REF in TSV", {
   # ----------------------------------------------------------------------------------------------
-  # SETUP: VCF with Multiallelic REF (invalid)
+  # SETUP: TSV with Multiallelic REF (invalid)
+  # Note: VCF spec forbids multiallelic REF, so this is tested via TSV input
   # ----------------------------------------------------------------------------------------------
-  vcf_content <- c(
-    "##fileformat=VCFv4.2",
-    "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO",
-    "chr1\t100\t.\tA,G\tT\t.\t.\t."
+  tsv_content <- c(
+    "CHROM\tPOS\tREF\tALT",
+    "chr1\t100\tA,G\tT"
   )
-  vcf_file <- tempfile(fileext = ".vcf")
-  writeLines(vcf_content, vcf_file)
-  on.exit(unlink(vcf_file))
+  tsv_file <- tempfile(fileext = ".tsv")
+  writeLines(tsv_content, tsv_file)
+  on.exit(unlink(tsv_file))
 
   captured_warnings <- testthat::capture_warnings(
-    expect_error(read_mut(vcf_file), "After reading and filtering, the mutation information is empty")
+    expect_error(read_mut(tsv_file), "After reading and filtering, the mutation information is empty")
   )
   expect_true(any(grepl("REF can not be multiallelic", captured_warnings)))
+})
+
+test_that("parser_vcf handles header-only VCF and corrupted compressed files", {
+  # ----------------------------------------------------------------------------------------------
+  # SETUP: Edge cases for parser_vcf low-level error branches
+  # ----------------------------------------------------------------------------------------------
+
+  # Header-only VCF (no variant rows) -> length(vcf) == 0 branch
+  vcf_header_only <- c(
+    "##fileformat=VCFv4.2",
+    "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"
+  )
+  vcf_empty <- tempfile(fileext = ".vcf")
+  writeLines(vcf_header_only, vcf_empty)
+  on.exit(unlink(vcf_empty))
+
+  expect_error(
+    read_mut(vcf_empty),
+    "The VCF file does not contain any mutation data."
+  )
+
+  # Corrupted .vcf.gz file -> tryCatch error branch in parser_vcf
+  vcf_gz_bad <- tempfile(fileext = ".vcf.gz")
+  writeBin(charToRaw("this is not valid gzip content"), vcf_gz_bad)
+  on.exit(unlink(vcf_gz_bad), add = TRUE)
+
+  expect_error(
+    read_mut(vcf_gz_bad),
+    "Failed to read VCF file"
+  )
+})
+
+test_that("parser_tsv handles missing columns, unreadable files, and all-empty rows", {
+  # ----------------------------------------------------------------------------------------------
+  # SETUP: Edge cases for parser_tsv low-level error branches
+  # ----------------------------------------------------------------------------------------------
+
+  # TSV with missing required columns -> ncol(df_tsv) != 4 branch
+  # cols_only() returns only matched columns, so missing headers reduce ncol
+  tsv_missing_cols <- c(
+    "CHROM\tPOS\tREF",
+    "chr1\t123\tA"
+  )
+  tsv_file_missing <- tempfile(fileext = ".tsv")
+  writeLines(tsv_missing_cols, tsv_file_missing)
+  on.exit(unlink(tsv_file_missing))
+
+  captured_warnings_missing <- testthat::capture_warnings(
+    expect_error(
+      read_mut(tsv_file_missing),
+      "does not match the expected columns"
+    )
+  )
+  expect_true(any(grepl("don't match the column names", captured_warnings_missing)))
+
+  # Non-existent TSV file -> tryCatch error branch in parser_tsv
+  expect_error(
+    parser_tsv(tempfile(fileext = ".tsv")),
+    "Failed to read the TSV file"
+  )
+
+  # TSV with only fully empty rows -> nrow(df_tsv) == 0 after filtering branch
+  tsv_all_empty <- c(
+    "CHROM\tPOS\tREF\tALT",
+    "\t\t\t",
+    "\t\t\t"
+  )
+  tsv_file_empty <- tempfile(fileext = ".tsv")
+  writeLines(tsv_all_empty, tsv_file_empty)
+  on.exit(unlink(tsv_file_empty), add = TRUE)
+
+  expect_error(
+    read_mut(tsv_file_empty),
+    "The TSV file does not contain any mutation data."
+  )
+})
+
+test_that("parser_str handles trailing colon, non-integer POS, and length != 4", {
+  # ----------------------------------------------------------------------------------------------
+  # SETUP: Edge cases for parser_str low-level branches
+  # Note: the trailing-colon and length != 4 branches are unreachable via read_mut because
+  # ----------------------------------------------------------------------------------------------
+
+  # Trailing colon -> mut is patched to append "-" before splitting
+  result_trailing <- parser_str("chr1:123:A:")
+  expect_equal(
+    result_trailing,
+    data.frame(CHROM = "chr1", POS = 123L, REF = "A", ALT = "-", stringsAsFactors = FALSE)
+  )
+
+  # length(parts) != 4 after split -> error branch in parser_str
+  expect_error(
+    parser_str("chr1:123:A:T:extra"),
+    "not in the expected format"
+  )
+
+  # Non-integer POS in string format -> warning + NA
+  expect_warning(
+    result_na_pos <- read_mut("chr1:abc:A:T"),
+    "not a valid integer"
+  )
+  expect_true(is.na(result_na_pos$POS))
+  expect_equal(result_na_pos$CHROM, "chr1")
+  expect_equal(result_na_pos$REF,   "A")
+  expect_equal(result_na_pos$ALT,   "T")
 })

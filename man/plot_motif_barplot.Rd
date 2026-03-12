@@ -99,7 +99,7 @@ p1 <- plot_motif_barplot(
   df_fragments   = example_df,
   representation = "split_by_base"
 )
-print(p1)
+p1
 
 # You can also filter this plot to show only motifs starting with certain bases.
 p1_filtered <- plot_motif_barplot(
@@ -108,7 +108,7 @@ p1_filtered <- plot_motif_barplot(
   motif_start    = c("C", "G"),
   title          = "Motifs starting with C/G"
 )
-print(p1_filtered)
+p1_filtered
 
 # Optional: customize colors for the 2nd base (A/C/G/T) in split_by_base
 p1_colors <- plot_motif_barplot(
@@ -116,7 +116,7 @@ p1_colors <- plot_motif_barplot(
   representation = "split_by_base",
   colors_z       = c(A = "#FD96A9", C = "#E88B00", G = "#0D539E", T = "#6CAE75")
 )
-print(p1_colors)
+p1_colors
 
 # 2. Differential Plot (representation = 'differential')
 # Shows log2 fold-change in motif proportions between two groups (needs exactly two groups).
@@ -127,7 +127,7 @@ p2 <- plot_motif_barplot(
   colors_z       = c(Positive = "#66C2A5", Negative = "#E78AC3"),
   title          = "MUT vs WT (log2FC)"
 )
-print(p2)
+p2
 
 # 3. Side-by-side Motif Plot (representation = 'split_by_motif')
 # Motifs on the x-axis; bars for each group shown side-by-side.
@@ -136,7 +136,7 @@ p3 <- plot_motif_barplot(
   representation = "split_by_motif",
   colors_z       = "Set2" # or a vector named by group names
 )
-print(p3)
+p3
 
 # 4. Save the default hierarchical plot (commented for CRAN)
 # out_file1 <- file.path(tempdir(), 'motif_split_by_base.png')

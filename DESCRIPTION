@@ -1,6 +1,6 @@
 Package: fRagmentomics
 Title: Extract Fragmentomics Features and Mutational Status
-Version: 0.99.10
+Version: 0.99.11
 Authors@R: c(
     person("Killian", "Maudet", email = "killian.maudet@gustaveroussy.fr",
         role = c("aut", "cre"), comment = c(ORCID = "0009-0003-3237-092X")),
@@ -61,11 +61,13 @@ Imports:
     ggplot2,
     ggseqlogo,
     IRanges,
-    magrittr,
     purrr,
     RColorBrewer,
     readr,
+    rlang,
     Rsamtools (>= 2.4.0),
+    S4Vectors,
+    VariantAnnotation,
     scales,
     stringr,
     tibble,

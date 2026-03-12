@@ -17,24 +17,18 @@ normalize_mut <- function(
   df_mut, fasta, fasta_fafile, one_based,
   apply_bcftools_norm, tmp_folder, verbose
 ) {
-  df_mut_norm <- data.frame(
-    chr = character(),
-    pos = integer(),
-    ref = character(),
-    alt = character()
-  )
   rename_map <- c(chr = "CHROM", pos = "POS", ref = "REF", alt = "ALT")
 
-  for (i in seq_len(nrow(df_mut))) {
+  results <- lapply(seq_len(nrow(df_mut)), function(i) {
     chr <- df_mut[i, "CHROM"]
     pos <- df_mut[i, "POS"]
     ref <- df_mut[i, "REF"]
     alt <- df_mut[i, "ALT"]
 
-    # Extract initial mutation informations
+    # Store original mutation information string for traceability
     input_mutation_info <- paste0(chr, ":", pos, ":", ref, "-", alt)
 
-    # Normalization user-provided representation into vcf representation
+    # Normalize user-provided representation to VCF format
     df_mut_vcf_norm <- normalize_to_vcf_rep(
       chr = chr, pos = pos, ref = ref,
       alt = alt, fasta_fafile = fasta_fafile, one_based = one_based,
@@ -43,10 +37,10 @@ normalize_mut <- function(
 
     # Sanity check to see if ref != fasta
     if (is.null(df_mut_vcf_norm)) {
-      next
+      return(NULL)
     }
 
-    # Normalization vcf representation with bcftools norm
+    # Further normalize to left-aligned VCF representation using bcftools norm
     if (apply_bcftools_norm) {
       df_mut_bcftools_norm <- apply_bcftools_norm(
         chr = df_mut_vcf_norm$chr, pos = df_mut_vcf_norm$pos,
@@ -56,33 +50,28 @@ normalize_mut <- function(
 
       # Sanity check to see if bcftools worked properly
       if (is.null(df_mut_bcftools_norm)) {
-        next
+        return(NULL)
       }
 
-      # rename columns
-      for (i in seq_along(rename_map)) {
-        old_name <- rename_map[i]
-        new_name <- names(rename_map)[i]
-        if (old_name %in% colnames(df_mut_bcftools_norm)) {
-          colnames(df_mut_bcftools_norm)[
-            colnames(df_mut_bcftools_norm) == old_name
-          ] <- new_name
-        }
-      }
+      # Rename columns to match the expected output format (vectorized)
+      idx <- match(rename_map, colnames(df_mut_bcftools_norm))
+      valid_idx <- !is.na(idx)
+      colnames(df_mut_bcftools_norm)[idx[valid_idx]] <- names(rename_map)[valid_idx]
 
-      # Add the original mutation info string as a new column
       df_mut_bcftools_norm$input_mutation_info <- input_mutation_info
-
-      # Append to the final dataframe
-      df_mut_norm <- rbind(df_mut_norm, df_mut_bcftools_norm)
+      df_mut_bcftools_norm
     } else {
-      # Add the original mutation info string as a new column
       df_mut_vcf_norm$input_mutation_info <- input_mutation_info
-
-      # Append to the final dataframe
-      df_mut_norm <- rbind(df_mut_norm, df_mut_vcf_norm)
+      df_mut_vcf_norm
     }
-  }
+  })
 
-  df_mut_norm
+  filtered <- Filter(Negate(is.null), results)
+  if (length(filtered) == 0) {
+    return(data.frame(
+      chr = character(), pos = integer(), ref = character(),
+      alt = character(), input_mutation_info = character()
+    ))
+  }
+  do.call(rbind, filtered)
 }

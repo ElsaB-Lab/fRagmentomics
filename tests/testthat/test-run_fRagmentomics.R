@@ -70,7 +70,7 @@ test_that("Quiet Run & In-Memory Return (Verbose=FALSE, Output=NULL)", {
 
   # --- EXECUTION 2---
   # 1. Quiet mode (no messages)
-  # 2. Output=NULL returns data.frame (covers NA and "" logic too as they share the same 'if' block)
+  # 2. Output=NULL returns DataFrame (covers NA and "" logic too as they share the same 'if' block)
   # 3. String input for mutation (valid coordinate from the test file to ensure it works)
 
   mut_df <- utils::read.table(files$mut, header = TRUE, stringsAsFactors = FALSE)
@@ -89,7 +89,7 @@ test_that("Quiet Run & In-Memory Return (Verbose=FALSE, Output=NULL)", {
 
   # --- VERIFICATIONS ---
   expect_length(msgs, 0) # Quiet mode check
-  expect_s3_class(res, "data.frame") # Return check
+  expect_s4_class(res, "DataFrame") # Return check
   expect_gt(nrow(res), 0)
 })
 
@@ -127,5 +127,5 @@ test_that("Bcftools: User parameter apply_bcftools_norm is correctly used", {
     apply_bcftools_norm = TRUE,
     n_cores = 2L
   )
-  expect_s3_class(res, "data.frame")
+  expect_s4_class(res, "DataFrame")
 })

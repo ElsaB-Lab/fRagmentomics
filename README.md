@@ -1,6 +1,6 @@
 # fRagmentomics <img src="man/figure/logo.svg" align="right" width="150"/>
 
-![Version](https://img.shields.io/badge/version-0.99.10-blue)
+![Version](https://img.shields.io/badge/version-0.99.11-blue)
 [![codecov](https://codecov.io/gh/ElsaB-Lab/fRagmentomics/graph/badge.svg?token=OMTSCRO7LJ)](https://codecov.io/gh/ElsaB-Lab/fRagmentomics)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![R style: styler](https://img.shields.io/badge/code%20style-styler-blue.svg)](https://github.com/r-lib/styler)
@@ -91,7 +91,7 @@ NOTE: If you hit compilation issues (e.g. with Rsamtools / BiocParallel), try on
 - **With Conda/Mamba** (preinstall Rsamtools)
 
 ```bash
-mamba env create -n fRagmentomics-env -c conda-forge -c bioconda bioconductor-rsamtools bcftools=1.21 # To use bcftools normalisation (RECOMMENDED for indels)
+mamba env create -n fRagmentomics-env -c conda-forge -c bioconda bioconductor-rsamtools bioconductor-variantannotation bcftools=1.21 # To use bcftools normalisation (RECOMMENDED for indels)
 mamba activate fRagmentomics-env
 Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
               install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
@@ -107,7 +107,7 @@ Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
               install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
             if (!requireNamespace("remotes", quietly=TRUE))
               install.packages("remotes", repos="https://mirror.ibcp.fr/pub/CRAN/");
-            BiocManager::install(c("Rsamtools","GenomicAlignments","BiocParallel"), ask=FALSE, update=FALSE);
+            BiocManager::install(c("Rsamtools","VariantAnnotation","GenomicAlignments","BiocParallel"), ask=FALSE, update=FALSE);
             remotes::install_github("ElsaB-Lab/fRagmentomics", build_vignettes=FALSE, upgrade="never")'
 ```
 

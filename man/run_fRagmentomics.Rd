@@ -74,7 +74,7 @@ Require that bcftools command is installed and available in the PATH.}
 \item{n_cores}{Number of cores for parallel computation.}
 }
 \value{
-A dataframe containing extracted fragment-level information.
+A \code{DataFrame} (S4Vectors) containing extracted fragment-level information.
 }
 \description{
 This is the main function of the package. It provides an end-to-end pipeline for analyzing the allelic state of
@@ -130,6 +130,6 @@ results <- run_fRagmentomics(
 
 # --- 3. View the Results ---
 # Print the first few rows of the output data frame to see the results.
-print(head(results))
+head(results)
 
 }

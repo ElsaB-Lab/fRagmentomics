@@ -1,5 +1,14 @@
 # fRagmentomics NEWS
 
+## fRagmentomics 0.99.11 (2026-03-10)
+
+### OTHER CHANGES
+
+- **Bioconductor compliance**: `run_fRagmentomics()` now returns a `S4Vectors::DataFrame` instead of a base `data.frame`.
+- **VCF import**: Replaced the custom VCF parser with `VariantAnnotation::readVcf()` for standard-compliant VCF reading. Compressed files (`.vcf.gz`) must now be bgzip-compressed and tabix-indexed. Added `VariantAnnotation` as an explicit dependency.
+- **Performance**: Replaced incremental `rbind()`/`rbindlist()` patterns in `run_fRagmentomics()`, `normalize_mut()`, and `remove_bad_mut()` with list-based collection followed by a single bind.
+- **Pipe cleanup**: Replaced all `magrittr` pipes (`%>%`) with the native R base pipe (`|>`) across all plotting functions. `magrittr` is no longer a dependency.
+
 ## fRagmentomics 0.99.10 (2026-02-22)
 
 ### OTHER CHANGES

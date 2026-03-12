@@ -9,30 +9,22 @@
 #'
 #' @keywords internal
 remove_bad_mut <- function(df_mut) {
-  # Initialize the cleaned dataframe
-  df_mut_clean <- data.frame()
+  # Build a logical vector of valid rows
+  valid <- vapply(seq_len(nrow(df_mut)), function(i) {
+    check_chr_input(df_mut[i, "CHROM"]) &&
+      check_pos_input(df_mut[i, "POS"]) &&
+      check_ref_alt_input(df_mut[i, "REF"], df_mut[i, "ALT"])
+  }, logical(1))
 
-  for (i in seq_len(nrow(df_mut))) {
-    chr <- df_mut[i, "CHROM"]
-    pos <- df_mut[i, "POS"]
-    ref <- df_mut[i, "REF"]
-    alt <- df_mut[i, "ALT"]
-
-    # Validate inputs
-    if (!check_chr_input(chr) || !check_pos_input(pos) || !check_ref_alt_input(
-      ref,
-      alt
-    )) {
-      warning(sprintf(
-        "Invalid row: %d - CHROM: %s POS: %s REF: %s ALT: %s",
-        i, chr, pos, ref, alt
-      ))
-      next
-    }
-
-    # Store valid rows
-    df_mut_clean <- rbind(df_mut_clean, df_mut[i, , drop = FALSE])
+  # Warn about invalid rows
+  for (i in which(!valid)) {
+    warning(sprintf(
+      "Invalid row: %d - CHROM: %s POS: %s REF: %s ALT: %s",
+      i, df_mut[i, "CHROM"], df_mut[i, "POS"], df_mut[i, "REF"], df_mut[i, "ALT"]
+    ))
   }
+
+  df_mut_clean <- df_mut[valid, , drop = FALSE]
 
   # Check if final dataframe contains at least one row
   if (nrow(df_mut_clean) == 0) {

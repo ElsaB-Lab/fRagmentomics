@@ -50,13 +50,14 @@
 #' @param verbose Boolean. If set to TRUE, print all the warnings and the prints.
 #' @param n_cores Number of cores for parallel computation.
 #'
-#' @return A dataframe containing extracted fragment-level information.
+#' @return A `DataFrame` (S4Vectors) containing extracted fragment-level information.
 #'
 #' @importFrom Rsamtools FaFile
 #' @importFrom data.table rbindlist
 #' @importFrom utils write.table
 #' @importFrom future plan multisession sequential availableCores
 #' @importFrom future.apply future_lapply
+#' @importFrom S4Vectors DataFrame
 #'
 #' @export
 #' @examples
@@ -90,7 +91,7 @@
 #'
 #' # --- 3. View the Results ---
 #' # Print the first few rows of the output data frame to see the results.
-#' print(head(results))
+#' head(results)
 #'
 run_fRagmentomics <- function(
     mut, bam, fasta, sample_id = NA_character_, neg_offset_mate_search = -600,
@@ -156,9 +157,9 @@ run_fRagmentomics <- function(
   }
   on.exit(future::plan(old_plan), add = TRUE)
 
-  # Create final df
-  df_fragments_info_final <- data.frame()
-  # Loop on each row of the mut_info
+  # Collect per-mutation results into a list to avoid incremental rbind
+  results_list <- vector("list", nrow(df_mut_norm))
+  # Iterate over each normalized variant
   for (i in seq_len(nrow(df_mut_norm))) {
     chr_norm <- df_mut_norm[i, "chr"]
     pos_norm <- df_mut_norm[i, "pos"]
@@ -305,12 +306,15 @@ run_fRagmentomics <- function(
       }
     }
 
-    # Fusion into the final df
-    df_fragments_info_final <- data.table::rbindlist(
-      list(df_fragments_info_final, df_fragments_info),
-      use.names = TRUE, fill = TRUE
-    )
+    # Store per-mutation result in list
+    results_list[[i]] <- df_fragments_info
   }
+
+  # Bind all per-mutation results at once
+  df_fragments_info_final <- data.table::rbindlist(
+    Filter(Negate(is.null), results_list),
+    use.names = TRUE, fill = TRUE
+  )
 
   # Check if the final df is not empty
   if (nrow(df_fragments_info_final) == 0) {
@@ -365,5 +369,5 @@ run_fRagmentomics <- function(
     return(NULL)
   }
 
-  return(df_fragments_info_final)
+  return(DataFrame(df_fragments_info_final))
 }

@@ -1,6 +1,6 @@
 package:
   name: r-fragmentomics
-  version: 0.99.10
+  version: 0.99.11
 
 source:
   path: ..
@@ -19,6 +19,8 @@ requirements:
     - bioconductor-genomicranges
     - bioconductor-iranges
     - bioconductor-rsamtools
+    - bioconductor-s4vectors
+    - bioconductor-variantannotation
     - r-data.table
     - r-dplyr
     - r-future
@@ -26,10 +28,10 @@ requirements:
     - r-ggh4x
     - r-ggplot2
     - r-ggseqlogo
-    - r-magrittr
     - r-purrr
     - r-rcolorbrewer
     - r-readr
+    - r-rlang
     - r-scales
     - r-stringr
     - r-tibble
@@ -41,6 +43,8 @@ requirements:
     - bioconductor-genomicranges
     - bioconductor-iranges
     - bioconductor-rsamtools
+    - bioconductor-s4vectors
+    - bioconductor-variantannotation
     - r-data.table
     - r-dplyr
     - r-future
@@ -48,10 +52,10 @@ requirements:
     - r-ggh4x
     - r-ggplot2
     - r-ggseqlogo
-    - r-magrittr
     - r-purrr
     - r-rcolorbrewer
     - r-readr
+    - r-rlang
     - r-scales
     - r-stringr
     - r-tibble

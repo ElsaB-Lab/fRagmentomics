@@ -94,7 +94,7 @@ example_df <- rbind(df_mut, df_wt)
 
 # 1) Default plot: compare MUT vs WT for 3-mers from both ends
 p1 <- plot_freq_barplot(example_df)
-print(p1)
+p1
 
 # 2) First-nucleotide only (k = 1) on 5' end, with custom colors
 p2 <- plot_freq_barplot(
@@ -104,18 +104,18 @@ p2 <- plot_freq_barplot(
   colors_z     = c("MUT" = "#d95f02", "WT" = "#1b9e77"),
   title        = "5' First Base Composition"
 )
-print(p2)
+p2
 
 # 3) Ungrouped: overall nucleotide frequencies across all fragments
 p3 <- plot_freq_barplot(example_df, col_z = NULL, title = "Overall Composition")
-print(p3)
+p3
 
 # 4) Subset of groups (if you had >2 groups, e.g., 'MUT', 'WT', 'AMB')
 p4 <- plot_freq_barplot(
   df_fragments = example_df,
   vals_z       = c("MUT", "WT")
 )
-print(p4)
+p4
 
 # 5) Include non-ACGT characters tallied as 'Other'
 example_df$Fragment_Bases_5p[1:3] <- c("NNNNNNNNNN", "ACGTNACGTN", "TTTNAAAAAA")
@@ -123,7 +123,7 @@ p5 <- plot_freq_barplot(example_df,
   motif_size = 2, drop_non_acgt = FALSE,
   title = "Including 'Other' (non-ACGT)"
 )
-print(p5)
+p5
 
 # 6) Save to file with specific dimensions
 # plot_freq_barplot(

@@ -24,7 +24,7 @@
 #'
 #' @return A `ggplot` object representing the size distribution plot (invisibly `NULL` if saved).
 #'
-#' @importFrom dplyr %>% filter count
+#' @importFrom dplyr filter count
 #' @importFrom ggplot2 ggplot aes geom_histogram geom_density labs theme_bw theme element_text after_stat
 #' @importFrom ggplot2 scale_color_manual scale_fill_manual geom_vline coord_cartesian scale_y_continuous
 #' @importFrom RColorBrewer brewer.pal brewer.pal.info
@@ -61,7 +61,7 @@
 #'
 #' # 1) Default plot: grouped density with nucleosome peaks.
 #' p1 <- plot_size_distribution(example_df_size)
-#' print(p1)
+#' p1
 #'
 #' # 2) Histogram only: add transparency so overlapping bars are visible.
 #' p2 <- plot_size_distribution(
@@ -70,7 +70,7 @@
 #'   show_density   = FALSE,
 #'   histo_args     = list(alpha = 0.6)
 #' )
-#' print(p2)
+#' p2
 #'
 #' # 3) Combined: overlay density curves and histograms.
 #' p3 <- plot_size_distribution(
@@ -79,7 +79,7 @@
 #'   show_density   = TRUE,
 #'   histo_args     = list(alpha = 0.4)
 #' )
-#' print(p3)
+#' p3
 #'
 #' # 4) Ungrouped + zoomed x-axis + no nucleosome peaks.
 #' p4 <- plot_size_distribution(
@@ -89,7 +89,7 @@
 #'   show_nuc_peaks = FALSE,
 #'   title          = "All fragments (zoomed)"
 #' )
-#' print(p4)
+#' p4
 #'
 #' # 5) Custom colors using an RColorBrewer palette.
 #' p5 <- plot_size_distribution(
@@ -97,7 +97,7 @@
 #'   colors_z     = "Set2",
 #'   title        = "Fragment size (Set2 palette)"
 #' )
-#' print(p5)
+#' p5
 #'
 #' # 6) Save to file (commented for CRAN):
 #' # out_png <- file.path(tempdir(), 'size_distribution.png')
@@ -132,6 +132,9 @@ plot_size_distribution <- function(
   if (!show_histogram && !show_density) {
     stop("At least one of 'show_histogram' or 'show_density' must be TRUE.")
   }
+
+  # ---- Coerce S4 DataFrame to base data.frame ----
+  df_fragments <- as.data.frame(df_fragments)
 
   # ---- helpers ----
   .clean_args <- function(defaults, user) {
@@ -211,10 +214,10 @@ plot_size_distribution <- function(
 
   # remove groups with < 2 points for density (to avoid errors)
   if (is_grouped && show_density) {
-    group_counts <- df_filtered %>%
+    group_counts <- df_filtered |>
       dplyr::count(.data[[col_z]], name = "n")
-    keep <- group_counts %>%
-      dplyr::filter(n >= 2) %>%
+    keep <- group_counts |>
+      dplyr::filter(n >= 2) |>
       dplyr::pull(.data[[col_z]])
     if (length(keep) < nrow(group_counts)) {
       message("Note: Groups with fewer than 2 data points were removed as they cannot be plotted (density).")
@@ -243,10 +246,10 @@ plot_size_distribution <- function(
     )
   } else {
     # Grouped
-    group_counts_final <- df_filtered %>%
+    group_counts_final <- df_filtered |>
       dplyr::count(.data[[col_z]], name = "n")
-    group_totals <- group_counts_final %>%
-      dplyr::mutate(group = factor(.data[[col_z]], levels = vals_z)) %>%
+    group_totals <- group_counts_final |>
+      dplyr::mutate(group = factor(.data[[col_z]], levels = vals_z)) |>
       dplyr::arrange(group)
     new_labels <- paste0(group_totals$group, " (N=", group_totals$n, ")")
     df_filtered[[col_z]] <- factor(df_filtered[[col_z]], levels = vals_z, labels = new_labels)

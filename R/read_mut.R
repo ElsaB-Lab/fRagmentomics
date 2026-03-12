@@ -79,98 +79,52 @@ read_str_input <- function(mut) {
 
 #' Parse a VCF file for variant information
 #'
-#' @description This low-level parser reads a VCF file, performs basic
-#' structural checks, and extracts the essential 'CHROM', 'POS', 'REF', and
-#' 'ALT' columns. It does not expand multi-allelic sites.
+#' @description This low-level parser reads a VCF file using
+#' 'VariantAnnotation::readVcf' and extracts the essential 'CHROM', 'POS',
+#' 'REF', and 'ALT' columns. It does not expand multi-allelic sites.
 #'
-#' @param vcf_file Path to the VCF file.
+#' @param vcf_file Path to the VCF file (plain or bgzip-compressed).
 #'
 #' @return A cleaned dataframe with required columns.
 #'
-#' @importFrom utils read.table
+#' @importFrom VariantAnnotation readVcf ref alt
+#' @importFrom GenomicRanges seqnames start
+#' @importFrom rlang abort
 #'
 #' @noRd
 parser_vcf <- function(vcf_file) {
-  # Determine if the file is compressed
-  is_compressed <- grepl("\\.vcf\\.gz$", vcf_file)
-
-  # Read all lines while handling compressed files
-  con <- if (is_compressed) gzfile(vcf_file, "rt") else vcf_file
-  lines <- tryCatch(
-    readLines(con),
-    warning = function(w) {
-      # If the warning is the specific one about an incomplete final line,
-      # ignore it by invoking a restart that muffles the warning.
-      if (grepl("incomplete final line found", conditionMessage(w))) {
-        invokeRestart("muffleWarning")
-      } else {
-        # For any other warning, re-issue it as it might be important.
-        warning(w)
-      }
+  # ---- readVcf ----
+  vcf <- withCallingHandlers(
+    VariantAnnotation::readVcf(vcf_file, genome = ""),
+    error = function(e) {
+      rlang::abort(
+        paste0(
+          "Failed to read VCF file: ", vcf_file, "\n",
+          "If the file is gzip-compressed, ensure it is bgzip-compressed ",
+          "(re-compress with: bgzip your_file.vcf)"
+        ),
+        parent = e
+      )
     }
   )
-  if (inherits(con, "connection")) close(con)
-
-  # Keep only the lines that are not metadata (##)
-  data_lines <- lines[!grepl("^##", lines)]
-
-  # A valid VCF must have at least a header (#) and one data row
-  if (length(data_lines) < 2) {
+  if (length(vcf) == 0) {
     stop("The VCF file does not contain any mutation data.")
   }
-
-  # Extract the header from the first non-metadata line
-  header_line <- data_lines[1]
-  header <- strsplit(header_line, "\t")[[1]]
-  header[1] <- sub("^#", "", header[1])
-
-  # Read the data while avoiding auto-conversion of 'T' or 'NA' to logical/NA
-  df_vcf <- read.table(
-    vcf_file,
-    header = FALSE,
-    comment.char = "#",
-    sep = "\t",
-    col.names = header,
-    colClasses = "character", # Force everything to character
-    na.strings = "", # Prevent automatic conversion of "NA" to <NA>
-    stringsAsFactors = FALSE,
-    fill = TRUE
+  chrom <- as.character(GenomicRanges::seqnames(vcf))
+  pos <- GenomicRanges::start(vcf)
+  ref <- as.character(VariantAnnotation::ref(vcf))
+  alt <- vapply(
+    VariantAnnotation::alt(vcf),
+    function(x) paste(as.character(x), collapse = ","),
+    character(1)
   )
-
-  # Keep only the essential columns
-  df_vcf <- df_vcf[, c("CHROM", "POS", "REF", "ALT"), drop = FALSE]
-
-  # Check if the expected columns were found
-  if (ncol(df_vcf) != 4) {
-    stop(sprintf(
-      "The VCF file does not seem to have the required columns (CHROM, POS, REF, ALT). Found columns: %s",
-      paste(colnames(df_vcf), collapse = ", ")
-    ))
-  }
-
-  # Identify rows with non-numeric values in the POS column before conversion
-  invalid_pos_mask <- !grepl("^[0-9]+$", df_vcf[["POS"]]) & !is.na(df_vcf[["POS"]])
-
-  # If any are found, issue a single, clear warning
-  if (any(invalid_pos_mask)) {
-    invalid_rows <- which(invalid_pos_mask)
-    warning(sprintf(
-      "The following rows have non-integer values in the POS column and will be converted to NA: %s",
-      paste(invalid_rows, collapse = ", ")
-    ))
-  }
-
-  # Convert the POS column to integer
-  df_vcf[["POS"]] <- as.integer(df_vcf[["POS"]])
-
-  # Remove any rows that are entirely empty or NA
-  df_vcf <- df_vcf[rowSums(is.na(df_vcf) | df_vcf == "") != ncol(df_vcf), ]
-
-  if (nrow(df_vcf) == 0) {
-    stop("The VCF file does not contain any mutation data after parsing.")
-  }
-
-  df_vcf
+  data.frame(
+    CHROM = chrom,
+    POS = pos,
+    REF = ref,
+    ALT = alt,
+    stringsAsFactors = FALSE
+  )
 }
 
 
@@ -207,7 +161,7 @@ parser_tsv <- function(tsv_file) {
     }
   )
 
-  # Check if the read.table worked propely
+  # Check if the file was read properly
   if (ncol(df_tsv) != 4) {
     stop(sprintf(
       "The number of columns in the TSV file does not match the expected columns CHR POS REF ALT. Found columns: %s",
@@ -253,12 +207,12 @@ parser_tsv <- function(tsv_file) {
 #'
 #' @noRd
 parser_str <- function(mut) {
-  # If mut is finished by ":", the programm will add - at the end to use strsplit
+  # If 'mut' ends with ":", append "-" to allow proper splitting
   if (grepl(":$", mut)) {
     mut <- paste0(mut, "-")
   }
 
-  # Devide the 4 parts of the mutation expected
+  # Split the mutation string into its 4 expected parts
   parts <- unlist(strsplit(mut, ":"))
 
   # Check if mutation contains exactly these parts (CHR, POS, REF, ALT)
@@ -279,13 +233,12 @@ parser_str <- function(mut) {
     pos <- as.integer(parts[2])
   }
 
-  ref <- ref <- parts[3]
-  alt <- alt <- parts[4]
+  ref <- parts[3]
+  alt <- parts[4]
 
   # Return the info into a list
   mut_df <- data.frame(CHROM = chr, POS = pos, REF = ref, ALT = alt, stringsAsFactors = FALSE)
 
-  # Check if the TSV has data
   if (nrow(mut_df) == 0) {
     stop("The mutation string does not contain any mutation data.")
   }

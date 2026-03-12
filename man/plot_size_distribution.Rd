@@ -92,7 +92,7 @@ example_df_size <- example_df_size[example_df_size$Fragment_Size > 0, ]
 
 # 1) Default plot: grouped density with nucleosome peaks.
 p1 <- plot_size_distribution(example_df_size)
-print(p1)
+p1
 
 # 2) Histogram only: add transparency so overlapping bars are visible.
 p2 <- plot_size_distribution(
@@ -101,7 +101,7 @@ p2 <- plot_size_distribution(
   show_density   = FALSE,
   histo_args     = list(alpha = 0.6)
 )
-print(p2)
+p2
 
 # 3) Combined: overlay density curves and histograms.
 p3 <- plot_size_distribution(
@@ -110,7 +110,7 @@ p3 <- plot_size_distribution(
   show_density   = TRUE,
   histo_args     = list(alpha = 0.4)
 )
-print(p3)
+p3
 
 # 4) Ungrouped + zoomed x-axis + no nucleosome peaks.
 p4 <- plot_size_distribution(
@@ -120,7 +120,7 @@ p4 <- plot_size_distribution(
   show_nuc_peaks = FALSE,
   title          = "All fragments (zoomed)"
 )
-print(p4)
+p4
 
 # 5) Custom colors using an RColorBrewer palette.
 p5 <- plot_size_distribution(
@@ -128,7 +128,7 @@ p5 <- plot_size_distribution(
   colors_z     = "Set2",
   title        = "Fragment size (Set2 palette)"
 )
-print(p5)
+p5
 
 # 6) Save to file (commented for CRAN):
 # out_png <- file.path(tempdir(), 'size_distribution.png')
