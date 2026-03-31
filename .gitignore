@@ -12,6 +12,7 @@ external
 commands.sh
 .snakemake
 *.pdf
+.pre-commit-config.yaml
 
 # Logs
 *.log

@@ -16,3 +16,4 @@ usethis::use_build_ignore(".github")
 
 ^doc$
 ^Meta$
+.pre-commit-config.yaml

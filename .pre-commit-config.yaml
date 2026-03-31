@@ -1,52 +1,59 @@
+# .pre-commit-config.yaml
 repos:
-  # 1. Standard file hygiene
+  # 0. Jupyter Notebook Output Stripper
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.8.1
+    hooks:
+      - id: nbstripout
+
+  # 1. Standard Hooks (Files & Formats)
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-added-large-files
-        args: ["--maxkb=500"]
+        exclude: ^code/pipeline/.*/utils/reference_files/
       - id: check-yaml
+        args: [--unsafe]
       - id: check-json
-      # I commented this out so you can commit to 'main' if you want.
-      # Uncomment if you want to force yourself to use branches.
-      # - id: no-commit-to-branch
-      #   args: ['--branch', 'main', '--branch', 'master']
 
-  # 2. R Package Tools (Local System Version)
-  # Use local Conda R instead of building a new one.
-  # This avoid the "Missing dependency: Biostrings" errors.
+  # 2. Python: Ruff (Replaces Black + Flake8 + isort)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.0
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # 3. R: lintr (Quality) and styler (Formatting)
   - repo: local
     hooks:
+      - id: lintr
+        name: lintr
+        entry: Rscript -e "lintr::lint_dir()"
+        language: system
+        files: \.[rR](md|nw|markdown)?$
       - id: style-files
-        name: Style Files (styler)
+        name: styler
         entry: Rscript -e "styler::style_file(commandArgs(trailingOnly = TRUE))"
         language: system
         files: \.[rR](md|nw|markdown)?$
 
-      - id: roxygenize
-        name: Roxygenize (roxygen2)
-        # Re-generates documentation (man/*.Rd) whenever you commit
-        entry: Rscript -e "roxygen2::roxygenise()"
-        language: system
-        files: ^(R/|man/|NAMESPACE|DESCRIPTION)
-        pass_filenames: false
-
-      - id: parsable-R
-        name: Check for valid R syntax
-        entry: Rscript -e "invisible(lapply(commandArgs(trailingOnly = TRUE), parse))"
-        language: system
-        files: \.R$
-
-  # 3. YAML, JSON, Markdown Formatter (Prettier)
+  # 4. YAML/JSON Formatter (Prettier)
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v3.1.0
     hooks:
       - id: prettier
         types_or: [yaml, json, markdown]
 
-  # 4. Shell Formatter
+  # 5. Snakemake Formatter
+  - repo: https://github.com/snakemake/snakefmt
+    rev: v0.10.0
+    hooks:
+      - id: snakefmt
+
+  # 6. Shell Formatter
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.12.0-2
     hooks:

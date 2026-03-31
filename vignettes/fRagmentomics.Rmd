@@ -2,14 +2,14 @@
 title: "fRagmentomics: A Per-Fragment Analysis Workflow"
 author:
   - name: "Killian Maudet"
-    affiliation: "UMR 981, Gustave Roussy, Villejuif, France"
+    affiliation: "Université Paris-Saclay, Gustave Roussy, Inserm UMR 1361 Cancer Data Science, IHU PRISM National PRecISion Medicine Center in Oncology, Villejuif, F-94805, France"
     email: "killian.maudet@gustaveroussy.fr"
   - name: "Yoann Pradat"
-    affiliation: "UMR 981, Gustave Roussy, Villejuif, France"
+    affiliation: "Université Paris-Saclay, Gustave Roussy, Inserm UMR 1361 Cancer Data Science, IHU PRISM National PRecISion Medicine Center in Oncology, Villejuif, F-94805, France"
   - name: "Juliette Samaniego"
-    affiliation: "UMR 981, Gustave Roussy, Villejuif, France"
+    affiliation: "Université Paris-Saclay, Gustave Roussy, Inserm UMR 1361 Cancer Data Science, IHU PRISM National PRecISion Medicine Center in Oncology, Villejuif, F-94805, France"
   - name: "Elsa Bernard"
-    affiliation: "UMR 981, Gustave Roussy, Villejuif, France"
+    affiliation: "Université Paris-Saclay, Gustave Roussy, Inserm UMR 1361 Cancer Data Science, IHU PRISM National PRecISion Medicine Center in Oncology, Villejuif, F-94805, France"
 date: "`r Sys.Date()`"
 package: fRagmentomics
 output:

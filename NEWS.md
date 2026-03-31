@@ -1,5 +1,9 @@
 # fRagmentomics NEWS
 
+## fRagmentomics 0.99.12 (2026-03-31)
+
+Pre-release version on Bioconductor devel.
+
 ## fRagmentomics 0.99.11 (2026-03-10)
 
 ### OTHER CHANGES
@@ -12,6 +16,7 @@
 ## fRagmentomics 0.99.10 (2026-02-22)
 
 ### OTHER CHANGES
+
 - **Windows Compatibility**: Enforced strict LF line endings for FASTA files via `.gitattributes` to prevent `Rsamtools` indexing errors (`.fai`) on Windows environments.
 - **Compatibility**: Replaced native R pipes (`|>`) with `magrittr` pipes (`%>%`) to ensure broader backward compatibility and avoid `R (>= 4.1.0)` dependency warnings.
 
@@ -26,7 +31,7 @@
 
 ### NEW FEATURES
 
-- **Example Dataset**: Added a benchmark case study featuring a 15-bp in-frame deletion in *EGFR* exon 19 (lung cancer cfDNA) to demonstrate indel-specific fragment sizing and genotyping.
+- **Example Dataset**: Added a benchmark case study featuring a 15-bp in-frame deletion in _EGFR_ exon 19 (lung cancer cfDNA) to demonstrate indel-specific fragment sizing and genotyping.
 - **Reproducibility Scripts**: Included data generation and anonymization scripts for the test dataset in `inst/scripts/`.
 - **Developer Tools**: Added a pre-commit configuration to standardize the development workflow.
 
@@ -34,7 +39,7 @@
 
 - **Documentation**:
   - Updated README and vignette to incorporate the new case study and illustrative figures.
-- **Testing**: Updated the test suite to include coverage for the new *EGFR* case study.
+- **Testing**: Updated the test suite to include coverage for the new _EGFR_ case study.
 
 ## fRagmentomics 0.99.3 (2026-02-16)
 
