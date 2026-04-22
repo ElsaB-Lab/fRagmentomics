@@ -43,7 +43,7 @@ WSL (recommended)
    # Option B: conda/mamba (to pin a specific version, e.g. 1.21)
    # First install Mambaforge/Miniforge in WSL, then:
    mamba create -n fRagmentomics-env -c conda-forge -c bioconda bcftools=1.21
-   mamba activate fRagmentomics-env
+   conda activate fRagmentomics-env
 
 3. Run R / Rscript inside WSL so that bcftools is on PATH.
 
@@ -66,7 +66,7 @@ Option B: Conda/Mamba
 1. Install Mambaforge/Miniforge.
 2. In Terminal:
      mamba create -n fRagmentomics-env -c conda-forge -c bioconda bcftools=1.21
-     mamba activate fRagmentomics-env
+     conda activate fRagmentomics-env
 3. (Optional) In R:
      Sys.setenv(BCFTOOLS_PATH = "/path/to/conda/envs/fRagmentomics-env/bin/bcftools")
 
@@ -85,7 +85,7 @@ Option B: Conda/Mamba (recommended for reproducibility)
 1. Install Mambaforge/Miniforge.
 2. In shell:
      mamba create -n fRagmentomics-env -c conda-forge -c bioconda bcftools=1.21
-     mamba activate fRagmentomics-env
+     conda activate fRagmentomics-env
 3. (Optional) In R:
      Sys.setenv(BCFTOOLS_PATH = "/path/to/conda/envs/fRagmentomics-env/bin/bcftools")
 

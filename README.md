@@ -92,7 +92,7 @@ NOTE: If you hit compilation issues (e.g. with Rsamtools / BiocParallel), try on
 
 ```bash
 mamba env create -n fRagmentomics-env -c conda-forge -c bioconda bioconductor-rsamtools bioconductor-variantannotation bcftools=1.21 # To use bcftools normalisation (RECOMMENDED for indels)
-mamba activate fRagmentomics-env
+conda activate fRagmentomics-env
 Rscript -e 'if (!requireNamespace("BiocManager", quietly=TRUE))
               install.packages("BiocManager", repos="https://mirror.ibcp.fr/pub/CRAN/");
             if (!requireNamespace("remotes", quietly=TRUE))
