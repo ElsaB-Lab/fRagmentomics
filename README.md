@@ -139,7 +139,7 @@ fasta_file = system.file("extdata/fasta",
 )
 ```
 
-Now, run the main analysis function with these files. We'll use 1 cores for this example.
+Now, run the main analysis function with these files. We'll use 1 core for this example.
 
 ```r
 # Run the full analysis pipeline
