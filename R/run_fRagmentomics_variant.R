@@ -81,7 +81,7 @@
 #' # This single call runs the full analysis pipeline on the example data.
 #' # The output file is written to a temporary location to avoid cluttering
 #' # the working directory. We use n_cores = 1L for examples.
-#' results <- run_fRagmentomics(
+#' results <- run_fRagmentomics_variant(
 #'   mut = mut_file,
 #'   bam = bam_file,
 #'   fasta = fasta_file,
@@ -93,7 +93,7 @@
 #' # Print the first few rows of the output data frame to see the results.
 #' head(results)
 #'
-run_fRagmentomics <- function(
+run_fRagmentomics_variant <- function(
     mut, bam, fasta, sample_id = NA_character_, neg_offset_mate_search = -600,
     pos_offset_mate_search = 600, one_based = TRUE, flag_bam_list = list(
       isPaired = TRUE,
@@ -182,7 +182,7 @@ run_fRagmentomics <- function(
     # ----- BAM extraction -----
     # Read and extract bam around the mutation position Return a truncated sam
     df_sam <- read_bam(
-      bam, chr_norm, pos_norm, neg_offset_mate_search,
+      bam, chr_norm, pos_norm, pos_norm, neg_offset_mate_search,
       pos_offset_mate_search, flag_bam_list
     )
 

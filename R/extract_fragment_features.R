@@ -23,7 +23,7 @@
 #' 8.  It assembles and returns a single-row data frame containing all
 #'     extracted information.
 #'
-#' @inheritParams run_fRagmentomics
+#' @inheritParams run_fRagmentomics_variant
 #' @param df_sam A dataframe containing sequencing reads.
 #' @param fragment_name Name of the fragment (paired-end reads).
 #' @param chr Character vector representing the chromosome of interest.

@@ -4,7 +4,7 @@
 #' string. It automatically detects the input format and uses the appropriate parser. All multi-allelic sites are split
 #' into separate, bi-allelic rows.
 #'
-#' @inheritParams run_fRagmentomics
+#' @inheritParams run_fRagmentomics_variant
 #'
 #' @return A 'data.frame' where each row represents a single bi-allelic variant, with the columns 'CHROM', 'POS', 'REF', and 'ALT'.
 #'

@@ -51,7 +51,7 @@ if (!has_bcftools) {
 }
 
 # Run the full analysis pipeline with default settings
-df_frag_basic <- run_fRagmentomics(
+df_frag_basic <- run_fRagmentomics_variant(
   mut = mut_file,
   bam = bam_file,
   fasta = fasta_file,
@@ -73,7 +73,7 @@ if (!has_bcftools) {
 }
 
 # Run the analysis with custom parameters
-df_frag_advanced <- run_fRagmentomics(
+df_frag_advanced <- run_fRagmentomics_variant(
   mut = mut_file,
   bam = bam_file,
   fasta = fasta_file,
@@ -121,4 +121,3 @@ summary(df_frag_advanced$Fragment_Size)
 
 ## ----extract_vaf--------------------------------------------------------------
 unique(df_frag_advanced$VAF)
-

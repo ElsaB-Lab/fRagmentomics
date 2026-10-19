@@ -44,7 +44,7 @@ Plasma circulating cell-free DNA (cfDNA) analysis has transformed cancer care. W
 
 **fRagmentomics** addresses this need by providing a robust and flexible R package to integrate cfDNA fragment features with their mutational status. By standardizing the analysis of both SNVs and indels at the single-fragment level, fRagmentomics supports the interpretation of liquid biopsies to distinguish tumoral origin.
 
-This vignette provides a step-by-step walkthrough of the main analysis workflow using the `run_fRagmentomics()` function and demonstrates the package's core visualization capabilities thank to the visualisation functions: `plot_size_distribution()`, `plot_ggseqlogo_meme()`, `plot_freq_barplot()`, `plot_motif_barplot()`.
+This vignette provides a step-by-step walkthrough of the main analysis workflow using the `run_fRagmentomics_variant()` function and demonstrates the package's core visualization capabilities thank to the visualisation functions: `plot_size_distribution()`, `plot_ggseqlogo_meme()`, `plot_freq_barplot()`, `plot_motif_barplot()`.
 
 # Installation
 
@@ -113,7 +113,7 @@ After these steps are complete, you can load the package into your R session wit
 
 # A Complete Analysis Workflow
 
-To make it user-friendly, the entire analysis is performed by a single function: `run_fRagmentomics()`. We will use the example data included with the package to demonstrate a typical workflow.
+To make it user-friendly, the entire analysis is performed by a single function: `run_fRagmentomics_variant()`. We will use the example data included with the package to demonstrate a typical workflow.
 
 For a deeper dive into the package's methodology, please refer to the `README.md` file on the project's [GitHub repository](https://github.com/ElsaB-Lab/fRagmentomics).
 
@@ -192,7 +192,7 @@ The following table summarizes the accepted formats:
 
 ### Basic Workflow
 
-First, we will run `run_fRagmentomics()` with the default arguments. We
+First, we will run `run_fRagmentomics_variant()` with the default arguments. We
 provide the paths to our three input files, a `sample_id` for annotation,
 and specify the number of cores for parallel processing.
 
@@ -212,7 +212,7 @@ if (!has_bcftools) {
 }
 
 # Run the full analysis pipeline with default settings
-df_frag_basic <- run_fRagmentomics(
+df_frag_basic <- run_fRagmentomics_variant(
   mut = mut_file,
   bam = bam_file,
   fasta = fasta_file,
@@ -229,7 +229,7 @@ head(df_frag_basic)
 
 ### Advanced Workflow: Customizing the Analysis
 
-The `run_fRagmentomics()` function can be customized for more specific use cases. In the example below, we will perform a more stringent analysis and request additional information in the output table.
+The `run_fRagmentomics_variant()` function can be customized for more specific use cases. In the example below, we will perform a more stringent analysis and request additional information in the output table.
 
 Specifically, we will:
 
@@ -249,7 +249,7 @@ if (!has_bcftools) {
 }
 
 # Run the analysis with custom parameters
-df_frag_advanced <- run_fRagmentomics(
+df_frag_advanced <- run_fRagmentomics_variant(
   mut = mut_file,
   bam = bam_file,
   fasta = fasta_file,
@@ -287,7 +287,7 @@ head(df_frag_advanced[, c(
 
 **Note**: The following outputs and visualizations are generated from a small, simulated test dataset. They are intended to demonstrate the package's functionality and are not representative of real biological results.
 
-The `run_fRagmentomics()` function returns a `DataFrame` where each row represents the analysis of a single fragment. Let's explore the key columns to understand the results.
+The `run_fRagmentomics_variant()` function returns a `DataFrame` where each row represents the analysis of a single fragment. Let's explore the key columns to understand the results.
 
 ### A First Look at the Results Table
 
@@ -339,7 +339,7 @@ For a complete description of every column in the output, please refer to the `R
 
 # Visualizing Fragmentomic Features
 
-The `df_frag_advanced` object, produced by `run_fRagmentomics()`, can be directly used with the package's suite of plotting functions to visualize the results.
+The `df_frag_advanced` object, produced by `run_fRagmentomics_variant()`, can be directly used with the package's suite of plotting functions to visualize the results.
 
 ## Fragment Size Distribution
 

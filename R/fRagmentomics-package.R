@@ -17,7 +17,7 @@ NULL
 #' genomic conventions, handles mutation representation ambiguities, and accepts
 #' any reference file and species in FASTA format.
 #'
-#' The core functionality is delivered through the `run_fRagmentomics()`
+#' The core functionality is delivered through the `run_fRagmentomics_variant()`
 #' function, which implements a robust pipeline that:
 #' \itemize{
 #'   \item Accepts variant inputs in multiple formats (VCF, TSV, or string).
@@ -33,11 +33,11 @@ NULL
 #' }
 #'
 #' @seealso
-#' The primary function for analysis: \code{\link{run_fRagmentomics}}
+#' The primary function for analysis: \code{\link{run_fRagmentomics_variant}}
 #'
 #' @examples
-#' # The main entry point of the package is the run_fRagmentomics() function.
-#' ?run_fRagmentomics
+#' # The main entry point of the package is the run_fRagmentomics_variant() function.
+#' ?run_fRagmentomics_variant
 #'
 #' @docType package
 #' @name fRagmentomics

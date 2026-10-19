@@ -5,7 +5,7 @@
 #' normalization process to each one, ensuring they are represented in a
 #' canonical, left-aligned format suitable for downstream analysis.
 #'
-#' @inheritParams run_fRagmentomics
+#' @inheritParams run_fRagmentomics_variant
 #' @param df_mut a dataframe with mutations
 #' @param fasta_fafile An open connection to an object of class FaFile
 #'

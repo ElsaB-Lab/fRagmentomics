@@ -27,7 +27,7 @@ test_that("Master Run: Handles File I/O, Messages, QC, and Extra Columns (Verbos
   # --- EXECUTION 1---
   # We activate ALL optional logic
   msgs <- testthat::capture_messages(
-    res <- run_fRagmentomics(
+    res <- run_fRagmentomics_variant(
       mut = files$mut,
       bam = files$bam,
       fasta = files$fasta,
@@ -77,7 +77,7 @@ test_that("Quiet Run & In-Memory Return (Verbose=FALSE, Output=NULL)", {
   valid_mut_str <- sprintf("%s:%d:%s:%s", mut_df$CHROM[1], mut_df$POS[1], mut_df$REF[1], mut_df$ALT[1])
 
   msgs <- testthat::capture_messages(
-    res <- run_fRagmentomics(
+    res <- run_fRagmentomics_variant(
       mut = valid_mut_str,
       bam = files$bam,
       fasta = files$fasta,
@@ -102,7 +102,7 @@ test_that("Error Handling: No Reads Found", {
 
   suppressWarnings({
     expect_error(
-      run_fRagmentomics(
+      run_fRagmentomics_variant(
         mut = mut_no_reads,
         bam = files$bam,
         fasta = files$fasta,
@@ -119,7 +119,7 @@ skip_if_no_bcftools()
 test_that("Bcftools: User parameter apply_bcftools_norm is correctly used", {
   files <- setup_test_files()
 
-  res <- run_fRagmentomics(
+  res <- run_fRagmentomics_variant(
     mut = files$mut,
     bam = files$bam,
     fasta = files$fasta,

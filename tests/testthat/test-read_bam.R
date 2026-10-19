@@ -34,7 +34,8 @@ test_that("read_bam returns expected reads as a data.frame", {
   result <- read_bam(
     bam = bam_env$path,
     chr = "chr1",
-    pos = 500,
+    start = 500,
+    end = 500,
     neg_offset_mate_search = -100,
     pos_offset_mate_search = 200, # Large enough to catch the mate at 600
     flag_bam_list = list(
@@ -95,7 +96,8 @@ test_that("read_bam handles complex CIGAR strings for width calculation", {
   result <- read_bam(
     bam = bam_env$path,
     chr = "chr1",
-    pos = 500,
+    start = 500,
+    end = 500,
     neg_offset_mate_search = -50,
     pos_offset_mate_search = 50,
     flag_bam_list = list(isPaired = TRUE)
@@ -138,7 +140,8 @@ test_that("read_bam returns NULL when no reads cover the position", {
   result <- read_bam(
     bam = bam_env$path,
     chr = "chr1",
-    pos = 500,
+    start = 500,
+    end = 500,
     neg_offset_mate_search = -100,
     pos_offset_mate_search = 100,
     flag_bam_list = list(isPaired = TRUE)
@@ -178,7 +181,8 @@ test_that("read_bam respects flags (filters out duplicates)", {
   result <- read_bam(
     bam = bam_env$path,
     chr = "chr1",
-    pos = 500,
+    start = 500,
+    end = 500,
     neg_offset_mate_search = -50,
     pos_offset_mate_search = 50,
     flag_bam_list = list(isDuplicate = FALSE)
@@ -216,7 +220,8 @@ test_that("read_bam detects missing required columns", {
   result <- read_bam(
     bam = bam_env$path,
     chr = "chr1",
-    pos = 500,
+    start = 500,
+    end = 500,
     neg_offset_mate_search = -50,
     pos_offset_mate_search = 50,
     flag_bam_list = list(isPaired = TRUE)
@@ -240,4 +245,76 @@ test_that("read_bam detects missing required columns", {
     },
     regexp = "missing the following columns: QUAL"
   )
+})
+
+test_that("read_bam selects fragments overlapping an interval and keeps mates outside it", {
+  seq_50bp <- strrep("A", 50)
+  qual_50bp <- strrep("F", 50)
+
+  df_reads <- data.frame(
+    QNAME = c("interval_pair", "interval_pair"),
+    FLAG = as.integer(c(99, 147)),
+    RNAME = c("chr1", "chr1"),
+    POS = as.integer(c(190, 400)),
+    MAPQ = as.integer(c(60, 60)),
+    CIGAR = c("50M", "50M"),
+    RNEXT = c("=", "="),
+    PNEXT = as.integer(c(400, 190)),
+    TLEN = as.integer(c(260, -260)),
+    SEQ = c(seq_50bp, seq_50bp),
+    QUAL = c(qual_50bp, qual_50bp),
+    stringsAsFactors = FALSE
+  )
+
+  bam_env <- setup_test_bam(df_reads, ref_seq_lengths = c(chr1 = 1000))
+  on.exit(cleanup_test_bam(bam_env))
+
+  result <- read_bam(
+    bam = bam_env$path,
+    chr = "chr1",
+    start = 200,
+    end = 250,
+    neg_offset_mate_search = -600,
+    pos_offset_mate_search = 600,
+    flag_bam_list = list(isPaired = TRUE)
+  )
+
+  expect_equal(nrow(result), 2)
+  expect_true(all(result$QNAME == "interval_pair"))
+})
+
+test_that("read_bam includes reads whose end touches the interval start", {
+  seq_50bp <- strrep("A", 50)
+  qual_50bp <- strrep("F", 50)
+
+  df_reads <- data.frame(
+    QNAME = c("boundary_pair", "boundary_pair"),
+    FLAG = as.integer(c(99, 147)),
+    RNAME = c("chr1", "chr1"),
+    POS = as.integer(c(100, 400)),
+    MAPQ = as.integer(c(60, 60)),
+    CIGAR = c("50M", "50M"),
+    RNEXT = c("=", "="),
+    PNEXT = as.integer(c(400, 100)),
+    TLEN = as.integer(c(350, -350)),
+    SEQ = c(seq_50bp, seq_50bp),
+    QUAL = c(qual_50bp, qual_50bp),
+    stringsAsFactors = FALSE
+  )
+
+  bam_env <- setup_test_bam(df_reads, ref_seq_lengths = c(chr1 = 1000))
+  on.exit(cleanup_test_bam(bam_env))
+
+  result <- read_bam(
+    bam = bam_env$path,
+    chr = "chr1",
+    start = 149,
+    end = 160,
+    neg_offset_mate_search = -600,
+    pos_offset_mate_search = 600,
+    flag_bam_list = list(isPaired = TRUE)
+  )
+
+  expect_equal(nrow(result), 2)
+  expect_true(all(result$QNAME == "boundary_pair"))
 })

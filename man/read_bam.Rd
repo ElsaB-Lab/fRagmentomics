@@ -7,7 +7,8 @@
 read_bam(
   bam,
   chr,
-  pos,
+  start,
+  end,
   neg_offset_mate_search,
   pos_offset_mate_search,
   flag_bam_list
@@ -18,7 +19,9 @@ read_bam(
 
 \item{chr}{Character. Chromosome of interest.}
 
-\item{pos}{Integer. Genomic position of interest.}
+\item{start}{Integer. Start of the target interval (1-based, inclusive).}
+
+\item{end}{Integer. End of the target interval (1-based, inclusive).}
 
 \item{neg_offset_mate_search}{Integer. Use in read_bam.
 Represents the number of nucleotides to extend upstream (negative direction)
@@ -32,23 +35,23 @@ overlaps the queried position.}
 NA = Filter is ignored, TRUE = The read MUST have this flag, FALSE = The read MUST NOT have this flag.}
 }
 \value{
-A data.frame of reads belonging to fragments covering the position of interest,
-or \code{NULL} if no reads cover the position.
+A data.frame of reads belonging to fragments overlapping the target interval,
+or \code{NULL} if no reads overlap the interval.
 }
 \description{
 This function performs a targeted extraction of sequencing reads from a BAM file. It first fetches reads
-within a specified genomic window around a variant of interest, then expands the selection to include the mates of
-any reads covering the variant, ensuring complete fragments are retrieved for analysis.
+within a specified genomic window around an interval of interest, then expands the selection to include the mates of
+any reads overlapping the interval, ensuring complete fragments are retrieved for analysis.
 }
 \details{
 The read retrieval and filtering process follows a multi-step pipeline:
 \enumerate{
-\item A genomic query region is defined around the target 'pos' using the 'neg_offset_mate_search' and 'pos_offset_mate_search' parameters.
+\item A genomic query region is defined around the target interval using the 'neg_offset_mate_search' and 'pos_offset_mate_search' parameters.
 \item 'Rsamtools::scanBam' is used to fetch all reads within this region that pass the filters specified by 'flag_bam_list'.
-\item From this initial set, the function identifies the subset of reads that \emph{directly} cover the specific 'pos'.
-\item The names ('QNAME') of the fragments corresponding to these covering reads are collected.
+\item From this initial set, the function identifies the subset of reads that \emph{directly} overlap the target interval.
+\item The names ('QNAME') of the fragments corresponding to these overlapping reads are collected.
 \item The function then selects \strong{all} reads from the initially fetched data that share these fragment names, thereby
-retrieving the mates even if they did not directly cover the variant position.
+retrieving the mates even if they did not directly overlap the target interval.
 \item The function returns all reads belonging to the fragments of interest.
 }
 }

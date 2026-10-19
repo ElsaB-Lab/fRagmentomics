@@ -6,7 +6,7 @@
 #' (e.g., file existence, data type, valid values) and stops execution with an
 #' informative error message if any check fails.
 #'
-#' @inheritParams run_fRagmentomics
+#' @inheritParams run_fRagmentomics_variant
 #'
 #' @return None. The function stops execution if error.
 #'
@@ -34,6 +34,56 @@ check_parameters <- function(
   check_output_path(output_path)
   check_verbose(verbose)
   check_n_cores(n_cores)
+}
+
+#' Check and validate all input parameters for the region analysis pipeline
+#'
+#' @description Validates the user-provided parameters of
+#'   `run_fRagmentomics_region()` by reusing the existing parameter checkers.
+#'
+#' @inheritParams run_fRagmentomics_variant
+#' @param region Path to a `.bed` or `.bed.gz` file.
+#'
+#' @return None. The function stops execution if error.
+#'
+#' @keywords internal
+check_parameters_region <- function(
+  region, bam, sample_id, neg_offset_mate_search,
+  pos_offset_mate_search, flag_bam_list, report_bam_info,
+  report_softclip, report_5p_3p_bases_fragment, remove_softclip,
+  retain_fail_qc, output_path, verbose, n_cores
+) {
+  check_region_path(region)
+  check_bam(bam, verbose)
+  check_sample(sample_id)
+  check_neg_offset_mate_search(neg_offset_mate_search)
+  check_pos_offset_mate_search(pos_offset_mate_search)
+  check_flag_bam_list(flag_bam_list)
+  check_report_bam_info(report_bam_info)
+  check_report_softclip(report_softclip)
+  check_report_bases_fragm_5p_3p(report_5p_3p_bases_fragment)
+  check_remove_softclip(remove_softclip)
+  check_retain_fail_qc(retain_fail_qc)
+  check_output_path(output_path)
+  check_verbose(verbose)
+  check_n_cores(n_cores)
+}
+
+#' Check if the region file exists
+#'
+#' @inheritParams check_parameters_region
+#'
+#' @noRd
+check_region_path <- function(region) {
+  if (length(region) != 1 || !is.character(region)) {
+    stop("The parameter 'region' should be a single character string.")
+  }
+  if (!grepl("\\.bed(\\.gz)?$", region, ignore.case = TRUE)) {
+    stop("The region file must have a .bed or .bed.gz extension: ", region)
+  }
+  if (!file.exists(region)) {
+    stop("The region file does not exist: ", region)
+  }
 }
 
 #' Check if the mut file exists

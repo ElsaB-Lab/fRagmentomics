@@ -1,5 +1,16 @@
 # fRagmentomics NEWS
 
+## fRagmentomics 1.1.0 (in development)
+
+### NEW FEATURES
+
+- **Region mode**: New `run_fRagmentomics_region()` entry point that analyzes fragments overlapping genomic regions from a BED file (`.bed` or `.bed.gz`). It returns the fragmentomic features without mutation status or VAF columns and does not require a FASTA file.
+
+### OTHER CHANGES
+
+- **API rename**: The mutation entry point is now `run_fRagmentomics_variant()`, with no deprecated alias.
+- **BAM extraction**: `read_bam()` now takes a `start`/`end` interval instead of a single position.
+
 ## fRagmentomics 0.99.12 (2026-03-31)
 
 Pre-release version on Bioconductor devel.
@@ -8,9 +19,9 @@ Pre-release version on Bioconductor devel.
 
 ### OTHER CHANGES
 
-- **Bioconductor compliance**: `run_fRagmentomics()` now returns a `S4Vectors::DataFrame` instead of a base `data.frame`.
+- **Bioconductor compliance**: `run_fRagmentomics_variant()` now returns a `S4Vectors::DataFrame` instead of a base `data.frame`.
 - **VCF import**: Replaced the custom VCF parser with `VariantAnnotation::readVcf()` for standard-compliant VCF reading. Compressed files (`.vcf.gz`) must now be bgzip-compressed and tabix-indexed. Added `VariantAnnotation` as an explicit dependency.
-- **Performance**: Replaced incremental `rbind()`/`rbindlist()` patterns in `run_fRagmentomics()`, `normalize_mut()`, and `remove_bad_mut()` with list-based collection followed by a single bind.
+- **Performance**: Replaced incremental `rbind()`/`rbindlist()` patterns in `run_fRagmentomics_variant()`, `normalize_mut()`, and `remove_bad_mut()` with list-based collection followed by a single bind.
 - **Pipe cleanup**: Replaced all `magrittr` pipes (`%>%`) with the native R base pipe (`|>`) across all plotting functions. `magrittr` is no longer a dependency.
 
 ## fRagmentomics 0.99.10 (2026-02-22)

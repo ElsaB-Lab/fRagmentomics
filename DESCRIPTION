@@ -20,6 +20,9 @@ Description: A user-friendly R package that enables the characterization
     and accepts any reference file and species in FASTA format. For each cfDNA
     fragment, fRagmentomics outputs its size, its 3' and 5' sequences, and its
     mutational status.
+    The package also provides a region mode that extracts the same fragment
+    features for fragments overlapping genomic regions supplied as a BED file,
+    without mutational annotation.
     Optionally, when users set apply_bcftools_norm = TRUE, fRagmentomics invokes
     the external command-line tool bcftools norm to left-align and normalize variants.
     If bcftools is not found on the system PATH while this option is enabled,
