@@ -60,21 +60,21 @@ jobs:
         run: |
           # conda 26 requires a conda-build that registers the "build" subcommand.
           # boa and conda-verify are deprecated and pull an old conda-build (24.x).
-          mamba install -y -c conda-forge "conda-build>=26" anaconda-client
-          conda build --version
+          mamba install -y -n base -c conda-forge "conda-build>=26" anaconda-client
+          conda-build --version
 
       - name: Compute output path
         id: out
         shell: bash -l {0}
         run: |
-          PKG_PATH=$(conda build "$RECIPE_DIR" -c conda-forge -c bioconda --output)
+          PKG_PATH=$(conda-build "$RECIPE_DIR" -c conda-forge -c bioconda --output)
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
           echo "Will build: $PKG_PATH"
 
       - name: Build recipe
         shell: bash -l {0}
         run: |
-          conda build "$RECIPE_DIR" -c conda-forge -c bioconda
+          conda-build "$RECIPE_DIR" -c conda-forge -c bioconda
 
       - name: Upload to Anaconda (elsab-lab)
         if: env.ANACONDA_API_TOKEN != ''
