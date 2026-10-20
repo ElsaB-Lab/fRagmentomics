@@ -1,6 +1,6 @@
 # fRagmentomics <img src="man/figure/logo.svg" align="right" width="150"/>
 
-![Version](https://img.shields.io/badge/version-0.99.12-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 [![codecov](https://codecov.io/gh/ElsaB-Lab/fRagmentomics/graph/badge.svg?token=OMTSCRO7LJ)](https://codecov.io/gh/ElsaB-Lab/fRagmentomics)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![R style: styler](https://img.shields.io/badge/code%20style-styler-blue.svg)](https://github.com/r-lib/styler)
@@ -50,7 +50,7 @@ _fRagmentomics_ fills the gap by providing an integrated framework that simultan
 
 ### Prerequisites
 
-fRagmentomics is built and tested under **R version 4.4.3**.
+fRagmentomics is built and tested under **R version 4.6**.
 
 ### System Dependencies
 

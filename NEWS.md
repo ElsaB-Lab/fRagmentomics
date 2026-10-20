@@ -1,5 +1,11 @@
 # fRagmentomics NEWS
 
+## fRagmentomics 1.1.0 (2026-10-19)
+
+### OTHER CHANGES
+
+- **Version alignment**: the package follows the Bioconductor devel versioning (1.1.0) instead of the 0.99.x pre-release series. No code change.
+
 ## fRagmentomics 0.99.12 (2026-03-31)
 
 Pre-release version on Bioconductor devel.
