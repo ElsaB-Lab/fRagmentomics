@@ -61,7 +61,8 @@ jobs:
           # install into the prefix of the conda actually on PATH, then make its
           # bin directory authoritative so the probe below sees what we installed
           CONDA_BASE=$(conda info --base)
-          mamba install -y -p "$CONDA_BASE" -c conda-forge "conda-build>=26" anaconda-client
+          mamba install -y -p "$CONDA_BASE" -c conda-forge "conda-build>=26" anaconda-client anaconda-cli-base
+          "$CONDA_BASE/bin/anaconda" --help >/dev/null
           export PATH="$CONDA_BASE/bin:$PATH"
           # conda 26 does not reliably register the "build" subcommand and the
           # standalone conda-build executable is not always shipped, so probe
@@ -99,7 +100,7 @@ jobs:
         run: |
           PKG="${{ steps.out.outputs.pkg_path }}"
           echo "Uploading $PKG with label: $LABEL"
-          anaconda -t "$ANACONDA_API_TOKEN" upload -u elsab-lab -l "$LABEL" --skip-existing "$PKG"
+          "$(conda info --base)/bin/anaconda" -t "$ANACONDA_API_TOKEN" upload -u elsab-lab -l "$LABEL" --skip-existing "$PKG"
 
       - name: Test user install from channel
         shell: bash -l {0}
