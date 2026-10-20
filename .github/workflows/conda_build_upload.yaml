@@ -58,23 +58,40 @@ jobs:
       - name: Install build tools
         shell: bash -l {0}
         run: |
-          # conda 26 requires a conda-build that registers the "build" subcommand.
-          # boa and conda-verify are deprecated and pull an old conda-build (24.x).
-          mamba install -y -n base -c conda-forge "conda-build>=26" anaconda-client
-          conda-build --version
+          # install into the prefix of the conda actually on PATH, then make its
+          # bin directory authoritative so the probe below sees what we installed
+          CONDA_BASE=$(conda info --base)
+          mamba install -y -p "$CONDA_BASE" -c conda-forge "conda-build>=26" anaconda-client
+          export PATH="$CONDA_BASE/bin:$PATH"
+          # conda 26 does not reliably register the "build" subcommand and the
+          # standalone conda-build executable is not always shipped, so probe
+          # which invocation works and reuse it in the next steps.
+          if conda build --version >/dev/null 2>&1; then
+            CB="conda build"
+          elif python -m conda build --version >/dev/null 2>&1; then
+            CB="python -m conda build"
+          elif command -v conda-build >/dev/null 2>&1; then
+            CB="conda-build"
+          else
+            echo "No working conda build invocation found" >&2
+            conda info >&2
+            exit 1
+          fi
+          echo "CONDA_BUILD_CMD=$CB" >> "$GITHUB_ENV"
+          echo "Using: $CB"
 
       - name: Compute output path
         id: out
         shell: bash -l {0}
         run: |
-          PKG_PATH=$(conda-build "$RECIPE_DIR" -c conda-forge -c bioconda --output)
+          PKG_PATH=$($CONDA_BUILD_CMD "$RECIPE_DIR" -c conda-forge -c bioconda --output)
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
           echo "Will build: $PKG_PATH"
 
       - name: Build recipe
         shell: bash -l {0}
         run: |
-          conda-build "$RECIPE_DIR" -c conda-forge -c bioconda
+          $CONDA_BUILD_CMD "$RECIPE_DIR" -c conda-forge -c bioconda
 
       - name: Upload to Anaconda (elsab-lab)
         if: env.ANACONDA_API_TOKEN != ''
